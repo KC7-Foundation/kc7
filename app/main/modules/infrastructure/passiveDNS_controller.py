@@ -29,7 +29,8 @@ def gen_passive_dns(actor, count_of_records):
     """
     # For all non-default actors, indicators should be pivotable
     # Result is that 3x number of specified records will be created
-    
+    new_records = []
+
     if actor.name != "Default":
         for i in range(count_of_records):
             #TODO: if actor isn;t default, IPs and Domains should be reused
@@ -43,18 +44,22 @@ def gen_passive_dns(actor, count_of_records):
             for i in range(random.randint(1,3)):
                 # IP is known and domain is new
                 record = DNSRecord(actor, ip=seed_record.ip)
-                print(record.stringify())
+                #print(record.stringify())
                 db.session.add(record)
                 # Domain is known and IP is new
                 pivot_record = DNSRecord(actor, domain=record.domain)
-                print(pivot_record.stringify())
-                db.session.add(record)
+                #print(pivot_record.stringify())
+                db.session.add(pivot_record)
+                new_records.append(record)
+                new_records.append(pivot_record)
     else:
         for i in range(count_of_records):
             record = DNSRecord(actor)
             db.session.add(record)
+            new_records.append(record)
     try:
         #print(f"Adding {count_of_records} passiveDNS records")
+        upload_dns_records_to_azure(new_records)
         db.session.commit()
     except Exception as e:
         print(f"Error adding passiveDNS record {e}")
