@@ -1,0 +1,75 @@
+{% extends "main/base.html" %}
+{% block body %}
+
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Manage Teams</h1>
+  </div>
+
+    <!-- Content Row -->
+    <div class="row">
+
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Current Teams</h6>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Team Name</th>
+                <th>Member Count</th>
+                <th>Mitigations</th>
+                <th>Score</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+              {% for team in teams %}
+              <tr>
+                <td>{{ team.id }}</td>
+                <td>{{ team.name}}</td>
+                <td>{{ team.members.count() }}</td>
+                <td>{{ team._mitigations }}</td>
+                <td>{{ team.score }}</td>
+                <td>
+                  <form action="/delteam" method="post">
+                    <input type="hidden" name="team_id" value="{{ team.id }}">
+                    <input type="submit" class="btn btn-danger btn-block btn-sm"  value="Delete this team"
+                    onclick="return confirm('Are you sure you want to delete this team?')">
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+        </div>
+      </div>
+        
+      </div><!-- end of row-->
+    
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Add a new team</h6>
+            </div>
+            <div class="card-body">
+              <form action='/create_team' method="POST">
+                <div class="form-group row">
+                  <label class="col-md-3 col-form-label">Team Name: </label>
+                  <div class="col-md-6">
+                    <input type="text" class="form-control" name="team_name" placeholder="Team Name" autocomplete="off"/>
+                  </div>
+                  <div class="col-md-3">
+                    <input type="submit" class="btn btn-primary" value="Create New Team"> 
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+
+{% endblock %}

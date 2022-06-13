@@ -1,0 +1,152 @@
+{% extends "main/base.html" %}
+{% block body %}
+
+
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Manage Game</h1>
+  </div>
+
+    <!-- Content Row -->
+    <div class="row">
+
+        
+        <!-- Default Card Example -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Game State</h6>
+            </div>
+            <div class="card-body">
+                The game state is: <b id="state"> {{ game_state }}</b>
+            </div>
+        </div>
+
+
+        <!-- Default Card Example -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Start the Game</h6>
+            </div>
+            <div class="card-body">
+                Use the button below to start the game for all players
+                <div class="my-4"></div>
+                <a href="#" onclick="start_game()"  class="btn btn-success btn-icon-split btn-lg">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-play"></i>
+                    </span>
+                    <span class="text">Start</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Default Card Example -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Stop the Game</h6>
+            </div>
+            <div class="card-body">
+                Use the button below to stop the game for all players
+                <div class="my-4"></div>
+                <a href="#" onclick="stop_game()" class="btn btn-danger btn-icon-split btn-lg">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-power-off"></i>
+                    </span>
+                    <span class="text">Stop</span>
+                </a>
+            </div>
+        </div>
+
+
+        <!-- Default Card Example -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Restart the Game</h6>
+            </div>
+            <div class="card-body">
+                Use the button below to restart the game for all players.
+                This will reset all team scores and team mitigations
+                <div class="my-4"></div>
+                <a href="#" onclick="restart_game()"  class="btn btn-primary btn-icon-split btn-lg">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-recycle"></i>
+                    </span>
+                    <span class="text">Restart</span>
+                </a>
+            </div>
+        </div>
+
+    </div><!-- end of row-->
+    <div class="row">
+
+        <!-- Bar Chart -->
+       <div class="card shadow mb-4">
+           <div class="card-header py-3">
+               <h6 class="m-0 font-weight-bold text-primary">Active Indicators</h6>
+           </div>
+           <div class="card-body">
+                
+                <table id="indicators" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Actor</th>
+                            <th>Domain</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for indicator in indicators %}
+                        <tr>
+                            <td>{{ indicator.actor.name }}</td>
+                            <td>{{ indicator.domain}}</td>
+                            <td>{{ indicator.ip }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+           </div>
+       </div>
+   </div>
+
+   <script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
+
+
+    <script>
+    
+    function updateGameState(STATE){
+        console.log(STATE)
+        $('#state').text(STATE);
+    }
+
+    function start_game() {
+        updateGameState('True')
+        $.get("/admin/start_game",
+            function(data) {
+                console.log(data.STATE)
+                pdateGameState(data.STATE)
+            });
+    }
+
+    function stop_game() {
+        $.get("/admin/stop_game",
+            function(data) {
+                updateGameState(data.STATE)
+            });
+    }
+
+    function restart_game() {
+        let text = "Are you sure you want to restart the game? This will reset all team scores"
+        if (confirm(text) == true) {
+            $.get("/admin/restart_game",
+                function(data) {
+                    updateGameState(data.STATE)
+                });
+        }
+    }
+    
+    $('#indicators').DataTable();
+
+    </script>
+
+
+{% endblock %}

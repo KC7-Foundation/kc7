@@ -1,0 +1,87 @@
+{% extends "main/base.html" %}
+{% block body %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  
+  <!-- Page Heading -->
+   <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Reported Emails</h1>
+  </div>
+
+
+ <!-- Begin Page Content -->
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card shadow">
+          <table class="table table-hover table-sm">
+            <thead>
+              <tr>
+                <th scope="col">Time</th>
+                <th scope="col">Subject</th>
+                <th scope="col">Sender</th>
+                <th scope="col">Recipient</th>
+                <th scope="col">Delete</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for report in reports %}
+              <tr>
+                  <th scope="row">{{ report.time }}</th>
+                  <td>{{ report.subject[:20] }}</td>
+                  <td>{{ report.sender }}</td>
+                  <td>{{ report.recipient }}</td>
+                  <td>
+                    <form action="/delreport" method="post">
+                      <input type="hidden" name="report_id" value="{{ report.id }}">
+                      <button type="submit" class="btn btn-danger btn-sm" >
+                        <i class="fa fa-close"></i>
+                      </button>
+                    </form>
+                  </td>   
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    
+
+
+    $.get("/getDenyList",
+      function(data){
+        $("#denylist").val(JSON.parse(data).join("\n"));
+      }
+    );
+   
+    $( "#denylistupdate" ).click(function(event) {
+            event.preventDefault();
+            
+            console.log("updating denylist...");
+            
+            try {
+                denyList = $("#denylist").val();
+                console.log(denyList);
+                //console.log(student_id)
+                $.post( "/updateDenyList",
+                       {dlist: denyList},
+                       function(data){
+                            toastr['success']('Denylist Updated');
+                            //console.log(data)
+                       });
+                
+            } catch(err) {
+              toastr['success']('Error Updating Denylist. Contact your administrator');
+                console.log("Request to update DenyList failed")
+                console.log(err)
+            }
+
+        });
+      
+    </script>
+
+  {% endblock %}

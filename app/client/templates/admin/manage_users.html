@@ -1,0 +1,48 @@
+{% extends "main/base.html" %}
+{% block body %}
+
+  <!-- Page Heading -->
+  <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Manage Users</h1>
+  </div>
+
+    <!-- Content Row -->
+    <div class="row">
+      
+      <!-- Bar Chart -->
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Leaderboard</h6>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>User Name</th>
+                <th>Delete</th>
+              </tr>
+            </thead>
+              {% for user in users %}
+              <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username}}</td>
+                <td>
+                  <form action="/deluser" method="post">
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <input type="submit" class="btn btn-danger btn-block btn-sm"  value="Delete this user"
+                    onclick="return confirm('Are you sure you want to delete this user?')">
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+        </div>
+      </div>
+      </div><!-- end of row-->
+    
+
+        
+      </div>
+
+{% endblock %}

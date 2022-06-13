@@ -1,0 +1,89 @@
+{% extends "main/base.html" %}
+{% block body %}
+
+  
+  <!-- Page Heading -->
+   <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+  </div>
+
+
+  <!-- Content Row -->
+
+  <div class="row">
+
+    <!-- Area Chart -->
+    <div class="col-xl-12 col-lg-12">
+
+      <!-- Bar Chart -->
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Leaderboard</h6>
+        </div>
+        <div class="card-body">
+            <div class="chart-bar">
+                <canvas id="myBarChart"></canvas>
+            </div>
+            <hr>
+            Team scores. Updates every (10) seconds
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!--script src="{{ url_for('static', filename='js/demo/chart-area-demo.js') }}"></!--script-->
+  <script src="{{ url_for('static', filename='js/demo/chart-bar-demo.js') }}"></script>
+  <script>
+  // Update the view chart with the current scores
+    // For each team
+    // function addData(SCORES) {
+    //     var nextNum = myLineChart.data.labels.length +1;
+    //     myLineChart.data.labels.push(nextNum);
+    //     myLineChart.data.datasets.forEach((dataset) => {
+          
+    //       // Find the current score from SCORES that matches
+    //       // this here data set
+    //       score =  jQuery.map(SCORES, function(obj) {
+    //           if(obj.name == dataset.label) {
+    //             return obj.score
+    //           } 
+    //         })
+    //       dataset.data.push(score[0]);
+    //     });
+    //     myLineChart.update();
+    // }
+    update_values()
+    // Update the view chart with the current scores
+    function updateScores(SCORES) {
+        //console.log(SCORES)
+        myBarChart.data.labels  = SCORES.teams;
+        myBarChart.data.datasets[0].data = SCORES.scores;
+        myBarChart.options.scales.xAxes[0].ticks.max = Math.max.apply(null, SCORES.scores) * 1.1; 
+        //myBarChart.options.tooltips.callbacks.label;
+        myBarChart.update();
+    }
+      
+    // Make a call to the /get_score endpoint 
+    // to retrieve updated scores for all teams
+    // use these values to update the chart in the view
+    function update_values() {
+        $.get("/get_score",
+            function(data) {
+                //addData(data.SCORES)
+                //console.log(data.SCORES)
+                updateScores(data.SCORES)
+            });
+    }
+
+    // Update the graph every 10 seconds
+    window.setInterval(function(){
+      /// call your function here
+        update_values()
+    }, 10000);
+
+
+   
+  </script>
+
+  {% endblock %}
