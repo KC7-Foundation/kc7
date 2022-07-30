@@ -16,10 +16,13 @@ fake.add_provider(person)
 
 class CompanyShell():
 
-    def __init__(self, name, description="A company that makes money") -> None:
+    def __init__(self, name, domain, description="A company that makes money") -> None:
         
         self.name = name
-        self.domain = str.lower("".join(name.split())).replace(",", "") + "." + fake.tld()
+        if domain:
+            self.domain = domain
+        else:
+            self.domain = str.lower("".join(name.split())).replace(",", "") + "." + fake.tld()
         self.description = description
         self.employees = []
         self.add_employees()

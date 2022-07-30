@@ -27,6 +27,7 @@ def gen_passive_dns(actor, count_of_records):
     This should happen in bulk and the start 
     with a lower stream of entries created as the game goes on
     """
+    print(f"Adding {count_of_records} passiveDNS records for {actor.name} actor")
     # For all non-default actors, indicators should be pivotable
     # Result is that 3x number of specified records will be created
     new_records = []
@@ -41,7 +42,7 @@ def gen_passive_dns(actor, count_of_records):
             else:
                 seed_record = random.choice(actor_records)
 
-            for i in range(random.randint(1,3)):
+            for i in range(random.randint(1,2)):
                 # IP is known and domain is new
                 record = DNSRecord(actor, ip=seed_record.ip)
                 #print(record.stringify())
@@ -50,30 +51,29 @@ def gen_passive_dns(actor, count_of_records):
                 pivot_record = DNSRecord(actor, domain=record.domain)
                 #print(pivot_record.stringify())
                 db.session.add(pivot_record)
-                new_records.append(record)
-                new_records.append(pivot_record)
+                new_records.append(record.stringify())
+                new_records.append(pivot_record.stringify())
     else:
+        # this is the default actor
         for i in range(count_of_records):
             record = DNSRecord(actor)
+            new_records.append(record.stringify())
             db.session.add(record)
-            new_records.append(record)
     try:
-        #print(f"Adding {count_of_records} passiveDNS records")
         upload_dns_records_to_azure(new_records)
         db.session.commit()
     except Exception as e:
         print(f"Error adding passiveDNS record {e}")
 
+
 def upload_dns_records_to_azure(dns_records):
     """
-    take array of dns_record db objects
+    take array of dns_record db objects or json objects
     writes to azure
     """
-    stringified_records = [record.stringify() for record in dns_records]
+    uploader = LogUploader()
 
-    uploader = LogUploader(
-        log_type = current_app.config["LOG_PREFIX"] + "_PassiveDns",
-        data = stringified_records
-    )
-
-    uploader.send_request()
+    random.shuffle(dns_records)
+    uploader.send_request(
+            data = dns_records,
+            table_name= "PassiveDNS")

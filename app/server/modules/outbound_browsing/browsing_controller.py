@@ -42,9 +42,8 @@ def browse_website(employee, link):
 
 def upload_event_to_azure(event):
 
-    uploader = LogUploader(
-        log_type= current_app.config["LOG_PREFIX"] + "_OutboundBrowsingEvents",
-        data = event.stringify()
-    )
-
-    uploader.send_request()
+    uploader = LogUploader()
+    # TODO: Instantiate once - user many times
+    uploader.send_request(
+            data = [event.stringify()],
+            table_name= "OutboundBrowsingEvents")

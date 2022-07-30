@@ -52,7 +52,6 @@ def gen_email(employees, actor):
     if actor.name == DEFAULT_ACTOR_NAME:
         email_type = random.choice([t.value for t in EmailType])
     else:
-        
         email_type = EmailType.INBOUND.value
 
     # Depending on the email type selected, call a different function
@@ -74,7 +73,9 @@ def gen_inbound_mail(recipient, actor):
     """
     Generate an email from someone outside the company to someone inside
     """
-    link = get_link(actor)
+    teams = Team.query.all()
+
+    link, domain = get_link(actor, return_domain=True)
     sender = actor.get_sender_address()
     reply_to = actor.get_sender_address() if actor.spoof_email else sender
 
@@ -91,9 +92,18 @@ def gen_inbound_mail(recipient, actor):
     send_email_to_azure(email)
 
     if email.authenticity >= recipient.awareness:
+        # dock team scores here
         browse_website(recipient, link)
-        # TODO: Generate a logon attempt for the recipient (random success/fail rate??)
-        #print(f"The user {recipient.name} opened this email!")
+
+        # user clicked a link
+        # if link domain belongs to a non-defautl actor
+        # and the domain isn't mitigated - dock major point
+        for team in teams:
+            if domain not in team._mitigations:
+                team.score = team.score - 50
+                db.session.commit()
+                # TODO: Generate a logon attempt for the recipient (random success/fail rate??)
+                # print(f"The user {recipient.name} opened this email!")
 
 def gen_outbound_mail(sender, actor):
     """
@@ -124,11 +134,10 @@ def gen_internal_mail(sender, recipient, actor):
 
     send_email_to_azure(email)
 
+
 def send_email_to_azure(email):
+    uploader = LogUploader()
 
-    uploader = LogUploader(
-        log_type= current_app.config["LOG_PREFIX"] + "_EmailLogs",
-        data = [email.stringify()]
-    )
-
-    uploader.send_request()
+    uploader.send_request(
+            data = [email.stringify()],
+            table_name= "Email")

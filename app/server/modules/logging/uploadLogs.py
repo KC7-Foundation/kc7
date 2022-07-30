@@ -1,71 +1,96 @@
+import pandas as pd
 import json
-import requests
-import datetime
-import hashlib
-import hmac
-import base64
+from azure.kusto.data import KustoClient, KustoConnectionStringBuilder
+from azure.kusto.data.exceptions import KustoServiceError
+from azure.kusto.data.helpers import dataframe_from_result_table
+from azure.kusto.data.data_format import DataFormat
+from azure.kusto.ingest import QueuedIngestClient, IngestionProperties, FileDescriptor, BlobDescriptor, ReportLevel, ReportMethod
 
 from flask import current_app
+#see https://github.com/Azure/azure-kusto-python/blob/master/azure-kusto-ingest/tests/sample.py
 
-## TODO: Remove secrets from code before uploading to GitHub
-# references
-## https://docs.microsoft.com/en-us/rest/api/loganalytics/create-request
 
 class LogUploader():
-    """Upload json logs to Azure"""
+
+
+    def __init__(self):
+        # authenticate using a registered APP
+        self.AAD_TENANT_ID =  current_app.config["AAD_TENANT_ID"] 
+        self.KUSTO_URI =  current_app.config["KUSTO_URI"]  
+        self.KUSTO_INGEST_URI =  current_app.config["KUSTO_INGEST_URI"]
+        self.DATABASE =  current_app.config["DATABASE"] 
+        # self.TABLE = "emailtest"
+
+        # In case you want to authenticate with AAD application.
+        self.client_id = current_app.config["CLIENT_ID"]
+        self.client_secret = current_app.config["CLIENT_SECRET"]
+
+        # authentication for ingestion client
+        kcsb_ingest = KustoConnectionStringBuilder.with_aad_application_key_authentication(self.KUSTO_INGEST_URI, 
+                                                self.client_id, self.client_secret, self.AAD_TENANT_ID)
+
+        # authentication for general client
+        kcsb_data = KustoConnectionStringBuilder.with_aad_application_key_authentication(self.KUSTO_URI, 
+                                                self.client_id, self.client_secret, self.AAD_TENANT_ID)
     
-    def __init__(self, log_type, data):
-        
-        self.log_type = log_type      # name of field in azure
-        self.data = json.dumps(data)  # data should be a json blog
-
-        # Update the customer ID to your Log Analytics workspace ID
-        self.customer_id = current_app.config["CUSTOMER_ID"]
-
-        # For the shared key, use either the primary or the secondary Connected Sources client authentication key   
-        self.shared_key = current_app.config["SHARED_KEY"]
-
-    
-    # Build the API signature
-    def _build_signature(self, customer_id, shared_key, date, content_length, method, content_type, resource):
-        x_headers = 'x-ms-date:' + date
-        string_to_hash = method + "\n" + str(content_length) + "\n" + content_type + "\n" + x_headers + "\n" + resource
-        bytes_to_hash = bytes(string_to_hash, encoding="utf-8")  
-        decoded_key = base64.b64decode(shared_key)
-        encoded_hash = base64.b64encode(hmac.new(decoded_key, bytes_to_hash, digestmod=hashlib.sha256).digest()).decode()
-        authorization = "SharedKey {}:{}".format(customer_id,encoded_hash)
-        return authorization
-
-    # Build and send a request to the POST API
-    def _post_data(self, customer_id, shared_key, body, log_type):
-        method = 'POST'
-        content_type = 'application/json'
-        resource = '/api/logs'
-        rfc1123date = datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
-        content_length = len(body)
-        signature = self._build_signature(customer_id, shared_key, rfc1123date, content_length, method, content_type, resource)
-        uri = 'https://' + customer_id + '.ods.opinsights.azure.com' + resource + '?api-version=2016-04-01'
-
-        headers = {
-            'content-type': content_type,
-            'Authorization': signature,
-            'Log-Type': log_type,
-            'x-ms-date': rfc1123date
-        }
-
-        response = requests.post(uri,data=body, headers=headers)
-        if (response.status_code >= 200 and response.status_code <= 299):
-            print('Uploaded table %s to Azure' % log_type)
-        else:
-            print("Response code: {}".format(response.status_code))
-
-    def send_request(self):
-        """Send a request to Azure to add data to the log-analytics"""
-
-        if current_app.config["DEBUG_MODE"]:
-            pass
-            print(f"WARNING: DEBUG MODE enabled! {len(json.loads(self.data))} rows will NOT be uploaded to table {self.log_type}!")
-        else:
-            self._post_data(self.customer_id, self.shared_key, self.data, self.log_type)
+        self.ingest = QueuedIngestClient(kcsb_ingest)
+        self.client = KustoClient(kcsb_data)
 
 
+    def create_tables(self):
+        #TODO Create all the necessary tables
+        # This should be done in the main controller during the init stage
+        create_table_commands = [
+        """.create table ['Email']  
+            (['event_time']:string, 
+            ['sender']:string, 
+            ['reply_to']:string, 
+            ['recipient']:string, 
+            ['subject']:string, 
+            ['accepted']:bool, 
+            ['link']:string)""",
+
+        """.create table ['CompanyInfo']  
+            (['name']:string, 
+            ['user_agent']:string, 
+            ['ip_addr']:string, 
+            ['email_addr']:string, 
+            ['company_domain']:string)""",
+
+        """.create table ['PassiveDNS']  
+            (['ip']:string, 
+            ['domain']:string)""",
+
+        """.create table ['OutboundBrowsingEvents']  
+            (['time']:string, 
+            ['method']:string, 
+            ['src_ip']:string, 
+            ['user_agent']:string, 
+            ['url']:string)
+        """ ]
+        # print(help(self.client))
+        # command =  """.create table ['PassiveDNS'] (['ip']:string, ['domain']:string)"""
+        # response = self.client.execute_mgmt(self.DATABASE, command)
+        # print(response)
+
+        for command in create_table_commands:
+            response = self.client.execute_mgmt(self.DATABASE, command)
+        print(response)
+
+
+    def send_request(self, data, table_name="emailtest"):
+
+        # put data in a dataframe for ingestion
+        self.data = pd.DataFrame(data)  # data should be a json blob
+
+        # set ingestion properties
+        self.ingestion_props = IngestionProperties(
+            database=self.DATABASE,
+            table=table_name,
+            data_format=DataFormat.CSV,
+            report_level=ReportLevel.FailuresAndSuccesses
+        )
+
+        result = self.ingest.ingest_from_dataframe(self.data, ingestion_properties=self.ingestion_props)
+        # print(result)
+        print(f"....adding data to azure for {table_name} table")

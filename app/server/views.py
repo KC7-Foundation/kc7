@@ -72,10 +72,13 @@ def manage_game():
 @roles_required('Admin')
 @login_required
 def call_start():
+    # web endpoint to start the game
     start_game()
     return jsonify({"STATE":True})
 
 def start_game():
+    # The game session is a database table
+    # The current game is session (1) - could probably do this better later
     current_session = db.session.query(GameSession).get(1)
     current_session.state = True
 
@@ -90,7 +93,10 @@ def start_game():
 
         # generate the activity
         for actor in actors: 
-            generate_activity(actor, employees, num_passive_dns=3, num_email=2,num_random_browsing=3) 
+            if actor.name == "Default":
+                generate_activity(actor, employees, num_passive_dns=10, num_email=10,num_random_browsing=5) 
+            else:
+                generate_activity(actor, employees, num_passive_dns=1, num_email=2,num_random_browsing=3) 
 
         # Update the scores for each team
         for team in teams:
@@ -102,7 +108,7 @@ def start_game():
 
         db.session.commit()
         print("updated team scores")
-        time.sleep(5)
+        # time.sleep(5)  #do this when liv
     
 
 
@@ -135,6 +141,11 @@ def restart_game():
         print("Resetting team mitigations")
         team._mitigations = ""
     
+    db.session.query(DNSRecord).delete()
+    db.session.query(Actor).delete()
+    db.session.query(Employee).delete()
+    db.session.query(Company).delete()
+
     db.session.commit()
     flash("The game has been reset", 'success')
 
@@ -199,9 +210,9 @@ def update_deny_list():
         #exists = db.session.query(User.id).filter_by(name='davidism').first() is not None
         # update the teams score
         # check if any new indicators are tagged as malicious
-        # award point for malicious indicators found
-        for indicator in mitigations:
-            current_user.team.score += 100
+        # # award point for malicious indicators found
+        # for indicator in mitigations:
+        #     current_user.team.score += 100
 
         print(current_user.team.score)
 
@@ -345,6 +356,7 @@ def init_setup():
     
     all_dns_records = DNSRecord.query.all()
     random.shuffle(all_dns_records)
+    all_dns_records = [d.stringify() for d in all_dns_records]
     upload_dns_records_to_azure(all_dns_records)
 
     return employees, actors
@@ -358,46 +370,43 @@ def generate_activity(actor, employees, num_passive_dns, num_email, num_random_b
     for i in range(num_email):
         gen_email(employees, actor)
 
-    # Generate browsing activity for random emplyoees for specified actor
-    for i in range(num_random_browsing):
-        employee = random.choice(employees)
-        browse_random_website(employee, actor)
-    
+    # Generate browsing activity for random emplyoees for the default actor
+    # browsing for other actors should only come through email clicks
+    if actor.name == "Default":
+        for i in range(num_random_browsing):
+            employee = random.choice(employees)
+            browse_random_website(employee, actor)
         
 
-def print_date_time():
-    print(time.strftime("%A, %d. %B %Y %I:%M:%S %p"))
 
+# @main.route("/test")
+# def test():
+#     #api_result = send_request()
 
+#     create_company()
+#     #companies  = Company.query.all()
+#     #names = [company.name for company in companies]
 
-@main.route("/test")
-def test():
-    #api_result = send_request()
+#     #create_actor()
+#     #actors = Actor.query.all()
+#     #names = [actor.name for actor in actors]
+#     create_actors()
+#     actors = Actor.query.all()
+#     names = [actor.spoof_email for actor in actors]
 
-    create_company()
-    #companies  = Company.query.all()
-    #names = [company.name for company in companies]
-
-    #create_actor()
-    #actors = Actor.query.all()
-    #names = [actor.name for actor in actors]
-    create_actors()
-    actors = Actor.query.all()
-    names = [actor.spoof_email for actor in actors]
-
-    gen_default_passiveDNS()
-    gen_actor_passiveDNS()
+#     gen_default_passiveDNS()
+#     gen_actor_passiveDNS()
     
-    #default_actor = db.session.query(Actor).filter_by(name = "Default").one()
-    viking_actor = db.session.query(Actor).filter_by(name = "Flying Purple Vikings").one()
-    employees = get_employees()
+#     #default_actor = db.session.query(Actor).filter_by(name = "Default").one()
+#     viking_actor = db.session.query(Actor).filter_by(name = "Flying Purple Vikings").one()
+#     employees = get_employees()
 
-    employee = random.choice(employees)
-    for i in range(13):
-        gen_email(viking_actor)
-        #browse_random_website(employee, viking_actor)
+#     employee = random.choice(employees)
+#     for i in range(13):
+#         gen_email(viking_actor)
+#         #browse_random_website(employee, viking_actor)
     
-    return json.dumps(names)
+#     return json.dumps(names)
 
 
 
@@ -419,17 +428,42 @@ def create_actors():
     )
 
     # This should come from a config later
-    viking_actor = Actor(
-        name = "Flying Purple Vikings",
+    # viking_actor = Actor(
+    #     name = "Flying Purple Vikings",
+    #     effectiveness = 50,
+    #     domain_themes = " ".join([
+    #         "viking", "thor", "hammer","norse","mountain", "thunder", "storm", "seas", "rowing", "axe"
+    #     ]),
+    #     sender_themes = " ".join([
+    #         "odin", "loki", "asgard", "fenrir", "astrid", "jormungand", "freya"
+    #     ]),
+    #     subject_themes = " ".join([
+    #         "security","alert","urgent", "grand", "banquet", ""    
+    #     ]),
+    #     tlds = " ".join([
+    #          "info", "io"   
+    #     ]),
+    #     spoof_email= True
+    # )
+
+    # third_actor = Actor(
+    #     name = "Myotheractor",
+    #     effectiveness = "99"
+    # )
+
+    football_actor = Actor(
+        name = "Commanders",
         effectiveness = 50,
+        count_init_passive_dns= 1,
+        count_init_email= 1,
         domain_themes = " ".join([
-            "viking", "thor", "hammer","norse","mountain", "thunder", "storm", "seas", "rowing", "axe"
+            "touchdown", "interception", "hike","reception","pass", "back", "tackle", "ball", "quarter", "zone"
         ]),
         sender_themes = " ".join([
-            "odin", "loki", "asgard", "fenrir", "astrid", "jormungand", "freya"
+            "patriots", "commands", "cardinals", "rams", "steelers", "ravens", "jets"
         ]),
         subject_themes = " ".join([
-            "security","alert","urgent", "grand", "banquet", ""    
+            "playoff","scrimmage","competition", "pigskin", "kickoff", "superbowl"    
         ]),
         tlds = " ".join([
              "info", "io"   
@@ -437,16 +471,34 @@ def create_actors():
         spoof_email= True
     )
 
-    third_actor = Actor(
-        name = "Myotheractor",
-        effectiveness = "99"
+    black_panther_actor = Actor(
+        name = "Wakanda",
+        effectiveness = 50,
+        count_init_passive_dns= 1,
+        count_init_email= 1,
+        domain_themes = " ".join([
+            "warrior", "black", "king","waterfall","royalty", "vibranium", "marvel", "throne", "stripped", "tribe"
+        ]),
+        sender_themes = " ".join([
+            "panther", "shuri", "tchalla", "killmonger", "okoye", "nakia", "mbaku"
+        ]),
+        subject_themes = " ".join([
+            "conflict","responsibility","fight", "coronation", "shipment", "casino", "museum"   
+        ]),
+        tlds = " ".join([
+             "site", "xyz"   
+        ]),
+        spoof_email= True
+        # set sender to internal address
     )
+
 
     # we can add more actors later
     actors = []
     actors.append(default_actor)
-    actors.append(viking_actor)
-    actors.append(third_actor)
+    actors.append(football_actor)
+    actors.append(black_panther_actor)
+    # actors.append(third_actor)
     
     try:
         for actor in actors:

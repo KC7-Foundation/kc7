@@ -8,8 +8,8 @@ from app.server.models import db, Company, Employee, Actor, DNSRecord
 fake = Faker()
 fake.add_provider(internet)
 
-def get_link(actor):
-    """Get a link containing actor's IP"""
+def get_link(actor, return_domain=False):
+    """Get a link containing actor's domain"""
 
     dns_records = [record for record in actor.dns_records]
     dns_record = random.choice(dns_records)
@@ -17,6 +17,11 @@ def get_link(actor):
     domain = dns_record.domain
 
     link = random.choice(["http://", "https://", ""]) + domain + "/" + fake.uri_path()
+    
+    # return both the links and the domain - 
+    # so that we can access the domain without having to do a weird regex
+    if return_domain:
+        return link, domain
     return link
 
 

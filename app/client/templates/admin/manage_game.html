@@ -76,37 +76,6 @@
         </div>
 
     </div><!-- end of row-->
-    <div class="row">
-
-        <!-- Bar Chart -->
-       <div class="card shadow mb-4">
-           <div class="card-header py-3">
-               <h6 class="m-0 font-weight-bold text-primary">Active Indicators</h6>
-           </div>
-           <div class="card-body">
-                
-                <table id="indicators" class="display" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th>Actor</th>
-                            <th>Domain</th>
-                            <th>IP Address</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for indicator in indicators %}
-                        <tr>
-                            <td>{{ indicator.actor.name }}</td>
-                            <td>{{ indicator.domain}}</td>
-                            <td>{{ indicator.ip }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                
-           </div>
-       </div>
-   </div>
 
    <script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
 

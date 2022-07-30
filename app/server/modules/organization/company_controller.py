@@ -17,44 +17,56 @@ def upload_company_to_azure(company_shell):
     """
     Take a CompanyShell object and uploads the employee data to Azure
     """
-    uploader = LogUploader(
-        log_type = current_app.config["LOG_PREFIX"] + "_CompanyData",
-        data = company_shell.get_jsonified_employees()
-    )
-    
-    uploader.send_request()
+
+    uploader = LogUploader()
+    try:
+        uploader.create_tables()
+    except:
+        #tables exist
+        pass
+
+    uploader.send_request(
+            data = company_shell.get_jsonified_employees(),
+            table_name= "CompanyInfo")
 
 def create_company():
     """"
     Create the company and its associated users
     Start with the company shell
     """
-    company_name = fake.company()
-    company_shell = CompanyShell(
-        name=company_name, 
-    )
-    try:
-        # Create a database object for the Company and the auto create employees
-        company = Company(
-            name=company_shell.name,
-            domain=company_shell.domain
+    companies = Company.query.all()
+    if len(companies) < 1:
+        print("No companies exist. Creating one now.")
+
+        company_name = fake.company()
+        company_shell = CompanyShell(
+            name="Howard", #company_name
+            domain="howard.edu"
         )
-        db.session.add(company)
-
-        for employee_shell in company_shell.employees:
-            # Creating an employee database object
-            employee = Employee(
-                name = employee_shell.name,
-                user_agent =  employee_shell.user_agent,
-                ip_addr = employee_shell.ip_addr,
-                awareness = employee_shell.awareness,
-                email_addr = employee_shell.email_addr,
-                company = company
+        try:
+            # Create a database object for the Company and the auto create employees
+            company = Company(
+                name=company_shell.name,
+                domain=company_shell.domain
             )
-            db.session.add(employee)
-        db.session.commit()
-    except Exception as e:
-        print('Failed to create company.', e)
-    print("Added a new company", 'success')
+            db.session.add(company)
 
-    upload_company_to_azure(company_shell)
+            for employee_shell in company_shell.employees:
+                # Creating an employee database object
+                employee = Employee(
+                    name = employee_shell.name,
+                    user_agent =  employee_shell.user_agent,
+                    ip_addr = employee_shell.ip_addr,
+                    awareness = employee_shell.awareness,
+                    email_addr = employee_shell.email_addr,
+                    company = company
+                )
+                db.session.add(employee)
+            db.session.commit()
+        except Exception as e:
+            print('Failed to create company.', e)
+        print("Added a new company", 'success')
+
+        upload_company_to_azure(company_shell)
+
+    print("A company already exists. Skipping.")
