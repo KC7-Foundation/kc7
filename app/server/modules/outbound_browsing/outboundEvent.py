@@ -1,10 +1,11 @@
 import random
 import string
+from datetime import datetime
 
 from faker import Faker
 from faker.providers import internet
 from faker.providers import user_agent
-
+from app.server.modules.clock.Clock import Clock
 # instantiate faker
 fake = Faker()
 fake.add_provider(internet)
@@ -15,9 +16,10 @@ STATUS_CODES = ["202", "301", "302", "404", "403"]
 
 class OutboundEvent:
 
-    def __init__(self, time, src_ip, user_agent, url):
+    def __init__(self, time:float, src_ip:str, user_agent:str, url:str):
         """Set initial values"""
-        self.time = time.strftime("%a %b %d %H:%M:%S %Y")
+
+        self.time = Clock.from_timestamp_to_string(time)
         self.src_ip = src_ip
         self.user_agent = user_agent
         self.set_method()

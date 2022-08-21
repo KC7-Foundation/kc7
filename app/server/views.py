@@ -19,6 +19,7 @@ from  sqlalchemy.sql.expression import func, select
 from app.server.models import db, Company, Employee, Actor, DNSRecord, Team, Users, Roles, GameSession
 from app.server.modules.organization.Company import CompanyShell, EmployeeShell
 from app.server.modules.organization.company_controller import create_company
+from app.server.modules.clock.Clock import Clock
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.email.email_controller import gen_email
 from app.server.modules.outbound_browsing.browsing_controller import *
@@ -82,6 +83,12 @@ def start_game():
     current_session = db.session.query(GameSession).get(1)
     current_session.state = True
 
+    # instantiate the clock
+    print(f"Game started at {current_session.start_time}")
+
+    # TODO: allow users ot modify start time in the web UI
+    db.session.commit()
+    
     # run startup functions 
     employees, actors  = init_setup()
 
@@ -89,6 +96,7 @@ def start_game():
     print("initialization complete...")
 
     while current_session.state == True:
+
         teams = Team.query.all()
 
         # generate the activity
@@ -132,6 +140,7 @@ def restart_game():
     # Set game state to False
     current_session = db.session.query(GameSession).get(1)
     current_session.state = False
+    current_session.start_time = datetime.now()
     # Reset team scores
 
     teams = Team.query.all()
@@ -372,10 +381,17 @@ def generate_activity(actor, employees, num_passive_dns, num_email, num_random_b
 
     # Generate browsing activity for random emplyoees for the default actor
     # browsing for other actors should only come through email clicks
+    current_session = db.session.query(GameSession).get(1)
+
     if actor.name == "Default":
         for i in range(num_random_browsing):
             employee = random.choice(employees)
-            browse_random_website(employee, actor)
+
+            # time is return as timestamp (float)
+            time = Clock.get_current_gametime(start_time=current_session.start_time,
+                                                    seed_date=current_session.seed_date)
+
+            browse_random_website(employee, actor, time)
         
 
 

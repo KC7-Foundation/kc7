@@ -321,8 +321,14 @@ class Report(AuthBase):
 
 # Define the Role data-model
 class GameSession(Base):
-    id            = db.Column(db.Integer(), primary_key=True)
-    state         = db.Column(db.Boolean)
+    id              = db.Column(db.Integer(), primary_key=True)
+    state           = db.Column(db.Boolean)
+    start_time      = db.Column(db.String(50))
+    seed_date       = db.Column(db.String(50))
+    time_multiplier = db.Column(db.Integer())
 
-    def __init__(self, state):
+    def __init__(self, state, start_time, seed_date="2022-01-01", time_multiplier=1000):
         self.state = False
+        self.seed_date = seed_date    # starting date for the game
+        self.start_time = start_time  # real life start time of game
+        self.time_multiplier = time_multiplier

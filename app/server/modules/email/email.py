@@ -5,8 +5,10 @@ from datetime import datetime
 from faker import Faker
 from faker.providers import internet, lorem
 
+
 # Import internal modules
 from app.server.models import *
+from app.server.modules.clock.Clock import Clock
 
 # instantiate faker
 fake = Faker()
@@ -15,9 +17,9 @@ fake.add_provider(lorem)
 
 class Email:
 
-    def __init__(self, sender, recipient, subject, authenticity=None, accepted=True, link=None, reply_to=None, opened=False):
+    def __init__(self, sender, recipient, subject, time=None, authenticity=None, accepted=True, link=None, reply_to=None, opened=False):
 
-        self.time = datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y")
+        self.time = time or datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y")
         self.subject = subject
         self.sender = sender
         self.recipient = recipient
@@ -48,8 +50,14 @@ class Email:
             
     def stringify(self):
         """return json object with email attributes"""
+        # if time is a timestamp convert to datetime string
+        if isinstance(self.time, float):
+            time_str = Clock.from_timestamp_to_string(self.time)
+        else:
+            time_str = self.time
+
         return {
-            "event_time": self.time,
+            "event_time": time_str,
             "sender": self.sender,
             "reply_to": self.reply_to,
             "recipient": self.recipient,
@@ -58,13 +66,4 @@ class Email:
             "link": self.link
         }
     
-    def stringifysimple(self):
-        """return json object with email attributes"""
-        return {
-            "event_time": self.time,
-            "sender": self.sender,
-            "reply_to": self.reply_to,
-            "recipient": self.recipient,
-            "subject": self.subject,
-            "accepted": self.accepted
-        }
+ 

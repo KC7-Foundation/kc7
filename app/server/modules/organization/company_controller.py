@@ -40,8 +40,8 @@ def create_company():
 
         company_name = fake.company()
         company_shell = CompanyShell(
-            name="Howard", #company_name
-            domain="howard.edu"
+            name=company_name,
+            domain="dummy.com"
         )
         try:
             # Create a database object for the Company and the auto create employees

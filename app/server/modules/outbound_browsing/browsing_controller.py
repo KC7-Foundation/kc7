@@ -20,18 +20,18 @@ fake.add_provider(internet)
 fake.add_provider(user_agent)
 
 
-def browse_random_website(employee, actor):
+def browse_random_website(employee, actor, time):
     """Browse a random website on the web"""
     # get a random user from the database
     #user = employee.... #TODO: implement this
-    browse_website(employee, get_link(actor))
+    browse_website(employee, get_link(actor), time)
 
 
-def browse_website(employee, link):
+def browse_website(employee, link, time):
     """Browse a website on the web - given a link"""
 
     event = OutboundEvent(
-        time = datetime.now(), #TODO: Fix eventually
+        time = time, #TODO: Fix eventually
         src_ip = employee.ip_addr,
         user_agent = employee.user_agent,
         url = link

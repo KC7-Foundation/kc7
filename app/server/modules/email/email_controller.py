@@ -11,6 +11,8 @@ from app.server.models import *
 from app.server.modules.email.email import Email
 from app.server.modules.outbound_browsing.browsing_controller import browse_website
 from app.server.modules.logging.uploadLogs import LogUploader
+from app.server.modules.clock.Clock import Clock
+from app.server.modules.triggers.Trigger import Trigger
 from app.server.utils import *
 
 # instantiate faker
@@ -47,6 +49,12 @@ def gen_email(employees, actor):
     to create an email, post to log analytics
     and send a secondary request to generate browsing traffic
     """
+    current_session = db.session.query(GameSession).get(1)
+
+    # time is return as timestamp (float)
+    time = Clock.get_current_gametime(start_time=current_session.start_time,
+                                             seed_date=current_session.seed_date)
+
     #print(f"Creating email for actor {actor.name}")
     # If the actor is a malicious one, we will always generate an inbound email (external -> internal)
     if actor.name == DEFAULT_ACTOR_NAME:
@@ -57,29 +65,30 @@ def gen_email(employees, actor):
     # Depending on the email type selected, call a different function
     if email_type == EmailType.INBOUND.value:
         recipient = random.choice(employees)
-        gen_inbound_mail(recipient, actor)
+        gen_inbound_mail(recipient, actor, time)
 
     elif email_type == EmailType.OUTBOUND.value:
         sender = random.choice(employees)
-        gen_outbound_mail(sender, actor)
+        gen_outbound_mail(sender, actor, time)
 
     elif email_type == EmailType.INTERNAL.value:
         sender = random.choice(employees)
         recipient = random.choice(employees)
-        gen_internal_mail(sender, recipient, actor)
+        gen_internal_mail(sender, recipient, actor, time)
 
 
-def gen_inbound_mail(recipient, actor):
+def gen_inbound_mail(recipient, actor, time):
     """
     Generate an email from someone outside the company to someone inside
     """
-    teams = Team.query.all()
-
+    
+    
     link, domain = get_link(actor, return_domain=True)
     sender = actor.get_sender_address()
     reply_to = actor.get_sender_address() if actor.spoof_email else sender
 
     email = Email(
+        time = time,
         sender = actor.get_sender_address(),
         recipient = recipient.email_addr,
         subject = actor.get_email_subject(),
@@ -91,25 +100,15 @@ def gen_inbound_mail(recipient, actor):
 
     send_email_to_azure(email)
 
-    if email.authenticity >= recipient.awareness:
-        # dock team scores here
-        browse_website(recipient, link)
+    Trigger.user_receives_email(email, recipient)
+  
 
-        # user clicked a link
-        # if link domain belongs to a non-defautl actor
-        # and the domain isn't mitigated - dock major point
-        for team in teams:
-            if domain not in team._mitigations:
-                team.score = team.score - 50
-                db.session.commit()
-                # TODO: Generate a logon attempt for the recipient (random success/fail rate??)
-                # print(f"The user {recipient.name} opened this email!")
-
-def gen_outbound_mail(sender, actor):
+def gen_outbound_mail(sender, actor, time):
     """
     Generate an email from someone inside the company to someone outside
     """
     email = Email(
+        time = time,
         sender = sender.email_addr,
         recipient = fake.ascii_email(),
         subject = actor.get_email_subject(),
@@ -119,11 +118,12 @@ def gen_outbound_mail(sender, actor):
 
     send_email_to_azure(email)
 
-def gen_internal_mail(sender, recipient, actor):
+def gen_internal_mail(sender, recipient, actor, time):
     """
     Generate mail from someone inside the company to someone else in the company
     """
     email = Email(
+        time = time,
         sender = sender.email_addr,
         recipient = recipient.email_addr,
         subject = actor.get_email_subject(),

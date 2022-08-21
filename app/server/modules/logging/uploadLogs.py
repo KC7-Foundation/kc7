@@ -79,18 +79,21 @@ class LogUploader():
 
 
     def send_request(self, data, table_name="emailtest"):
+        if table_name: # == "Email":
+            print(f"Would have sent some data to {table_name} in Azure")
+            print(data)
 
-        # put data in a dataframe for ingestion
-        self.data = pd.DataFrame(data)  # data should be a json blob
+        # # put data in a dataframe for ingestion
+        # self.data = pd.DataFrame(data)  # data should be a json blob
 
-        # set ingestion properties
-        self.ingestion_props = IngestionProperties(
-            database=self.DATABASE,
-            table=table_name,
-            data_format=DataFormat.CSV,
-            report_level=ReportLevel.FailuresAndSuccesses
-        )
+        # # set ingestion properties
+        # self.ingestion_props = IngestionProperties(
+        #     database=self.DATABASE,
+        #     table=table_name,
+        #     data_format=DataFormat.CSV,
+        #     report_level=ReportLevel.FailuresAndSuccesses
+        # )
 
-        result = self.ingest.ingest_from_dataframe(self.data, ingestion_properties=self.ingestion_props)
-        # print(result)
-        print(f"....adding data to azure for {table_name} table")
+        # result = self.ingest.ingest_from_dataframe(self.data, ingestion_properties=self.ingestion_props)
+        # # print(result)
+        # print(f"....adding data to azure for {table_name} table")

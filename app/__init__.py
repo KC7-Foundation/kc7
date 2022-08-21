@@ -1,5 +1,8 @@
+from datetime import date
+from datetime import datetime
 import sys, os, time
 import requests
+
 from flask_sqlalchemy import SQLAlchemy
 
 from flask import Flask, render_template, g
@@ -110,9 +113,9 @@ def before_request():
         db.session.commit()
 
     current_session = db.session.query(GameSession).get(1)
-    if not current_session:
+    if not GameSession.query.all():
         try:
-            current_session = GameSession(state=True)
+            current_session = GameSession(state=True, start_time=datetime.now())
             db.session.add(current_session)
             db.session.commit()
             print("Created a new game session!")
