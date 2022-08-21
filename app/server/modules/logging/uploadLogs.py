@@ -79,9 +79,9 @@ class LogUploader():
 
 
     def send_request(self, data, table_name="emailtest"):
-        if table_name: # == "Email":
+        if table_name == "PassiveDNS":
             print(f"Would have sent some data to {table_name} in Azure")
-            print(data)
+            print(json.dumps(data, indent=4))
 
         # # put data in a dataframe for ingestion
         # self.data = pd.DataFrame(data)  # data should be a json blob

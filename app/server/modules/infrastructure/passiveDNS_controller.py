@@ -21,7 +21,7 @@ import random
 #         if actor.name != "Default":
 #             gen_passive_dns(actor, 10)
 
-def gen_passive_dns(actor, count_of_records):
+def gen_passive_dns(actor, count_of_records=1):
     """
     Generate passive DNS entries 
     This should happen in bulk and the start 
@@ -33,26 +33,27 @@ def gen_passive_dns(actor, count_of_records):
     new_records = []
 
     if actor.name != "Default":
-        for i in range(count_of_records):
-            #TODO: if actor isn;t default, IPs and Domains should be reused
-            actor_records = [record for record in actor.dns_records]
-            if not actor_records:
-                seed_record = DNSRecord(actor)
-                db.session.add(seed_record)
-            else:
-                seed_record = random.choice(actor_records)
+        #TODO: if actor isn;t default, IPs and Domains should be reused
+        actor_records = [record for record in actor.dns_records] #listify DB results
+        if not actor_records:
+            # if no DB records exist, create one
+            seed_record = DNSRecord(actor)
+            db.session.add(seed_record)
+        else:
+            # else choose a seed record to pivot on
+            seed_record = random.choice(actor_records)
 
-            for i in range(random.randint(1,2)):
-                # IP is known and domain is new
-                record = DNSRecord(actor, ip=seed_record.ip)
-                #print(record.stringify())
-                db.session.add(record)
-                # Domain is known and IP is new
-                pivot_record = DNSRecord(actor, domain=record.domain)
-                #print(pivot_record.stringify())
-                db.session.add(pivot_record)
-                new_records.append(record.stringify())
-                new_records.append(pivot_record.stringify())
+        # IP is known and domain is new
+        record = DNSRecord(actor, ip=seed_record.ip)
+        # Domain is known and IP is new
+        pivot_record = DNSRecord(actor, domain=record.domain)
+
+        # pick one new DNS record based on the two pivot methods above
+        new_record = random.choice([record, pivot_record])
+        
+        # write the new record
+        db.session.add(new_record)
+        new_records.append(new_record.stringify())
     else:
         # this is the default actor
         for i in range(count_of_records):
