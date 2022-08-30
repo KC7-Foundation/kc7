@@ -39,7 +39,10 @@ class Trigger:
 
             browse_website(recipient, email.link, time)
             Trigger.update_team_scores_for_browsing(email.link)
-            Trigger.user_downloads_file(recipient, email.link, time)
+            if "." in email.link.split("/")[-1]:
+                # This is a link to a file
+                #  #TODO make this more elegant
+                Trigger.user_downloads_file(recipient, email.link, time)
 
 
     @staticmethod
@@ -63,7 +66,6 @@ class Trigger:
         When a user clicks a bad link, they download a malicioud file
         Write a file to the filesystem
         """
-        link = "mybadlink.com/malware.exe"
         filename = link.split("/")[-1] # in the future, this should be parsed from the link
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,

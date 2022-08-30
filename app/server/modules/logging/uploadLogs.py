@@ -80,7 +80,7 @@ class LogUploader():
 
     def send_request(self, data, table_name="emailtest"):
         
-        if table_name in ["FileCreationEvent"]:
+        if table_name in ["FileCreationEvent", "OutboundBrowsingEvents"]:
             print(f"Would have sent some data to {table_name} in Azure")
             print(json.dumps(data, indent=4))
 
