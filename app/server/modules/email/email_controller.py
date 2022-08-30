@@ -136,6 +136,8 @@ def gen_internal_mail(sender, recipient, actor, time):
 
 
 def send_email_to_azure(email):
+    """
+    """
     uploader = LogUploader()
 
     uploader.send_request(

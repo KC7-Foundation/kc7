@@ -6,12 +6,16 @@ from app.server.modules.email.email import Email
 from app.server.modules.outbound_browsing.browsing_controller import browse_website
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
+from app.server.modules.endpoints.file_creation_event import FileCreationEvent 
+from app.server.modules.endpoints.processes import Processes
+from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
+from app.server.modules.endpoints.endpoint_controller import upload_endpoint_event_to_azure
 from app.server.utils import *
 
 
 class Trigger:
     """
-    Handles the generation of events that have consequences
+    A trigger handles the generation of events that have consequences
     E.g. User receives email -> user clicks on email -> user browses website
          User browses website -> user downloads file
          Use downloads file -> Process runs on user machine
@@ -30,11 +34,12 @@ class Trigger:
         if email.authenticity >= recipient.awareness:
             # users click on email after 30 - 600 seconds after it was sent to them 
             click_delay = random.randint(30, 600)
-            # add time delay and convert back to datetime string
+            # add time delay 
             time = Clock.increment_time(email.time, click_delay)
 
             browse_website(recipient, email.link, time)
             Trigger.update_team_scores_for_browsing(email.link)
+            Trigger.user_downloads_file(recipient, email.link, time)
 
 
     @staticmethod
@@ -53,4 +58,20 @@ class Trigger:
                 # print(f"The user {recipient.name} opened this email!")
 
 
+    def user_downloads_file(recipient:Employee, link, time):
+        """
+        When a user clicks a bad link, they download a malicioud file
+        Write a file to the filesystem
+        """
+        link = "mybadlink.com/malware.exe"
+        filename = link.split("/")[-1] # in the future, this should be parsed from the link
+        file_creation_event = FileCreationEvent(
+            hostname=recipient.hostname,
+            creation_time=time,
+            md5= FileCreationEvent.get_random_hash(),
+            #TODO: generate in filesystem instead
+            path= f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
+            size = random.randint(100, 999999)  #TODO: have payload class that define properties. This was Greg's idea! :) "It will be trivial"
+        )
 
+        upload_endpoint_event_to_azure(file_creation_event, "FileCreationEvent") # This will come from the filesystem controller

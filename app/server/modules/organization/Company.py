@@ -1,5 +1,6 @@
 from os import name
 import random
+import string
 import json
 from json import JSONEncoder
 from faker import Faker
@@ -36,6 +37,7 @@ class CompanyShell():
         employee = EmployeeShell(
             name = fake.name(),
             user_agent = fake.user_agent(),
+            ## TODO: Let's put these ont the same network
             ip_addr = self.generate_ip(),
             company_domain = self.domain
         )
@@ -66,9 +68,24 @@ class EmployeeShell():
         self.company_domain = company_domain
         self.awareness = random.randint(30, 90)
         self.set_email()
+        self.set_username()
+        self.set_hostname()
 
-    def set_email(self):
+    def set_email(self) -> None:
         self.email_addr = str.lower("_".join(self.name.split(" "))) + '@' + self.company_domain
+
+    def set_username(self) -> None:
+        name_parts = self.name.split(" ")
+        # first two letters of first name + last name
+        # john doe -> jodoe
+        self.username = str.lower(name_parts[0][:2] + name_parts[1])
+
+    def set_hostname(self) -> None:
+        # X7O9-DESTOP
+        prefix = random.choices(string.ascii_letters + string.digits, k=4)
+        prefix = str.upper("".join(prefix))
+        postfix = random.choice(["DESKTOP", "LAPTOP", "MACHINE"])
+        self.hostname = f"{prefix}-{postfix}"
 
     def stringify(self):
         return {
@@ -76,5 +93,7 @@ class EmployeeShell():
             "user_agent": self.user_agent,
             "ip_addr": self.ip_addr,
             "email_addr": self.email_addr,
-            "company_domain": self.company_domain
+            "company_domain": self.company_domain,
+            "username": self.username,
+            "hostname": self.hostname
         }

@@ -43,6 +43,7 @@ def create_company():
             name=company_name,
             domain="dummy.com"
         )
+
         try:
             # Create a database object for the Company and the auto create employees
             company = Company(
@@ -51,7 +52,7 @@ def create_company():
             )
             db.session.add(company)
 
-            for employee_shell in company_shell.employees:
+            for index, employee_shell in enumerate(company_shell.employees):
                 # Creating an employee database object
                 employee = Employee(
                     name = employee_shell.name,
@@ -59,6 +60,8 @@ def create_company():
                     ip_addr = employee_shell.ip_addr,
                     awareness = employee_shell.awareness,
                     email_addr = employee_shell.email_addr,
+                    username = employee_shell.username,
+                    hostname = employee_shell.hostname,
                     company = company
                 )
                 db.session.add(employee)

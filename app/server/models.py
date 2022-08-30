@@ -1,4 +1,5 @@
 import random
+import string
 import json
 import datetime
 from faker import Faker
@@ -51,21 +52,22 @@ class Employee(Base):
     ip_addr             = db.Column(db.String(50))
     awareness           = db.Column(db.Integer)
     email_addr          = db.Column(db.String(50))
+    username            = db.Column(db.String(50))
+    hostname            = db.Column(db.String(50))
+    # TODO - users should have roles in the company (CEO, CIO, IT Admin, Janitor, Intern, HR
 
     company_id          = db.Column(db.Integer, db.ForeignKey('company.id'))
     company             = db.relationship('Company', backref=db.backref('employees', lazy='dynamic'))
 
-    def __init__(self, name, user_agent, ip_addr, awareness, email_addr, company):
+    def __init__(self, name, user_agent, ip_addr, awareness, email_addr, company, username, hostname):
         self.name = name
         self.user_agent = user_agent
         self.ip_addr = ip_addr
         self.awareness = awareness
         self.email_addr = email_addr
         self.company = company
-
-
-    def set_email(self):
-        self.email_addr = str.lower("_".join(self.name.split(" "))) + '@' + self.company_domain
+        self.username = username
+        self.hostname = hostname
 
     def __repr__(self):
         return  {
@@ -323,8 +325,8 @@ class Report(AuthBase):
 class GameSession(Base):
     id              = db.Column(db.Integer(), primary_key=True)
     state           = db.Column(db.Boolean)
-    start_time      = db.Column(db.String(50))
-    seed_date       = db.Column(db.String(50))
+    start_time      = db.Column(db.String(50)) #should be given as a timestamp float
+    seed_date       = db.Column(db.String(50))  
     time_multiplier = db.Column(db.Integer())
 
     def __init__(self, state, start_time, seed_date="2022-01-01", time_multiplier=1000):

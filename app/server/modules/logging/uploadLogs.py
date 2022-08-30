@@ -14,14 +14,14 @@ class LogUploader():
 
 
     def __init__(self):
-        # authenticate using a registered APP
+        # set Azure tenant config variables
         self.AAD_TENANT_ID =  current_app.config["AAD_TENANT_ID"] 
         self.KUSTO_URI =  current_app.config["KUSTO_URI"]  
         self.KUSTO_INGEST_URI =  current_app.config["KUSTO_INGEST_URI"]
         self.DATABASE =  current_app.config["DATABASE"] 
         # self.TABLE = "emailtest"
 
-        # In case you want to authenticate with AAD application.
+        # Aauthenticate with AAD application.
         self.client_id = current_app.config["CLIENT_ID"]
         self.client_secret = current_app.config["CLIENT_SECRET"]
 
@@ -79,7 +79,8 @@ class LogUploader():
 
 
     def send_request(self, data, table_name="emailtest"):
-        if table_name == "PassiveDNS":
+        
+        if table_name in ["FileCreationEvent"]:
             print(f"Would have sent some data to {table_name} in Azure")
             print(json.dumps(data, indent=4))
 
