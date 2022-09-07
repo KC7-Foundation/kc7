@@ -371,6 +371,13 @@ def init_setup():
     return employees, actors
     
 def generate_activity(actor, employees, num_passive_dns, num_email, num_random_browsing):
+    """
+    Given an actor, enerates one cycle of activity for users in the orgs
+    Current:
+        - Generate Email
+        - Generate Web Browsing
+        - General 
+    """
     print(f"generating activity for actor {actor.name}")
     # Generate passive DNS for specified actor
     gen_passive_dns(actor, num_passive_dns)
@@ -378,6 +385,9 @@ def generate_activity(actor, employees, num_passive_dns, num_email, num_random_b
     # Generate emails for random employees for specified actor
     for i in range(num_email):
         gen_email(employees, actor)
+
+    # for i in range(num_email):
+        # gen_email(employees, actor)
 
     # Generate browsing activity for random emplyoees for the default actor
     # browsing for other actors should only come through email clicks
@@ -440,7 +450,9 @@ def create_actors():
         effectiveness = 99,
         count_init_passive_dns= 10, 
         count_init_email= 10, 
-        count_init_browsing=10
+        count_init_browsing=10,
+        domain_themes = " ".join(wordGenerator.get_words(100)),
+        sender_themes = " ".join(wordGenerator.get_words(100))
     )
 
     # This should come from a config later
@@ -483,6 +495,13 @@ def create_actors():
         ]),
         tlds = " ".join([
              "info", "io"   
+        ]),
+        file_names = " ".join([
+            'scvhost', 'dllhost', 'Runtimeexplorer', 'plink', 'runner', 'proposal', 'invoice', 'salutations', 'nigerian_uncle', 'russian_prince',
+    'hello', 'wwlib','goopdate','Resume','putty','server','job_opportunity','job_offer', 'for_your_review', 'free_money'
+        ]),
+        file_extensions = " ".join([
+            'zip','rar','docx','dll','7z','pptx', 'xls', 'dotm','exe'
         ]),
         spoof_email= True
     )

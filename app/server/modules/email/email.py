@@ -2,6 +2,7 @@
 import enum
 import random
 from datetime import datetime
+from unicodedata import name
 from faker import Faker
 from faker.providers import internet, lorem
 
@@ -17,7 +18,8 @@ fake.add_provider(lorem)
 
 class Email:
 
-    def __init__(self, sender, recipient, subject, time=None, authenticity=None, accepted=True, link=None, reply_to=None, opened=False):
+    def __init__(self, sender:str, recipient:str, subject:str, time:float=None, authenticity:int=None, 
+    accepted:bool=True, link:str=None, domain:str="", reply_to:str=None, opened:bool=False, actor:Actor=None):
 
         self.time = time or datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y")
         self.subject = subject
@@ -25,8 +27,9 @@ class Email:
         self.recipient = recipient
         self.opened = opened
         self.authenticity = authenticity # How convincing is the email?
-
+        self.domain = domain
         self.link = link
+        self.actor = actor
         
         if not accepted:
             self.accepted = random.choice([True, False])
@@ -34,6 +37,7 @@ class Email:
             self.accepted = accepted
 
         if not link:
+            # this should not occur
             self.link = fake.uri()
         else:
             self.link = link

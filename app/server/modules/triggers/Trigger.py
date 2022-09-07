@@ -24,7 +24,7 @@ class Trigger:
     """
 
     @staticmethod
-    def user_receives_email(email:Email, recipient:Employee):
+    def user_receives_email(email:Email, recipient:Employee) -> None:
         """
         A user received an email
         Decide whether or not the user clicks on the email
@@ -38,15 +38,16 @@ class Trigger:
             time = Clock.increment_time(email.time, click_delay)
 
             browse_website(recipient, email.link, time)
-            Trigger.update_team_scores_for_browsing(email.link)
+            Trigger.update_team_scores_for_browsing(email.domain)
+
             if "." in email.link.split("/")[-1]:
                 # This is a link to a file
                 #  #TODO make this more elegant
-                Trigger.user_downloads_file(recipient, email.link, time)
+                Trigger.user_downloads_file(recipient, email, time)
 
 
     @staticmethod
-    def update_team_scores_for_browsing(domain: str):
+    def update_team_scores_for_browsing(domain: str) -> None:
         """
         For each actor domain seen in email
             - if a user clicks on the malicious domain in email
@@ -61,19 +62,57 @@ class Trigger:
                 # print(f"The user {recipient.name} opened this email!")
 
 
-    def user_downloads_file(recipient:Employee, link, time):
+    def user_downloads_file(recipient:Employee, email:Email, time:float) -> None:
         """
         When a user clicks a bad link, they download a malicioud file
         Write a file to the filesystem
         """
-        filename = link.split("/")[-1] # in the future, this should be parsed from the link
+        filename = email.link.split("/")[-1] # in the future, this should be parsed from the link
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
             creation_time=time,
             md5= FileCreationEvent.get_random_hash(),
             #TODO: generate in filesystem instead
             path= f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
-            size = random.randint(100, 999999)  #TODO: have payload class that define properties. This was Greg's idea! :) "It will be trivial"
+            size = random.randint(100, 999999),  #TODO: have payload class that define properties. This was Greg's idea! :) "It will be trivial"
         )
 
         upload_endpoint_event_to_azure(file_creation_event, "FileCreationEvent") # This will come from the filesystem controller
+
+        # if user runs the file then beacon from user machine
+        # there should be a condition here
+        if email.actor.name != "Default":
+            Trigger.malware_beacons_on_user_machine(recipient, time, email)
+
+
+
+    def malware_beacons_on_user_machine(recipient:Employee, time:float, email:Email) -> None: 
+        """
+        When a user dowloads a file, there is a chance the file gets executed
+        On execution, the victim's machine should begin beaconing to an actor IP 
+        The beacons are logged in the outbound browsing logs
+        e.g. victim ip -> actor C2 IP
+        """
+        c2_commands = ["whoami", "dir", "net view", "ping%208.8.8.8", "netsh%20advfirewall", "systeminfo", "ipconfig", "tasklist", "net%20time", "netstat"]
+
+        # look up the domain in the DB and get actor from it
+        # actor = DNSRecord.query.filter_by(domain=email.domain).first().actor
+        actor = Actor.query.filter_by(name=email.actor.name).first()
+
+        actor_domains = [record.domain for record in actor.dns_records]
+        actor_ips = [record.ip for record in actor.dns_records]
+
+        c2_command = random.choice(c2_commands)
+
+        c2 = random.choice(actor_domains + actor_ips)
+        c2_link = c2 + ":" + str(random.randint(8000, 14000)) + "/" + c2_command
+
+
+        #wait several hours before beaconing
+        time_delay = random.randint(5000, 99999)
+        time = Clock.increment_time(time, time_delay)
+
+        browse_website(recipient, c2_link, time)
+
+
+

@@ -1,13 +1,19 @@
+from fileinput import filename
 import random
 from faker import Faker
-from faker.providers import internet, lorem
+from faker.providers import internet, lorem, file
 
 from app.server.models import db, Company, Employee, Actor, DNSRecord
+from app.server.modules.helpers.word_generator import WordGenerator
 
 # instantiate faker
 fake = Faker()
 fake.add_provider(internet)
+fake.add_provider(file)
 fake.add_provider(lorem)
+
+# instantiate word genertor
+wordGenerator = WordGenerator()
 
 def get_link(actor:Actor, return_domain:bool=False) -> str:
     """Get a link containing actor's domain"""
@@ -22,7 +28,7 @@ def get_link(actor:Actor, return_domain:bool=False) -> str:
     else:
         uri_type = 'file'
 
-    link = random.choice(["http://", "https://", ""]) + domain + "/" + get_uri_path(uri_type=uri_type)
+    link = random.choice(["http://", "https://", ""]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
     
     # return both the links and the domain - 
     # so that we can access the domain without having to do a weird regex
@@ -30,9 +36,15 @@ def get_link(actor:Actor, return_domain:bool=False) -> str:
         return link, domain
     return link
 
-def get_uri_path(max_depth:int=6, max_params:int=14, uri_type="browsing") -> str:
+
+
+def get_uri_path(max_depth:int=6, max_params:int=14, uri_type="browsing", actor=Actor) -> str:
     """
     Generate a uri_path: either browsing uri or path uri (for file downloads)
+    browsing uri example: 
+        - http://campaignandshould.us/public/share/files?type=protect?tracking=evening?id=discuss?user=board?type=marriage?query=P
+    path uri example:
+        - https://decisiondecision.biz/online/published/published/files/public/runner.xls
     """
     uri_path = ""
 
@@ -40,16 +52,28 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type="browsing") -> str
 
     # Define constants for browsing-type
     param_names = ['query','source','id','keyword', 'search', 'user','uid','aid','tracking','type']
-    param_values = fake.paragraph(nb_sentences=20).replace(".", "").split(" ")
+    param_values = wordGenerator.get_words(100)
 
-    # Define constants for file-type
-    file_names = ['scvhost', 'dllhost', 'Runtimeexplorer', 'plink', 'runner', 'proposal', 'invoice', 'salutations', 'nigerian_uncle', 'russian_prince',
-    'hello', 'wwlib','goopdate','Resume','putty','server','job_opportunity','job_offer', 'for_your_review', 'free_money']
-    file_extensions = ['zip','rar','docx','dll','7z','pptx', 'xls', 'dotm','exe']
+   
+    # Generate these using faker
+    file_names = param_values
+    file_extensions = ['zip','rar','docx','7z','pptx', 'xls','exe']
+    
+    # Overide default filenames if new ones provided in config
+    if actor.get_file_names():
+        file_names = actor.get_file_names()
+    if actor.get_file_extensions():
+        file_extensions = actor.get_file_extensions()
 
-    for _ in range(random.randint(1,max_depth)):
+
+    # Generate the URL
+    for i in range(random.randint(1,max_depth)):
+        if i > 0:
+            # if this isn't the first dir, add a slash to the end
+            uri_path += "/"
+
         dir_word = random.choice(dir_words)
-        uri_path += f"/{dir_word}"
+        uri_path += f"{dir_word}"
             
     if uri_type == "browsing":
         for _ in range(random.randint(1,max_params)):
@@ -66,4 +90,7 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type="browsing") -> str
 def get_employees() -> list:
     employees = [employee for employee in Employee.query.all()]
     return employees
+
+
+
 

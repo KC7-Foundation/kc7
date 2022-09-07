@@ -94,6 +94,8 @@ def gen_inbound_mail(recipient, actor, time):
         subject = actor.get_email_subject(),
         reply_to = reply_to,
         link = link,
+        domain = domain,
+        actor = actor,
         accepted = random.choices([True, False], weights=(80, 20), k=1)[0],
         authenticity = actor.effectiveness
     )

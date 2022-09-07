@@ -18,6 +18,7 @@ fake.add_provider(internet)
 fake.add_provider(lorem)
 
 
+
 def upload_endpoint_event_to_azure(event, table_name):
 
     uploader = LogUploader()

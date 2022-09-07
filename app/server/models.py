@@ -12,10 +12,13 @@ from flask import jsonify
 # Import the database object (db) from the main application module
 # We will define this inside /app/__init__.py in the next sections.
 from app import db
+from app.server.modules.helpers.word_generator import WordGenerator
 
 # instantiate faker
 fake = Faker()
 fake.add_provider(internet)
+
+wordGenerator = WordGenerator()
 
 # Define a base model for other database tables to inherit
 class Base(db.Model):
@@ -89,6 +92,8 @@ class Actor(Base):
     domain_themes       = db.Column(db.String(300))
     sender_themes       = db.Column(db.String(300))
     subject_themes      = db.Column(db.String(300))
+    file_names          = db.Column(db.String(300))
+    file_extensions     = db.Column(db.String(300))
     tlds                = db.Column(db.String(300))
     spoof_email         = db.Column(db.Boolean)
 
@@ -96,21 +101,35 @@ class Actor(Base):
     count_init_email                    = db.Column(db.Integer)
     count_init_browsing                 = db.Column(db.Integer)   # >:D
 
-    def __init__(self, name, effectiveness=50, domain_themes="", sender_themes="", 
-                subject_themes="",  tlds=None, spoof_email=False, 
-                count_init_passive_dns=100, count_init_email=10, count_init_browsing=2):
+    def __init__(self, name:str, effectiveness:int=50, domain_themes:str="", sender_themes:str="", 
+                subject_themes:str="",  tlds:str=None, spoof_email:bool=False, 
+                count_init_passive_dns:int=100, count_init_email:int=10, count_init_browsing:int=2, 
+                file_names:str="", file_extensions:str="" ):
 
         self.name = name
         self.effectiveness      = effectiveness
         # we can't have lists in a database, hence the funny business here
-        self.domain_themes              = " ".join(domain_themes.split(" ") + fake.words(nb=10))
-        self.sender_themes              = " ".join(sender_themes.split(" ") + fake.words(nb=10))
-        self.subject_themes             = " ".join(subject_themes.split(" ") + fake.words(nb=10))
+        # take in the list as a space delimited string - then split
+        self.domain_themes              = " ".join(domain_themes.split(" ") + wordGenerator.get_words(10))  # adding random words for entropy
+        self.sender_themes              = " ".join(sender_themes.split(" ") + wordGenerator.get_words(10))
+        self.subject_themes             = " ".join(subject_themes.split(" ") + wordGenerator.get_words(10))
+        self.file_names                 = file_names
+        self.file_extensions            = file_extensions
         self.tlds                       = tlds or " ".join(['com','net','biz','org','us'])
         self.spoof_email                = spoof_email
         self.count_init_browsing        = count_init_browsing
         self.count_init_email           = count_init_email
         self.count_init_passive_dns     = count_init_passive_dns
+
+    
+    def get_file_names(self):
+        file_names = self.file_names.split(" ")
+        return [f for f in file_names if f!='']
+
+
+    def get_file_extensions(self):
+        file_extensions = self.file_extensions.split(" ")
+        return [f for f in file_extensions if f!='']
 
     def get_domain_name(self):
         """
@@ -118,14 +137,20 @@ class Actor(Base):
         """
         separators = ["","-","and","or", "with", "on", "in" ]
         tlds = self.tlds.split(" ")
-        domain_themes = self.domain_themes.split(" ")
+        
+        # if actor is default, let's get a larger list of randomised world
+        if self.name == "Default":
+            domain_themes = wordGenerator.get_words(1000)
+        else:
+            domain_themes = self.domain_themes.split(" ")
 
-        words = random.choices(domain_themes, k=random.randint(2,5))
+        words = random.choices(domain_themes, k=random.randint(2,3))
+        
 
         domain_components = []
         for loc, word in enumerate(words):
             domain_components += word 
-            if loc < len(words)-1:
+            if loc < len(words)-2:
                 domain_components += random.choice(separators)
 
         domain = "".join(domain_components) + "." + random.choice(tlds)
