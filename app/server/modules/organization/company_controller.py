@@ -17,17 +17,13 @@ def upload_company_to_azure(company_shell):
     """
     Take a CompanyShell object and uploads the employee data to Azure
     """
+    from app.server.views import log_uploader
+    
+    for employee in company_shell.get_jsonified_employees():
+        log_uploader.send_request(
+                data = employee,
+                table_name= "Employees")
 
-    uploader = LogUploader()
-    try:
-        uploader.create_tables()
-    except:
-        #tables exist
-        pass
-
-    uploader.send_request(
-            data = company_shell.get_jsonified_employees(),
-            table_name= "CompanyInfo")
 
 def create_company():
     """"
@@ -35,7 +31,13 @@ def create_company():
     Start with the company shell
     """
     companies = Company.query.all()
-    if len(companies) < 1:
+    if len(companies) > 0:
+        # if companies already exist. Clear the db before continuing
+        for company in companies:
+            db.session.delete(company)
+        db.session.commit()
+
+
         print("No companies exist. Creating one now.")
 
         company_name = fake.company()
@@ -72,4 +74,4 @@ def create_company():
 
         upload_company_to_azure(company_shell)
 
-    print("A company already exists. Skipping.")
+    

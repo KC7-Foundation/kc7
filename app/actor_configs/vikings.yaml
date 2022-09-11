@@ -1,0 +1,26 @@
+name : Flying Purple Vikings
+effectiveness: 50
+domain_themes:
+  - vikings
+  - thor
+  - hammer
+  - norse
+  - mountain
+sender_themes: 
+  - oden
+  - loki
+  - asgard
+  - fenrir
+  - astrid
+  - jormungand
+  - freya
+subject_themes:
+  - security
+  - alert
+  - urgent
+  - grand
+  - banquet
+tlds:
+  - info
+  - io
+spoof_email: True

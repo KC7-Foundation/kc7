@@ -97,3 +97,18 @@ class EmployeeShell():
             "username": self.username,
             "hostname": self.hostname
         }
+
+    @staticmethod
+    def get_kql_repr():
+        return (
+            "Employees", # table name
+            {                # type dict
+                "name": "string",
+                "user_agent": "string",
+                "ip_addr": "string",
+                "email_addr": "string",
+                "company_domain": "string",
+                "username": "string",
+                "hostname": "string"
+            }
+        )

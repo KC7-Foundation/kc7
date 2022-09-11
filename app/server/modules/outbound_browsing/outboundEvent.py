@@ -53,3 +53,26 @@ class OutboundEvent:
                   "url": self.url
             }
 
+    # @staticmethod
+    # def get_kql_repr():
+    #     return  ("OutboundEvents", 
+    #                 { "time": "string",
+    #                 "method": "string",
+    #                 "src_ip": "string", 
+    #                 "user_agent": "string",
+    #                 "url": "string"
+    #                 }
+    #         )
+
+    @staticmethod
+    def get_kql_repr():
+        return (
+            "OutboundBrowsing",         # table name
+            {                           # type dict
+                  "time": "string",
+                  "method": "string",
+                  "src_ip": "string",
+                  "user_agent":"string",
+                  "url": "string"
+            }
+        )

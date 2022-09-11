@@ -27,5 +27,20 @@ class FileCreationEvent:
             "size": self.size
         }
 
+    @staticmethod
+    def get_kql_repr():
+        """Returns table:str, columns:dict"""
+        return (
+            'FileCreationEvents', # table name in KQL
+            {                     # dict representation of column names:types
+                'creation_time':'string',
+                'hostname':'string',
+                'md5':'string',
+                'path':'string',
+                'filename':'string',
+                'size':'int'
+            }
+        )
+
     
 

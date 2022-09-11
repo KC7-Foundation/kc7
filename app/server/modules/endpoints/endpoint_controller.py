@@ -19,10 +19,9 @@ fake.add_provider(lorem)
 
 
 
-def upload_endpoint_event_to_azure(event, table_name):
+def upload_endpoint_event_to_azure(event, table_name="FileCreationEvents"):
 
-    uploader = LogUploader()
-    # TODO: Instantiate once - user many times
-    uploader.send_request(
+    from app.server.views import log_uploader
+    log_uploader.send_request(
             data = [event.stringify()],
             table_name= table_name)

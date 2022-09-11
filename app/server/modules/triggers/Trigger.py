@@ -77,7 +77,7 @@ class Trigger:
             size = random.randint(100, 999999),  #TODO: have payload class that define properties. This was Greg's idea! :) "It will be trivial"
         )
 
-        upload_endpoint_event_to_azure(file_creation_event, "FileCreationEvent") # This will come from the filesystem controller
+        upload_endpoint_event_to_azure(file_creation_event) # This will come from the filesystem controller
 
         # if user runs the file then beacon from user machine
         # there should be a condition here

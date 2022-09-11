@@ -51,6 +51,7 @@ class Email:
             self.authenticity = random.randint(30, 100)
         else:
             self.authenticity = authenticity
+
             
     def stringify(self):
         """return json object with email attributes"""
@@ -70,4 +71,17 @@ class Email:
             "link": self.link
         }
     
+    @staticmethod
+    def get_kql_repr():
+        return  (
+                "Email", {
+                "event_time": "string",
+                "sender": "string",
+                "reply_to": "string",
+                "recipient": "string",
+                "subject": "string",
+                "accepted": "bool",
+                "link": "string"
+            }
+        )
  

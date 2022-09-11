@@ -3,7 +3,7 @@ import atexit
 
 import json, random
 import requests
-from apscheduler.schedulers.background import BackgroundScheduler
+import yaml 
 
 from faker import Faker
 from faker.providers import internet, person, company
@@ -32,6 +32,7 @@ fake = Faker()
 fake.add_provider(internet)
 fake.add_provider(person)
 fake.add_provider(company)
+
 
 # Define the blueprint: 'main', set its url prefix: app.url/
 main = Blueprint('main', __name__)
@@ -78,8 +79,16 @@ def call_start():
     return jsonify({"STATE":True})
 
 def start_game():
+    global log_uploader
     # The game session is a database table
     # The current game is session (1) - could probably do this better later
+
+    # Create tables in Kusto as necessary
+    print("Starting the game...")
+
+    log_uploader = LogUploader()
+    log_uploader.create_tables(reset=True)
+
     current_session = db.session.query(GameSession).get(1)
     current_session.state = True
 
@@ -97,6 +106,7 @@ def start_game():
 
     while current_session.state == True:
 
+        print(current_app.app_context)
         teams = Team.query.all()
 
         # generate the activity
@@ -106,16 +116,16 @@ def start_game():
             else:
                 generate_activity(actor, employees, num_passive_dns=1, num_email=2,num_random_browsing=3) 
 
-        # Update the scores for each team
-        for team in teams:
-            team.score += 1000
+    #     # Update the scores for each team
+    #     for team in teams:
+    #         team.score += 1000
 
-            count_mitigations = len(team._mitigations)
-            mitigation_cost = count_mitigations 
-            team.score -= mitigation_cost
+    #         count_mitigations = len(team._mitigations)
+    #         mitigation_cost = count_mitigations 
+    #         team.score -= mitigation_cost
 
-        db.session.commit()
-        print("updated team scores")
+    #     db.session.commit()
+    #     print("updated team scores")
         # time.sleep(5)  #do this when liv
     
 
@@ -369,6 +379,7 @@ def init_setup():
     upload_dns_records_to_azure(all_dns_records)
 
     return employees, actors
+
     
 def generate_activity(actor, employees, num_passive_dns, num_email, num_random_browsing):
     """
@@ -405,34 +416,6 @@ def generate_activity(actor, employees, num_passive_dns, num_email, num_random_b
         
 
 
-# @main.route("/test")
-# def test():
-#     #api_result = send_request()
-
-#     create_company()
-#     #companies  = Company.query.all()
-#     #names = [company.name for company in companies]
-
-#     #create_actor()
-#     #actors = Actor.query.all()
-#     #names = [actor.name for actor in actors]
-#     create_actors()
-#     actors = Actor.query.all()
-#     names = [actor.spoof_email for actor in actors]
-
-#     gen_default_passiveDNS()
-#     gen_actor_passiveDNS()
-    
-#     #default_actor = db.session.query(Actor).filter_by(name = "Default").one()
-#     viking_actor = db.session.query(Actor).filter_by(name = "Flying Purple Vikings").one()
-#     employees = get_employees()
-
-#     employee = random.choice(employees)
-#     for i in range(13):
-#         gen_email(viking_actor)
-#         #browse_random_website(employee, viking_actor)
-    
-#     return json.dumps(names)
 
 
 
@@ -451,88 +434,26 @@ def create_actors():
         count_init_passive_dns= 10, 
         count_init_email= 10, 
         count_init_browsing=10,
-        domain_themes = " ".join(wordGenerator.get_words(100)),
-        sender_themes = " ".join(wordGenerator.get_words(100))
+        domain_themes = wordGenerator.get_words(100),
+        sender_themes = wordGenerator.get_words(100)
     )
 
-    # This should come from a config later
-    # viking_actor = Actor(
-    #     name = "Flying Purple Vikings",
-    #     effectiveness = 50,
-    #     domain_themes = " ".join([
-    #         "viking", "thor", "hammer","norse","mountain", "thunder", "storm", "seas", "rowing", "axe"
-    #     ]),
-    #     sender_themes = " ".join([
-    #         "odin", "loki", "asgard", "fenrir", "astrid", "jormungand", "freya"
-    #     ]),
-    #     subject_themes = " ".join([
-    #         "security","alert","urgent", "grand", "banquet", ""    
-    #     ]),
-    #     tlds = " ".join([
-    #          "info", "io"   
-    #     ]),
-    #     spoof_email= True
-    # )
+    # load other actors here
+    with open("app/actor_configs/vikings.yaml", "r") as stream:
+        try:
+            data = yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
 
-    # third_actor = Actor(
-    #     name = "Myotheractor",
-    #     effectiveness = "99"
-    # )
-
-    football_actor = Actor(
-        name = "Commanders",
-        effectiveness = 50,
-        count_init_passive_dns= 1,
-        count_init_email= 1,
-        domain_themes = " ".join([
-            "touchdown", "interception", "hike","reception","pass", "back", "tackle", "ball", "quarter", "zone"
-        ]),
-        sender_themes = " ".join([
-            "patriots", "commands", "cardinals", "rams", "steelers", "ravens", "jets"
-        ]),
-        subject_themes = " ".join([
-            "playoff","scrimmage","competition", "pigskin", "kickoff", "superbowl"    
-        ]),
-        tlds = " ".join([
-             "info", "io"   
-        ]),
-        file_names = " ".join([
-            'scvhost', 'dllhost', 'Runtimeexplorer', 'plink', 'runner', 'proposal', 'invoice', 'salutations', 'nigerian_uncle', 'russian_prince',
-    'hello', 'wwlib','goopdate','Resume','putty','server','job_opportunity','job_offer', 'for_your_review', 'free_money'
-        ]),
-        file_extensions = " ".join([
-            'zip','rar','docx','dll','7z','pptx', 'xls', 'dotm','exe'
-        ]),
-        spoof_email= True
-    )
-
-    black_panther_actor = Actor(
-        name = "Wakanda",
-        effectiveness = 50,
-        count_init_passive_dns= 1,
-        count_init_email= 1,
-        domain_themes = " ".join([
-            "warrior", "black", "king","waterfall","royalty", "vibranium", "marvel", "throne", "stripped", "tribe"
-        ]),
-        sender_themes = " ".join([
-            "panther", "shuri", "tchalla", "killmonger", "okoye", "nakia", "mbaku"
-        ]),
-        subject_themes = " ".join([
-            "conflict","responsibility","fight", "coronation", "shipment", "casino", "museum"   
-        ]),
-        tlds = " ".join([
-             "site", "xyz"   
-        ]),
-        spoof_email= True
-        # set sender to internal address
-    )
-
+    # use dictionary value to instantiate actor
+    viking_actor= Actor(**data)
+    print(viking_actor.__repr__)
 
     # we can add more actors later
     actors = []
-    actors.append(default_actor)
-    actors.append(football_actor)
-    actors.append(black_panther_actor)
+    actors.append(viking_actor)
+    # actors.append(football_actor)
+    # actors.append(black_panther_actor)
     # actors.append(third_actor)
     
     try:

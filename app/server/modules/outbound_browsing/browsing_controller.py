@@ -42,8 +42,7 @@ def browse_website(employee, link, time):
 
 def upload_event_to_azure(event):
 
-    uploader = LogUploader()
-    # TODO: Instantiate once - user many times
-    uploader.send_request(
+    from app.server.views import log_uploader
+    log_uploader.send_request(
             data = [event.stringify()],
-            table_name= "OutboundBrowsingEvents")
+            table_name= "OutboundBrowsing")

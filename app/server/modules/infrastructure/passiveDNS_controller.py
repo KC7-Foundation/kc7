@@ -73,9 +73,9 @@ def upload_dns_records_to_azure(dns_records):
     take array of dns_record db objects or json objects
     writes to azure
     """
-    uploader = LogUploader()
+    from app.server.views import log_uploader
 
     random.shuffle(dns_records)
-    uploader.send_request(
+    log_uploader.send_request(
             data = dns_records,
-            table_name= "PassiveDNS")
+            table_name= "PassiveDns")

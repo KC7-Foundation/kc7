@@ -1,0 +1,40 @@
+name : Commanders
+effectiveness: 80
+domain_themes:
+  - touchdown
+  - interception
+  - hike
+  - reception
+  - pass
+  - back
+  - tackle
+  - ball
+  - zone
+sender_themes: 
+  - brady
+  - stafford
+  - rgiii
+  - flacco
+  - beastmode
+  - sharpe
+  - smith
+subject_themes:
+  - playoff
+  - scrimmage
+  - competition
+  - pigskin
+  - kickoff
+  - superbow
+tlds:
+  - info
+  - io
+spoof_email: True
+file_names:
+  - Resume
+  - job_opportunity
+  - job_offer
+  - for_your_review
+  - free_money
+  - sucess_is_near
+  - proposal
+  - stop_being_broke

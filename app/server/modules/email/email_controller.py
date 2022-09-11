@@ -139,9 +139,10 @@ def gen_internal_mail(sender, recipient, actor, time):
 
 def send_email_to_azure(email):
     """
+    Upload email object to azure
     """
-    uploader = LogUploader()
+    from app.server.views import log_uploader
 
-    uploader.send_request(
+    log_uploader.send_request(
             data = [email.stringify()],
             table_name= "Email")

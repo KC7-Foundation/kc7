@@ -101,18 +101,24 @@ class Actor(Base):
     count_init_email                    = db.Column(db.Integer)
     count_init_browsing                 = db.Column(db.Integer)   # >:D
 
-    def __init__(self, name:str, effectiveness:int=50, domain_themes:str="", sender_themes:str="", 
-                subject_themes:str="",  tlds:str=None, spoof_email:bool=False, 
+    def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
+                subject_themes:list=[],  tlds:list=[], spoof_email:bool=False, 
                 count_init_passive_dns:int=100, count_init_email:int=10, count_init_browsing:int=2, 
                 file_names:str="", file_extensions:str="" ):
 
         self.name = name
         self.effectiveness      = effectiveness
+        
+        # if any of these values are provided as strings, convert them to lists
+        if isinstance(tlds, list):
+            tlds = " ".join(tlds)
+        
+
         # we can't have lists in a database, hence the funny business here
         # take in the list as a space delimited string - then split
-        self.domain_themes              = " ".join(domain_themes.split(" ") + wordGenerator.get_words(10))  # adding random words for entropy
-        self.sender_themes              = " ".join(sender_themes.split(" ") + wordGenerator.get_words(10))
-        self.subject_themes             = " ".join(subject_themes.split(" ") + wordGenerator.get_words(10))
+        self.domain_themes              = " ".join(domain_themes + wordGenerator.get_words(10))  # adding random words for entropy
+        self.sender_themes              = " ".join(sender_themes + wordGenerator.get_words(10))
+        self.subject_themes             = " ".join(subject_themes + wordGenerator.get_words(10))
         self.file_names                 = file_names
         self.file_extensions            = file_extensions
         self.tlds                       = tlds or " ".join(['com','net','biz','org','us'])
@@ -215,6 +221,16 @@ class DNSRecord(Base):
             "ip":self.ip, 
             "domain": self.domain
         }
+
+    @staticmethod
+    def get_kql_repr():
+        return (
+            "PassiveDns",
+            {
+                "ip":"string",
+                "domain":"string"
+            }
+        )
 
 
 ##########################################################
