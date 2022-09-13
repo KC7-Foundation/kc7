@@ -1,3 +1,4 @@
+from unittest.mock import NonCallableMagicMock
 import yaml 
 import glob
 
@@ -22,8 +23,10 @@ from app.server.utils import *
 
 
 
-def start_game():
+def start_game() -> None:
     """
+    This function call starts the game
+
     1. Get the game session
     2. Generate starter data
     3. Run infinite loop to generate additional activity
@@ -35,9 +38,14 @@ def start_game():
     # Create tables in Kusto as necessary
     print("Starting the game...")
 
+    # instantiate a logUploader. This instance is used by all other modules to send logs to azure
+    # we use a singular instances in order to queue up muliple rows of logs and send them all at once
     log_uploader = LogUploader()
     log_uploader.create_tables(reset=True)
 
+    # The the current game session
+    # This data object tracks whether or not the game is currently running
+    # It allows us to start/stop/restart the game from the views
     current_session = db.session.query(GameSession).get(1)
     current_session.state = True
 
@@ -59,10 +67,10 @@ def start_game():
     # (actor, employees, num_passive_dns, num_email, num_random_browsing
     print("initialization complete...")
 
+    # This is where the actor is
+    # While this infinite loop runs, the game continues to generate data
+    # To implement games of finite site -> bound this loop (e.g. use a for loop instead)
     while current_session.state == True:
-
-        
-
         # generate the activity
         for actor in actors: 
             if actor.name == "Default":
@@ -70,8 +78,9 @@ def start_game():
             else:
                 generate_activity(actor, employees, num_passive_dns=1, num_email=2, num_random_browsing=3) 
 
-    #     # Update the scores for each team
-        #   teams = Team.query.all()
+
+    #     # Update the scores for each team - Used for live version of the game
+    #   teams = Team.query.all()
     #     for team in teams:
     #         team.score += 1000
 
@@ -86,6 +95,8 @@ def start_game():
 
 def init_setup():
     """
+    These actions are conducted at the start of a new game session
+
     Create company
     Create default actor
     Create Malicious Actors
@@ -95,6 +106,8 @@ def init_setup():
     employees = Employee.query.all()
     actors = Actor.query.all()
 
+    # only  create employees for the company or actors 
+    # if they do not already exist
     if not employees:
         create_company()
         employees = Employee.query.all()
@@ -102,6 +115,7 @@ def init_setup():
         create_actors()
         actors = Actor.query.all()
     
+    # generate soem initial activity for the actors
     for actor in actors:
         generate_activity(
                             actor, 
@@ -112,6 +126,7 @@ def init_setup():
                         )
     
     all_dns_records = DNSRecord.query.all()
+    # shuffle the dns records so that pivot points are not all next to each other in azure
     random.shuffle(all_dns_records)
     all_dns_records = [d.stringify() for d in all_dns_records]
     upload_dns_records_to_azure(all_dns_records)
@@ -119,7 +134,7 @@ def init_setup():
     return employees, actors
 
     
-def generate_activity(actor, employees, num_passive_dns:int, num_email:int, num_random_browsing:int):
+def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_email:int, num_random_browsing:int):
     """
     Given an actor, enerates one cycle of activity for users in the orgs
     Current:
@@ -154,16 +169,18 @@ def generate_activity(actor, employees, num_passive_dns:int, num_email:int, num_
 
 
 
-def create_actors():
+def create_actors() -> NonCallableMagicMock:
     """
-    Create a malicious actor
-    Start with an actor shell
-    use this to create a database object
-    TODO: abstact the creation of actors
+    Create a malicious actor in the game and adds them to the database
+    Actors are read in from yaml files in the actor_configs folder
+
+    TODO: there should be some validation of actor configs prior to creation
     """
 
+    # instantial a default actor - this actor should always exist
+    # the default actor is used to generate background noise in the game
     default_actor = Actor(
-        name = "Default",
+        name = "Default",  # Dont change the name!
         effectiveness = 99,
         count_init_passive_dns= 10, 
         count_init_email= 10, 
@@ -176,16 +193,19 @@ def create_actors():
     actors = [default_actor]
 
     # use yaml configs to load other actors
+    # read yaml file for each new actor, load json from yaml
     actor_configs = glob.glob("app/actor_configs/*.yaml") 
     for file in actor_configs:
         actor_config = read_actor_config_from_yaml(file)
         # use dictionary value to instantiate actor
         if actor_config:
             print(f"adding actor: {actor_config}")
+            # use dict to instantiate the actor
             actors.append(
                 Actor(**actor_config)
             )
 
+    # add all the actors to the database
     try:
         for actor in actors:
             db.session.add(actor)
@@ -195,8 +215,11 @@ def create_actors():
         print("Failed to create actor %s" % e)
 
 
-def read_actor_config_from_yaml(filename):
-    """Read actor_config from file. Return none if somethign goes wrong"""
+def read_actor_config_from_yaml(filename) -> dict:
+    """
+    Read actor_config from file.
+    Return a json representation of the yaml file 
+    """
     with open(filename, 'r') as stream:
         try:
             return yaml.safe_load(stream)

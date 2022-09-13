@@ -14,10 +14,19 @@ from app.server.modules.endpoints.file_creation_event import FileCreationEvent
 from app.server.modules.email.email import Email
 
 from flask import current_app
-#see https://github.com/Azure/azure-kusto-python/blob/master/azure-kusto-ingest/tests/sample.py
+
 
 
 class LogUploader():
+    """
+    Object allows us to upload data to azure
+    Logs are batched and uploaded to their corresponding table after queue is full
+    First: ingestion properties are read from the flaks config in Config.py
+
+    see: https://github.com/Azure/azure-kusto-python/blob/master/azure-kusto-ingest/tests/sample.py
+    """
+
+
     def __init__(self, queue_limit=1000):
         # set Azure tenant config variables
         self.AAD_TENANT_ID =  current_app.config["AAD_TENANT_ID"] 
@@ -42,8 +51,8 @@ class LogUploader():
         self.ingest = QueuedIngestClient(kcsb_ingest)
         self.client = KustoClient(kcsb_data)
 
-        # upload queue
-        # this will allow us to upload multiple rows at once
+        # The queue will allow us to upload multiple rows at once
+        # This allows the game to runs faster and enable us to make fewer API calls 
         # self.queue will be in the format:
         # {
         #   "table_name": [dict, dict, dict],
@@ -54,9 +63,9 @@ class LogUploader():
         self.queue_limit = queue_limit
 
 
-    def create_tables(self, reset:bool=False):
+    def create_tables(self, reset:bool=False) -> None:
         """
-        Create the tables that the logs will be uploaded to
+        Create the tables that the logs will be uploaded to in Kusto
         """
         # Get KQL representation of each Class object
         drop_table_commands = []
@@ -116,28 +125,29 @@ class LogUploader():
         return sum([len(val) for key, val in self.queue.items()])
         
 
-    def send_request(self, data, table_name="emailtest"):
+    def send_request(self, data: dict, table_name:str="emailtest") -> None:
         """
         Data is ingested as JSON
         convert to a pandas dataframe and upload to KUSTO
-        """
-        # if table_name in ["FileCreationEvent", "OutboundBrowsingEvents"]:
-        #     print(f"Would have sent some data to {table_name} in Azure")
-        #     print(json.dumps(data, indent=4))
 
+        """
         # put data in a dataframe for ingestion
         if isinstance(data, list):
                 data = data[0]
 
+        # Add the data to the que
+        # Data is appended to a list under table_name key in self.queue
+        # e.g. {
+        #    "table_name": [data]
+        # }
         if table_name in self.queue:
             self.queue[table_name].append(data)
         else:
             self.queue[table_name] = [data]
 
-
+        # reached the queue limit
+        # submit all existing records and clear the queue
         if self.get_queue_length() > self.queue_limit:
-            # reached the queue limit
-            # submit all existing records and clear the queue
             for table_name, data in self.queue.items():
                 self.ingestion_props = IngestionProperties(
                     database=self.DATABASE,
@@ -147,10 +157,14 @@ class LogUploader():
                 )
           
                 # turn list of rows in a dataframe
+                # TODO: sort by time before uploading - 
+                #   need to first standardize time columns accross tables
                 data_table_df = pd.DataFrame(self.queue[table_name])
 
                 print(f"uploading data for type {table_name}")
                 print(data_table_df.shape)
+
+                # submit logs to Kusto
                 result = self.ingest.ingest_from_dataframe(data_table_df, ingestion_properties=self.ingestion_props)
                 print(result)
                 print(f"....adding data to azure for {table_name} table")
@@ -158,15 +172,5 @@ class LogUploader():
             # reset the quee
             self.queue  = {}
 
-        # print(json.dumps(self.queue, indent=4))
-        # self.data = pd.DataFrame(data)  # data should be a json blob
-
-        # # set ingestion properties
-        # self.ingestion_props = IngestionProperties(
-        #     database=self.DATABASE,
-        #     table=table_name,
-        #     data_format=DataFormat.CSV,
-        #     report_level=ReportLevel.FailuresAndSuccesses
-        # )
-
+ 
         

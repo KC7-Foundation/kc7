@@ -35,13 +35,6 @@ def get_random_actor():
     """Return a random actor from the database"""
     pass
 
-# def get_random_user():
-#     """Return a random employee from the database"""
-#     # TODO: get an employee that is actually random
-#     num  = randin(1,2)
-#     # get either the first or second user
-#     user = Employee.query.get(num)
-#     return user
 
 def gen_email(employees, actor):
     """

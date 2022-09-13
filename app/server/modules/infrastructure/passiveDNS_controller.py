@@ -6,37 +6,33 @@ from app.server.utils import *
 import random
 
 
-# def gen_default_passiveDNS():
-#     """
-#     Generate some passiveDNS entries to start
-#     """
-#     default_actor = db.session.query(Actor).filter_by(name = "Default").one()
-#     gen_passive_dns(default_actor, 100)
-
-
-# def gen_actor_passiveDNS():
-#     """Generate passiveDNS for the bad actors"""
-#     actors = Actor.query.filter(Actor.name != "Default").all()
-#     for actor in actors:
-#         if actor.name != "Default":
-#             gen_passive_dns(actor, 10)
-
-def gen_passive_dns(actor, count_of_records=1):
+def gen_passive_dns(actor: Actor, count_of_records:int=1) -> None:
     """
     Generate passive DNS entries 
     This should happen in bulk and the start 
     with a lower stream of entries created as the game goes on
+
+    A dns record is an essentially a ip/domain pair
+    For the "Default" actor we create independ ip/domain pairs
+
+    For malicious actors, ip/domain pairs should be associated with each other 
+        in order to allow for pivoting. e.g. ip -> new domains -> new ips
+    When creating malicious actor dns records
+        Select an existing domain and pair it with a new IP  
+        OR 
+        Select an existing IP and pair it with a new domain
     """
-    # print(f"Adding {count_of_records} passiveDNS records for {actor.name} actor")
     # For all non-default actors, indicators should be pivotable
     # Result is that 3x number of specified records will be created
     new_records = []
 
     if actor.name != "Default":
-        #TODO: if actor isn;t default, IPs and Domains should be reused
+        # This is a malicious actor 
+
+        #TODO: if actor isn't default, IPs and Domains should be reused
         actor_records = [record for record in actor.dns_records] #listify DB results
         if not actor_records:
-            # if no DB records exist, create one
+            # if no dns records exist, create one
             print("no actor records were found")
             seed_record = DNSRecord(actor)
             db.session.add(seed_record)
