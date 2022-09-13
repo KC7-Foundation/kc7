@@ -1,0 +1,35 @@
+name : Wakanda
+effectiveness: 50
+count_init_passive_dns: 1
+count_init_email: 1
+domain_themes:
+  - warrior
+  - king
+  - waterfall
+  - royalty
+  - vibranium
+  - marvel
+  - throne
+  - stripped
+  - tribe
+sender_themes: 
+  - panther
+  - shuri
+  - tchalla
+  - coronation
+  - killmonger
+  - okoye
+  - nakia
+  - mbaku
+subject_themes:
+  - conflict
+  - responsibility
+  - fight
+  - coronation
+  - shipment
+  - casino
+  - museum
+tlds:
+  - site
+  - xyz
+spoof_email: True

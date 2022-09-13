@@ -119,13 +119,13 @@ class Actor(Base):
         self.domain_themes              = " ".join(domain_themes + wordGenerator.get_words(10))  # adding random words for entropy
         self.sender_themes              = " ".join(sender_themes + wordGenerator.get_words(10))
         self.subject_themes             = " ".join(subject_themes + wordGenerator.get_words(10))
-        self.file_names                 = file_names
-        self.file_extensions            = file_extensions
+        self.file_names                 = " ".join(file_names)
+        self.file_extensions            = " ".join(file_extensions)
         self.tlds                       = tlds or " ".join(['com','net','biz','org','us'])
         self.spoof_email                = spoof_email
-        self.count_init_browsing        = count_init_browsing
-        self.count_init_email           = count_init_email
-        self.count_init_passive_dns     = count_init_passive_dns
+        self.count_init_browsing        = int(count_init_browsing)
+        self.count_init_email           = int(count_init_email)
+        self.count_init_passive_dns     = int(count_init_passive_dns)
 
     
     def get_file_names(self):

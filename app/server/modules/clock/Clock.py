@@ -6,7 +6,7 @@ import string
 class Clock():
 
     @staticmethod
-    def get_current_gametime(start_time:datetime, seed_date:str, time_multiplier:int=1000) -> datetime:
+    def get_current_gametime(start_time:datetime, seed_date:str, time_multiplier:int=10000) -> datetime:
         """
         Return current time in the game as timestamp
         """

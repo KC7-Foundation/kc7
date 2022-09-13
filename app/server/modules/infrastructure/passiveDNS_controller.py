@@ -27,7 +27,7 @@ def gen_passive_dns(actor, count_of_records=1):
     This should happen in bulk and the start 
     with a lower stream of entries created as the game goes on
     """
-    print(f"Adding {count_of_records} passiveDNS records for {actor.name} actor")
+    # print(f"Adding {count_of_records} passiveDNS records for {actor.name} actor")
     # For all non-default actors, indicators should be pivotable
     # Result is that 3x number of specified records will be created
     new_records = []
@@ -73,7 +73,7 @@ def upload_dns_records_to_azure(dns_records):
     take array of dns_record db objects or json objects
     writes to azure
     """
-    from app.server.views import log_uploader
+    from app.server.game_functions import log_uploader
 
     random.shuffle(dns_records)
     log_uploader.send_request(

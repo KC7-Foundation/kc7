@@ -125,7 +125,6 @@ class LogUploader():
         #     print(f"Would have sent some data to {table_name} in Azure")
         #     print(json.dumps(data, indent=4))
 
-     
         # put data in a dataframe for ingestion
         if isinstance(data, list):
                 data = data[0]
@@ -133,7 +132,6 @@ class LogUploader():
         if table_name in self.queue:
             self.queue[table_name].append(data)
         else:
-            
             self.queue[table_name] = [data]
 
 
@@ -157,7 +155,7 @@ class LogUploader():
                 print(result)
                 print(f"....adding data to azure for {table_name} table")
 
-
+            # reset the quee
             self.queue  = {}
 
         # print(json.dumps(self.queue, indent=4))

@@ -42,7 +42,7 @@ def browse_website(employee, link, time):
 
 def upload_event_to_azure(event):
 
-    from app.server.views import log_uploader
+    from app.server.game_functions import log_uploader
     log_uploader.send_request(
             data = [event.stringify()],
             table_name= "OutboundBrowsing")
