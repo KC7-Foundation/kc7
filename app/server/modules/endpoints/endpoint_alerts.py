@@ -1,6 +1,12 @@
 class EndpointAlert:
+    """
+    A class that represents the data model for EndpointAlert events.
+    EndpointAlerts are EDR-style alerts that will be surfaced about malicious activity on an endpoint.
 
-    def __init__(self, alert_time:float, hostname:str, message:str) -> None:
+    This functionality is not yet implemented
+    """
+
+    def __init__(self, alert_time: float, hostname: str, message: str) -> None:
 
         self.alert_time = alert_time
         self.hostname = hostname
