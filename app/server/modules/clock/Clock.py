@@ -71,7 +71,7 @@ class Clock():
             return True
 
     @staticmethod
-    def from_string(time: str, format: str = "%Y-%m-%d %H:%M:%S.%f"):
+    def from_string(time: str, format: str = "%Y-%m-%d %H:%M:%S.%f") -> datetime:
         """
         params: time - string in datetime format (.e.g '2014-03-22 07:54:43.010126')
         Return datetime object
@@ -79,7 +79,7 @@ class Clock():
         return datetime.strptime(time, format)
 
     @staticmethod
-    def from_string_to_timestamp(time: str, format: str = "%Y-%m-%d %H:%M:%S.%f"):
+    def from_string_to_timestamp(time: str, format: str = "%Y-%m-%d %H:%M:%S.%f") -> float:
         """
         params: time - string in datetime format (.e.g '2014-03-22 07:54:43.010126')
         Return timestamp float
@@ -87,7 +87,7 @@ class Clock():
         return datetime.strptime(time, format).timestamp()
 
     @staticmethod
-    def from_timestamp_to_string(timestamp: float):
+    def from_timestamp_to_string(timestamp: float) -> str:
         """
         params: timestamp - datetime as a timestamp (float)
         Return timestamp as string
