@@ -10,36 +10,36 @@ from faker.providers import internet, user_agent, person
 # instantiate faker
 fake = Faker()
 fake.add_provider(internet)
-fake.add_provider(user_agent) 
+fake.add_provider(user_agent)
 fake.add_provider(person)
 
-#print(NAMES)
 
 class CompanyShell():
 
     def __init__(self, name, domain, description="A company that makes money") -> None:
-        
+
         self.name = name
         if domain:
             self.domain = domain
         else:
-            self.domain = str.lower("".join(name.split())).replace(",", "") + "." + fake.tld()
+            self.domain = str.lower("".join(name.split())).replace(
+                ",", "") + "." + fake.tld()
         self.description = description
         self.employees = []
         self.add_employees()
-        
-    def add_employees(self, count_employees=50): 
+
+    def add_employees(self, count_employees=50):
         for i in range(count_employees):
             employee = self.generate_employee()
             self.employees.append(employee)
 
     def generate_employee(self):
         employee = EmployeeShell(
-            name = fake.name(),
-            user_agent = fake.user_agent(),
-            ## TODO: Let's put these ont the same network
-            ip_addr = self.generate_ip(),
-            company_domain = self.domain
+            name=fake.name(),
+            user_agent=fake.user_agent(),
+            # TODO: Let's put these ont the same network
+            ip_addr=self.generate_ip(),
+            company_domain=self.domain
         )
 
         return employee
@@ -49,19 +49,19 @@ class CompanyShell():
 
     def get_jsonified_employees(self):
         return [employee.stringify() for employee in self.employees]
-    
+
     def get_serialized_employees(self):
         return [json.dumps(employee.stringify()) for employee in self.employees]
 
     def generate_ip(self):
         """Create a dummy IP addr"""
         return fake.ipv4_private()
-    
-    
+
+
 class EmployeeShell():
 
     def __init__(self, name, user_agent, ip_addr, company_domain) -> None:
-        
+
         self.name = name
         self.user_agent = user_agent
         self.ip_addr = ip_addr
@@ -72,7 +72,8 @@ class EmployeeShell():
         self.set_hostname()
 
     def set_email(self) -> None:
-        self.email_addr = str.lower("_".join(self.name.split(" "))) + '@' + self.company_domain
+        self.email_addr = str.lower(
+            "_".join(self.name.split(" "))) + '@' + self.company_domain
 
     def set_username(self) -> None:
         name_parts = self.name.split(" ")
@@ -101,7 +102,7 @@ class EmployeeShell():
     @staticmethod
     def get_kql_repr():
         return (
-            "Employees", # table name
+            "Employees",  # table name
             {                # type dict
                 "name": "string",
                 "user_agent": "string",

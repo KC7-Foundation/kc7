@@ -1,14 +1,15 @@
 
-import json, random
-import yaml 
-
+import json
+import random
+import yaml
+from datetime import datetime
 from flask_login import login_required, current_user
 from flask_security import roles_required
 
 from flask import Blueprint, request, render_template, \
-                  flash, g, session, redirect, url_for, abort, current_app, jsonify
+    flash, g, session, redirect, url_for, abort, current_app, jsonify
 from sqlalchemy import asc
-from  sqlalchemy.sql.expression import func, select
+from sqlalchemy.sql.expression import func, select
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
 from app.server.models import db, Company, Employee, Actor, DNSRecord, Team, Users, Roles, GameSession
@@ -33,15 +34,12 @@ def home():
 
     return render_template("main/score.html")
 
-@main.route("/test_keys")
-def testkey():
-    # TODO: figure out how to test this efficiently
 
-    return "Ok"
 
 @main.route("/scoreboard")
 def scoreboard():
     return render_template("main/score.html")
+
 
 @main.route("/admin/manage_game")
 @roles_required('Admin')
@@ -63,9 +61,12 @@ def manage_game():
 @roles_required('Admin')
 @login_required
 def call_start():
-    # web endpoint to start the game
+    """
+    web endpoint to start the game. 
+    Returns game state - this is used to update the view
+    """
     start_game()
-    return jsonify({"STATE":True})
+    return jsonify({"STATE": True})
 
 
 @main.route("/admin/stop_game", methods=['GET'])
@@ -77,7 +78,7 @@ def stop_game():
     current_session.state = False
     db.session.commit()
     flash("The game has been Stopped")
-    return jsonify({"STATE":current_session.state}) 
+    return jsonify({"STATE": current_session.state})
 
 
 @main.route("/admin/restart_game", methods=['GET'])
@@ -97,16 +98,15 @@ def restart_game():
         team.score = 0
         print("Resetting team mitigations")
         team._mitigations = ""
-    
+
     db.session.query(DNSRecord).delete()
     db.session.query(Actor).delete()
     db.session.query(Employee).delete()
     db.session.query(Company).delete()
-
     db.session.commit()
     flash("The game has been reset", 'success')
 
-    return jsonify({"STATE":current_session.state}) 
+    return jsonify({"STATE": current_session.state})
 
 
 @main.route("/admin/teams")
@@ -115,7 +115,7 @@ def restart_game():
 def manage_teams():
     team_list = Team.query.all()
     return render_template("admin/manage_teams.html",
-                            teams = team_list)
+                           teams=team_list)
 
 
 @main.route("/admin/users")
@@ -124,7 +124,7 @@ def manage_teams():
 def manage_users():
     user_list = Users.query.all()
     return render_template("admin/manage_users.html",
-                            users = user_list)    
+                           users=user_list)
 
 
 @main.route("/mitigations")
@@ -147,7 +147,6 @@ def get_deny_list():
     return jsonify(current_user.team._mitigations)
 
 
-
 @main.route("/updateDenyList", methods=['POST'])
 @login_required
 def update_deny_list():
@@ -164,7 +163,6 @@ def update_deny_list():
         mitigations = [x for x in mitigations if x]
         current_user.team._mitigations = json.dumps(mitigations)
 
-        #exists = db.session.query(User.id).filter_by(name='davidism').first() is not None
         # update the teams score
         # check if any new indicators are tagged as malicious
         # # award point for malicious indicators found
@@ -221,7 +219,7 @@ def delreport():
 def teams():
     team_list = Team.query.all()
     return render_template("main/teams.html",
-                            teams = team_list)
+                           teams=team_list)
 
 
 @login_required
@@ -242,7 +240,6 @@ def delteam():
     return redirect(url_for('main.manage_teams'))
 
 
-
 @main.route("/create_team", methods=['POST'])
 @login_required
 @roles_required('Admin')
@@ -259,9 +256,12 @@ def create_team():
     return redirect(url_for('main.manage_teams'))
 
 
-@main.route('/get_score', methods= ['GET'])
+@main.route('/get_score', methods=['GET'])
 def get_score():
-    from datetime import datetime 
+    """
+    Return a joson blob containing score for all teams in the game
+    """
+    from datetime import datetime
 
     try:
         # get all the teams except for admin team
@@ -274,21 +274,17 @@ def get_score():
             SCORES[team.name] = team.score
 
         # sort the dictionary
-        SCORES = dict(sorted(SCORES.items(), key=lambda item: item[1], reverse=True))
+        SCORES = dict(
+            sorted(SCORES.items(), key=lambda item: item[1], reverse=True))
 
         # flatten the dictionary and reformat it
         teams, scores = zip(*SCORES.items())
         SCORES = {
-                "teams":list(teams),
-                "scores":list(scores)
-            }
+            "teams": list(teams),
+            "scores": list(scores)
+        }
 
         return jsonify(SCORES=SCORES)
     except Exception as e:
         print(e)
         abort(404)
-
-
-
-
-

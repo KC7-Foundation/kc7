@@ -1,10 +1,11 @@
 import random
 from app.server.modules.clock.Clock import Clock
 
+
 class FileCreationEvent:
 
-    def __init__(self, hostname:str, creation_time:float, md5:str, path:str, size:int):
-        
+    def __init__(self, hostname: str, creation_time: float, md5: str, path: str, size: int):
+
         self.hostname = hostname
         self.creation_time = creation_time
         self.md5 = md5
@@ -13,11 +14,11 @@ class FileCreationEvent:
         self.size = size
 
     @staticmethod
-    def get_random_hash():
+    def get_random_hash() -> str:
         hash = random.getrandbits(128)
         return "%032x" % hash
 
-    def stringify(self):
+    def stringify(self) -> dict:
         return {
             "creation_time": Clock.from_timestamp_to_string(self.creation_time),
             "hostname": self.hostname,
@@ -28,19 +29,16 @@ class FileCreationEvent:
         }
 
     @staticmethod
-    def get_kql_repr():
+    def get_kql_repr() -> tuple:
         """Returns table:str, columns:dict"""
         return (
-            'FileCreationEvents', # table name in KQL
+            'FileCreationEvents',  # table name in KQL
             {                     # dict representation of column names:types
-                'creation_time':'string',
-                'hostname':'string',
-                'md5':'string',
-                'path':'string',
-                'filename':'string',
-                'size':'int'
+                'creation_time': 'string',
+                'hostname': 'string',
+                'md5': 'string',
+                'path': 'string',
+                'filename': 'string',
+                'size': 'int'
             }
         )
-
-    
-

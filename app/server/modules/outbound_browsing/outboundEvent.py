@@ -15,6 +15,9 @@ STATUS_CODES = ["202", "301", "302", "404", "403"]
 
 
 class OutboundEvent:
+    """
+    Outbound Web browsing events. Represents an egress event 
+    """
 
     def __init__(self, time:float, src_ip:str, user_agent:str, url:str):
         """Set initial values"""
@@ -53,16 +56,6 @@ class OutboundEvent:
                   "url": self.url
             }
 
-    # @staticmethod
-    # def get_kql_repr():
-    #     return  ("OutboundEvents", 
-    #                 { "time": "string",
-    #                 "method": "string",
-    #                 "src_ip": "string", 
-    #                 "user_agent": "string",
-    #                 "url": "string"
-    #                 }
-    #         )
 
     @staticmethod
     def get_kql_repr():
