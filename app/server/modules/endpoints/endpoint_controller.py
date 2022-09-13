@@ -1,6 +1,7 @@
 # Import external modules
 from enum import Enum
 import random
+from app.server.modules.endpoints.file_creation_event import FileCreationEvent
 from faker import Faker
 from faker.providers import internet, lorem
 
@@ -18,10 +19,12 @@ fake.add_provider(internet)
 fake.add_provider(lorem)
 
 
-
-def upload_endpoint_event_to_azure(event, table_name="FileCreationEvents"):
-
+def upload_endpoint_event_to_azure(event: FileCreationEvent, table_name: str = "FileCreationEvents") -> None:
+    """
+    A function to upload a FileCreationEvent to ADX
+    References global log_uploader to queue log rows for uploading
+    """
     from app.server.game_functions import log_uploader
     log_uploader.send_request(
-            data = [event.stringify()],
-            table_name= table_name)
+        data=[event.stringify()],
+        table_name=table_name)
