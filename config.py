@@ -24,18 +24,30 @@ class BaseConfig(object):
 
     SQLALCHEMY_DATABASE_URI = 'sqlite:///flaskr.db'
     
-    # Secret key for signing cookies
-    SECRET_KEY = 'FLASK_SECRET_KEY'
+    # Secret key for signing cookie. You should replace this
+    SECRET_KEY = 'y?,???\???Z#?N'
 
-    # Azure log analystics credentials
-    CUSTOMER_ID = 'CUSTOMER_ID'
-    SHARED_KEY = "SHARED_KEY"
+    ################################
+    # AZURE ENVIRONMENT VARIABLES
+    # FOLLOW THE README TO REPLACE THESE VALUES
+    ################################
+
+    AAD_TENANT_ID = "{YOUR TENANT ID}" #https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/active-directory-how-to-find-tenant
+    KUSTO_URI = "https://{clustername}.eastus.kusto.windows.net"
+    KUSTO_INGEST_URI =  "https://ingest-{clustername}.eastus.kusto.windows.net"
+    DATABASE = "SecurityLogs"
+
+    # Register an azure application and generate secrets
+    # give the app permission to edit your azure data explorer cluster
+    # App secret can only be seen right after creation
+    CLIENT_ID = "{YOUR REGISTERED APP CLIENT ID}" 
+    CLIENT_SECRET = "{YOUR RESTERED APP CLIENT SECRET}"
+    
 
 class DevelopmentConfig(BaseConfig):
     DEBUG = True
     TESTING = True
 
-    LOG_PREFIX = 'TEST10'
     DEBUG_MODE=True   #Set to True if you don't want to write to Azure
 
     SQLALCHEMY_DATABASE_URI = 'sqlite:///flaskr.db'
@@ -49,5 +61,3 @@ class TestingConfig(BaseConfig):
 class ProductionConfig(BaseConfig):
     DEBUG = False
     #SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL_HERE']
-    
-    
