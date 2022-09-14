@@ -93,3 +93,7 @@ ENV/
 .vscode/
 
 *.private
+
+# cyber-challenger specific stuff
+config.py
+*.DS_Store
