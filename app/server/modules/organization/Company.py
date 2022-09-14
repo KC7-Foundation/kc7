@@ -19,31 +19,38 @@ fake.add_provider(person)
 
 
 class Company(Base):
-
+    """
+    A class that defines the model for the company.
+    The company has a name, a domain name, and a set of employees.
+    The company is represented in the DB.
+    """
     # Define attributes that will be represented in database
-    name = db.Column(db.String(50), nullable=False)
-    domain = db.Column(db.String(50), nullable=False)
-
-    # Define relationships to other databases
-    # employee        = db.relationship('Employee', backref=db.backref('employees', lazy='dynamic'))
+    name        = db.Column(db.String(50), nullable=False)
+    domain      = db.Column(db.String(50), nullable=False)
 
     def __init__(self, name: str, domain: str) -> None:
         self.name = name
         if domain:
             self.domain = domain
         else:
-            self.domain = str.lower("".join(name.split())).replace(
-                ",", "") + "." + fake.tld()
+            # If a domain is not provided, take the name and add a random TLD
+            self.domain = str.lower("".join(name.split())).replace(",", "") + "." + fake.tld()
         self.employees = []
         self.add_employees()
 
-    def add_employees(self, count_employees: int = 50):
+    def add_employees(self, count_employees: int = 50) -> None:
+        """
+        Generates count_employees number of employees and associates them with the company
+        """
         # TODO: Num of employees should be passed in from config
         for i in range(count_employees):
             employee = self.generate_employee()
             self.employees.append(employee)
 
     def generate_employee(self):
+        """
+        Constructs a single employee instance and returns it.
+        """
         employee = Employee(
             name=fake.name(),
             user_agent=fake.user_agent(),
@@ -54,25 +61,32 @@ class Company(Base):
 
         return employee
 
-    def get_employees(self):
+    def get_employees(self) -> "list[Employee]":
+        """
+        Getter function to return all employees associated with a company
+        """
         return self.employees
 
-    def get_jsonified_employees(self):
+    def get_jsonified_employees(self) -> "list[dict[str,str]]":
+        """
+        Returns the JSON representation for every employee associated with the company.
+        """
         return [employee.stringify() for employee in self.employees]
 
-    def get_serialized_employees(self):
-        return [json.dumps(employee.stringify()) for employee in self.employees]
-
-    def generate_ip(self):
-        """Create a dummy IP addr"""
+    def generate_ip(self) -> str:
+        """Create a dummy RFC1918 IP"""
+        # TODO: Can we make these all on the same subnet?
         return fake.ipv4_private()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<Company %r>' % self.name
 
 
 class Employee(Base):
-
+    """
+    A class that defines the data model for the employee.
+    Employees have a number of attributes which are represented in ADX and/or the DB.
+    """
     # Define attributes that will be represented in database
     # NOTE: Only the following attributes are returned when retrieving an Employee object from the database
     name = db.Column(db.String(50))
@@ -100,23 +114,42 @@ class Employee(Base):
         self.set_hostname()
 
     def set_email(self) -> None:
+        """
+        Constructs an email address for the employee.
+        Email is generated using pattern firstName_lastName@company.domain
+
+        Example: john doe -> john_doe@company.com
+        """
         self.email_addr = str.lower(
             "_".join(self.name.split(" "))) + '@' + self.company.domain
 
     def set_username(self) -> None:
+        """
+        Constructs a username for the employee.
+        Username is generated based on first two letter of first name + last name
+
+        Example: john doe -> jodoe
+        """
         name_parts = self.name.split(" ")
-        # first two letters of first name + last name
-        # john doe -> jodoe
         self.username = str.lower(name_parts[0][:2] + name_parts[1])
 
     def set_hostname(self) -> None:
-        # X7O9-DESTOP
+        """
+        Constructs a hostname for the employee's device.
+        Randomly choose some letters and numbers, and appends a device identified
+
+        Example: X7O9-DESTOP
+        """
         prefix = random.choices(string.ascii_letters + string.digits, k=4)
         prefix = str.upper("".join(prefix))
         postfix = random.choice(["DESKTOP", "LAPTOP", "MACHINE"])
         self.hostname = f"{prefix}-{postfix}"
 
-    def stringify(self):
+    def stringify(self) -> "dict[str,str]":
+        """
+        A function to return the JSON representation of the employee object.
+        Used for uploading data to ADX.
+        """
         return {
             "name": self.name,
             "user_agent": self.user_agent,
@@ -128,10 +161,17 @@ class Employee(Base):
         }
 
     @staticmethod
-    def get_kql_repr():
+    def get_kql_repr() -> "tuple[str,dict[str,str]]":
+        """
+        A static helper method for defining the ADX schema
+        Returns a tuple
+        (table_name:str, 
+        column_types:dict)
+        The column_types dict contains a mapping of column_name:data_type
+        """
         return (
             "Employees",  # table name
-            {                # type dict
+            {             # type dict
                 "name": "string",
                 "user_agent": "string",
                 "ip_addr": "string",
