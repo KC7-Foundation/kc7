@@ -10,8 +10,8 @@ from sqlalchemy import asc
 from  sqlalchemy.sql.expression import func, select
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
-from app.server.models import db, Company, Employee, Team, Users, Roles, GameSession
-from app.server.modules.organization.Company import CompanyShell, EmployeeShell
+from app.server.models import db, Team, Users, Roles, GameSession
+from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.organization.company_controller import create_company
 from app.server.modules.clock.Clock import Clock
 from app.server.modules.logging.uploadLogs import LogUploader

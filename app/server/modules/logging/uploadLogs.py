@@ -10,11 +10,12 @@ from azure.kusto.ingest import QueuedIngestClient, IngestionProperties, FileDesc
 from flask import current_app
 
 # Import internal modules
-from app.server.modules.organization.Company import EmployeeShell
 from app.server.modules.outbound_browsing.outboundEvent import OutboundEvent
 from app.server.modules.endpoints.file_creation_event import FileCreationEvent
 from app.server.modules.email.email import Email
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
+from app.server.modules.organization.Company import Employee
+
 
 
 class LogUploader():
@@ -32,7 +33,7 @@ class LogUploader():
         self.KUSTO_URI = current_app.config["KUSTO_URI"]
         self.KUSTO_INGEST_URI = current_app.config["KUSTO_INGEST_URI"]
         self.DATABASE = current_app.config["DATABASE"]
-        self.CUSTOM_TYPES = [DNSRecord, EmployeeShell,
+        self.CUSTOM_TYPES = [DNSRecord, Employee,
                              OutboundEvent, FileCreationEvent, Email]
 
         # Aauthenticate with AAD application.

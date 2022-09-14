@@ -12,8 +12,8 @@ from sqlalchemy import asc
 from sqlalchemy.sql.expression import func, select
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
-from app.server.models import db, Company, Employee, Team, Users, Roles, GameSession
-from app.server.modules.organization.Company import CompanyShell, EmployeeShell
+from app.server.models import db, Team, Users, Roles, GameSession
+from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.clock.Clock import Clock
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.email.email_controller import gen_email
@@ -263,6 +263,7 @@ def get_score():
     Return a joson blob containing score for all teams in the game
     """
     from datetime import datetime
+    return jsonify({}) # TODO: This disables the scorekeeping stuff to prevent crashes while debugging.
 
     try:
         # get all the teams except for admin team

@@ -5,6 +5,10 @@ import json
 from json import JSONEncoder
 from faker import Faker
 from faker.providers import internet, user_agent, person
+
+from app.server.models import Base
+from app import db
+
 #import Employee
 
 # instantiate faker
@@ -14,32 +18,38 @@ fake.add_provider(user_agent)
 fake.add_provider(person)
 
 
-class CompanyShell():
+class Company(Base):
 
-    def __init__(self, name, domain, description="A company that makes money") -> None:
+    # Define attributes that will be represented in database
+    name = db.Column(db.String(50), nullable=False)
+    domain = db.Column(db.String(50), nullable=False)
 
+    # Define relationships to other databases
+    # employee        = db.relationship('Employee', backref=db.backref('employees', lazy='dynamic'))
+
+    def __init__(self, name: str, domain: str) -> None:
         self.name = name
         if domain:
             self.domain = domain
         else:
             self.domain = str.lower("".join(name.split())).replace(
                 ",", "") + "." + fake.tld()
-        self.description = description
         self.employees = []
         self.add_employees()
 
-    def add_employees(self, count_employees=50):
+    def add_employees(self, count_employees: int = 50):
+        # TODO: Num of employees should be passed in from config
         for i in range(count_employees):
             employee = self.generate_employee()
             self.employees.append(employee)
 
     def generate_employee(self):
-        employee = EmployeeShell(
+        employee = Employee(
             name=fake.name(),
             user_agent=fake.user_agent(),
             # TODO: Let's put these ont the same network
             ip_addr=self.generate_ip(),
-            company_domain=self.domain
+            company=self
         )
 
         return employee
@@ -57,15 +67,33 @@ class CompanyShell():
         """Create a dummy IP addr"""
         return fake.ipv4_private()
 
+    def __repr__(self):
+        return '<Company %r>' % self.name
 
-class EmployeeShell():
 
-    def __init__(self, name, user_agent, ip_addr, company_domain) -> None:
+class Employee(Base):
 
+    # Define attributes that will be represented in database
+    # NOTE: Only the following attributes are returned when retrieving an Employee object from the database
+    name = db.Column(db.String(50))
+    user_agent = db.Column(db.String(50))
+    ip_addr = db.Column(db.String(50))
+    awareness = db.Column(db.Integer)
+    email_addr = db.Column(db.String(50))
+    username = db.Column(db.String(50))
+    hostname = db.Column(db.String(50))
+
+    # Define database relationships
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
+    company = db.relationship(
+        'Company', backref=db.backref('employees', lazy='dynamic'))
+
+    def __init__(self, name: str, user_agent: str, ip_addr: str, company: Company) -> None:
         self.name = name
         self.user_agent = user_agent
         self.ip_addr = ip_addr
-        self.company_domain = company_domain
+        self.company = company
+        # TODO: Make this global setting
         self.awareness = random.randint(30, 90)
         self.set_email()
         self.set_username()
@@ -73,7 +101,7 @@ class EmployeeShell():
 
     def set_email(self) -> None:
         self.email_addr = str.lower(
-            "_".join(self.name.split(" "))) + '@' + self.company_domain
+            "_".join(self.name.split(" "))) + '@' + self.company.domain
 
     def set_username(self) -> None:
         name_parts = self.name.split(" ")
@@ -94,7 +122,7 @@ class EmployeeShell():
             "user_agent": self.user_agent,
             "ip_addr": self.ip_addr,
             "email_addr": self.email_addr,
-            "company_domain": self.company_domain,
+            "company_domain": self.company.domain,
             "username": self.username,
             "hostname": self.hostname
         }

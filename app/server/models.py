@@ -32,55 +32,6 @@ class Base(db.Model):
         self.id = id
 
 
-class Company(Base):
-    """A company has many employees"""
-
-    name            = db.Column(db.String(50), nullable=False)
-    domain          = db.Column(db.String(50), nullable=False)
-   #employee        = db.relationship('Employee', backref=db.backref('employees', lazy='dynamic'))
-
-    def __init__(self, name, domain):
-        self.name = name
-        self.domain = domain
-
-    def __repr__(self):
-        return '<Company %r>' % self.name
-
-
-class Employee(Base):
-    """ Belongs to a company"""
-
-    name                = db.Column(db.String(50))
-    user_agent          = db.Column(db.String(50))
-    ip_addr             = db.Column(db.String(50))
-    awareness           = db.Column(db.Integer)
-    email_addr          = db.Column(db.String(50))
-    username            = db.Column(db.String(50))
-    hostname            = db.Column(db.String(50))
-    # TODO - users should have roles in the company (CEO, CIO, IT Admin, Janitor, Intern, HR
-
-    company_id          = db.Column(db.Integer, db.ForeignKey('company.id'))
-    company             = db.relationship('Company', backref=db.backref('employees', lazy='dynamic'))
-
-    def __init__(self, name, user_agent, ip_addr, awareness, email_addr, company, username, hostname):
-        self.name = name
-        self.user_agent = user_agent
-        self.ip_addr = ip_addr
-        self.awareness = awareness
-        self.email_addr = email_addr
-        self.company = company
-        self.username = username
-        self.hostname = hostname
-
-    def __repr__(self):
-        return  {
-            "name": self.name,
-            "user_agent": self.user_agent,
-            "ip_addr": self.ip_addr,
-            "email_addr": self.email_addr,
-            "company_domain": self.company.name
-        }
-
 ##########################################################
 # The following classes are specific to user autentication
 ###########################################################

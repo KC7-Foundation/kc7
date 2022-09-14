@@ -14,6 +14,7 @@ from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
 from app.server.modules.triggers.Trigger import Trigger
 from app.server.modules.actors.Actor import Actor
+from app.server.modules.organization.Company import Company, Employee
 from app.server.utils import *
 
 # instantiate faker

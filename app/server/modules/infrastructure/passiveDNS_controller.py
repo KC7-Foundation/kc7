@@ -1,6 +1,6 @@
 # Import internal modules
 from app.server.modules.actors.Actor import Actor
-from app.server.models import db, Company, Employee
+from app.server.models import db
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.utils import *
