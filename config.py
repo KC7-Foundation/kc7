@@ -48,7 +48,7 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
     TESTING = True
 
-    DEBUG_MODE=True   #Set to True if you don't want to write to Azure
+    ADX_DEBUG_MODE=True   # Set to True if you don't want to write to Azure
 
     SQLALCHEMY_DATABASE_URI = 'sqlite:///flaskr.db'
 
