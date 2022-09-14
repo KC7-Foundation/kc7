@@ -12,7 +12,7 @@ from sqlalchemy import asc
 from sqlalchemy.sql.expression import func, select
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
-from app.server.models import db, Company, Employee, Actor, DNSRecord, Team, Users, Roles, GameSession
+from app.server.models import db, Company, Employee, DNSRecord, Team, Users, Roles, GameSession
 from app.server.modules.organization.Company import CompanyShell, EmployeeShell
 from app.server.modules.clock.Clock import Clock
 from app.server.modules.logging.uploadLogs import LogUploader

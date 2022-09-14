@@ -1,10 +1,13 @@
+# Import internal modules
+from app.server.models import db, Company, Employee, DNSRecord
+from app.server.modules.helpers.word_generator import WordGenerator
+from app.server.modules.actors.Actor import Actor
+
+# Import external modules
 from fileinput import filename
 import random
 from faker import Faker
 from faker.providers import internet, lorem, file
-
-from app.server.models import db, Company, Employee, Actor, DNSRecord
-from app.server.modules.helpers.word_generator import WordGenerator
 
 # instantiate faker
 fake = Faker()

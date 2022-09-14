@@ -1,9 +1,10 @@
 # Import internal modules
-from app.server.models import db, Company, Employee, Actor, DNSRecord
+from app.server.models import db, Company, Employee, DNSRecord
 from app.server.modules.organization.Company import CompanyShell, EmployeeShell
-
-from flask import current_app
 from app.server.modules.logging.uploadLogs import LogUploader
+
+# Import external modules
+from flask import current_app
 from faker import Faker
 from faker.providers import internet, person, company
 

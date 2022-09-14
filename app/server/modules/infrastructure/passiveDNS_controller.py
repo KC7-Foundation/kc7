@@ -1,12 +1,15 @@
-
-from flask import current_app
-from app.server.models import db, Company, Employee, Actor, DNSRecord
+# Import internal modules
+from app.server.modules.actors.Actor import Actor
+from app.server.models import db, Company, Employee, DNSRecord
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.utils import *
+
+# Import external modules
+from flask import current_app
 import random
 
 
-def gen_passive_dns(actor: Actor, count_of_records:int=1) -> None:
+def gen_passive_dns(actor: Actor, count_of_records: int = 1) -> None:
     """
     Generate passive DNS entries 
     This should happen in bulk and the start 
@@ -27,10 +30,11 @@ def gen_passive_dns(actor: Actor, count_of_records:int=1) -> None:
     new_records = []
 
     if actor.name != "Default":
-        # This is a malicious actor 
+        # This is a malicious actor
 
-        #TODO: if actor isn't default, IPs and Domains should be reused
-        actor_records = [record for record in actor.dns_records] #listify DB results
+        # TODO: if actor isn't default, IPs and Domains should be reused
+        # listify DB results
+        actor_records = [record for record in actor.dns_records]
         if not actor_records:
             # if no dns records exist, create one
             print("no actor records were found")
@@ -47,7 +51,7 @@ def gen_passive_dns(actor: Actor, count_of_records:int=1) -> None:
 
         # pick one new DNS record based on the two pivot methods above
         new_record = random.choice([record, pivot_record])
-        
+
         # write the new record
         db.session.add(new_record)
         new_records.append(new_record.stringify())
@@ -73,5 +77,5 @@ def upload_dns_records_to_azure(dns_records):
 
     random.shuffle(dns_records)
     log_uploader.send_request(
-            data = dns_records,
-            table_name= "PassiveDns")
+        data=dns_records,
+        table_name="PassiveDns")
