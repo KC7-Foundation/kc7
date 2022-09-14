@@ -1,5 +1,5 @@
 # Import internal modules
-from app.server.models import db, Company, Employee, DNSRecord
+from app.server.models import db, Company, Employee
 from app.server.modules.helpers.word_generator import WordGenerator
 from app.server.modules.actors.Actor import Actor
 
