@@ -1,9 +1,10 @@
 # Import internal modules
-from app.server.models import db, Company, Employee, Actor, DNSRecord
-from app.server.modules.organization.Company import CompanyShell, EmployeeShell
-
-from flask import current_app
+from app.server.models import db
+from app.server.modules.organization.Company import Company
 from app.server.modules.logging.uploadLogs import LogUploader
+
+# Import external modules
+from flask import current_app
 from faker import Faker
 from faker.providers import internet, person, company
 
@@ -13,16 +14,17 @@ fake.add_provider(internet)
 fake.add_provider(person)
 fake.add_provider(company)
 
-def upload_company_to_azure(company_shell):
+
+def upload_company_to_azure(company: Company) -> None:
     """
-    Take a CompanyShell object and uploads the employee data to Azure
+    Take a Company object and uploads the employee data to Azure
     """
     from app.server.game_functions import log_uploader
-    
-    for employee in company_shell.get_jsonified_employees():
+
+    for employee in company.get_jsonified_employees():
         log_uploader.send_request(
-                data = employee,
-                table_name= "Employees")
+            data=employee,
+            table_name="Employees")
 
 
 def create_company():
@@ -37,41 +39,26 @@ def create_company():
         # company already exists return
         return
 
-
     print("No companies exist. Creating one now.")
     company_name = fake.company()
-    company_shell = CompanyShell(
-        name=company_name,
-        domain="acme.com"
+    company_domain = "acme.com"  # TODO: Pull this in from somewhere else
+
+    company = Company(
+            name=company_name,
+            domain=company_domain
     )
 
     try:
-        # Create a database object for the Company and the auto create employees
-        company = Company(
-            name=company_shell.name,
-            domain=company_shell.domain
-        )
+        # Add the company object to the database
+        # This might throw an error, so we do it in a try
         db.session.add(company)
 
         print("Generating company employees")
-        for index, employee_shell in enumerate(company_shell.employees):
-            # Creating an employee database object
-            employee = Employee(
-                name = employee_shell.name,
-                user_agent =  employee_shell.user_agent,
-                ip_addr = employee_shell.ip_addr,
-                awareness = employee_shell.awareness,
-                email_addr = employee_shell.email_addr,
-                username = employee_shell.username,
-                hostname = employee_shell.hostname,
-                company = company
-            )
+        for employee in company.employees:
             db.session.add(employee)
         db.session.commit()
     except Exception as e:
         print('Failed to create company.', e)
     print("Added a new company", 'success')
 
-    upload_company_to_azure(company_shell)
-
-    
+    upload_company_to_azure(company)

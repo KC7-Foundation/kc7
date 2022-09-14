@@ -10,6 +10,7 @@ from faker.providers import internet, lorem
 # Import internal modules
 from app.server.models import *
 from app.server.modules.clock.Clock import Clock
+from app.server.modules.actors.Actor import Actor
 
 # instantiate faker
 fake = Faker()
