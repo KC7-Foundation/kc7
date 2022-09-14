@@ -83,6 +83,11 @@ class LogUploader():
         print("\n\n\n".join(drop_table_commands))
         print("\n\n\n".join(create_table_commands))
 
+        if current_app.config["ADX_DEBUG_MODE"]:
+            # If ADX_DEBUG_MODE is enabled, return early
+            # This will prevent creating tables on the ADX cluster
+            return
+
         # Execute the Kql commands
         for command in (drop_table_commands + create_table_commands):
             response = self.client.execute_mgmt(self.DATABASE, command)
@@ -125,17 +130,25 @@ class LogUploader():
         return sum([len(val) for key, val in self.queue.items()])
         
 
-    def send_request(self, data: dict, table_name:str="emailtest") -> None:
+    def send_request(self, data: dict, table_name:str) -> None:
         """
         Data is ingested as JSON
         convert to a pandas dataframe and upload to KUSTO
 
         """
+
+        if current_app.config["ADX_DEBUG_MODE"]:
+            # If ADX_DEBUG_MODE is enabled, print JSON representation of data
+            # Then, return early to prevent queueing and uploading to ADX
+            print(f"Uploading to table {table_name}...")
+            print(json.dumps(data))
+            return
+
         # put data in a dataframe for ingestion
         if isinstance(data, list):
                 data = data[0]
 
-        # Add the data to the que
+        # Add the data to the queue
         # Data is appended to a list under table_name key in self.queue
         # e.g. {
         #    "table_name": [data]
