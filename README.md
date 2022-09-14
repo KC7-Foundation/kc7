@@ -11,7 +11,7 @@ Clone the repo
 `git clone https://github.com/kkneomis/cyber-challenger.git`
 
 Install the required python packages
-`pip install requirements.txt`
+`pip install -r requirements.txt`
 
 Run the project
 `python3 app.py`
