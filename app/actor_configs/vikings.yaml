@@ -23,4 +23,6 @@ subject_themes:
 tlds:
   - info
   - io
+  - xyz
+  - tk
 spoof_email: True
