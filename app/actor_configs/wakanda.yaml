@@ -32,4 +32,6 @@ subject_themes:
 tlds:
   - site
   - xyz
+  - tk
+  - club
 spoof_email: True
