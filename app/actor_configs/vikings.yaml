@@ -25,4 +25,5 @@ tlds:
   - io
   - xyz
   - tk
+  - site
 spoof_email: True
