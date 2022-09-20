@@ -49,7 +49,7 @@ class OutboundEvent:
     def stringify(self):
         """Return event in json format"""    
         return  {
-                  "time": self.time, 
+                  "timestamp": self.time, 
                   "method": self.method, 
                   "src_ip": self.src_ip, 
                   "user_agent":self.user_agent,
@@ -62,7 +62,7 @@ class OutboundEvent:
         return (
             "OutboundBrowsing",         # table name
             {                           # type dict
-                  "time": "string",
+                  "timestamp": "string",
                   "method": "string",
                   "src_ip": "string",
                   "user_agent":"string",
