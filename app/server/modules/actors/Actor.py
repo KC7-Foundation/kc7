@@ -7,11 +7,13 @@ from app.server.modules.helpers.word_generator import WordGenerator
 import random
 from faker import Faker
 from faker.providers import internet
+from app.server.modules.helpers.markov_sentence_generator import SentenceGenerator
 
 # Instantiate classes to be used here
 wordGenerator = WordGenerator()
 fake = Faker()
 fake.add_provider(internet)
+sentenceGenerator = SentenceGenerator()
 
 class Actor(Base):
     """
@@ -109,8 +111,9 @@ class Actor(Base):
         """
         Assemble a subject line using list of theme words from the Actor object
         """
+
         subject_themes = self.subject_themes.split(" ")
-        return fake.sentence(nb_words=7, ext_word_list=subject_themes)
+        return sentenceGenerator.genSentence(seedWords=subject_themes)
 
 
     def get_sender_address(self) -> str:
