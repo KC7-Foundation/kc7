@@ -132,7 +132,6 @@ class LogUploader():
         """
         Data is ingested as JSON
         convert to a pandas dataframe and upload to KUSTO
-
         """
 
         if current_app.config["ADX_DEBUG_MODE"]:

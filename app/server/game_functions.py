@@ -22,6 +22,7 @@ from app.server.modules.infrastructure.passiveDNS_controller import *
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.actors.Actor import Actor
 from app.server.utils import *
+from app.server.modules.helpers.markov_sentence_generator import SentenceGenerator
 
 
 
@@ -66,19 +67,30 @@ def start_game() -> None:
         employees, actors  = init_setup()
     
 
-    # (actor, employees, num_passive_dns, num_email, num_random_browsing
+    # # (actor, employees, num_passive_dns, num_email, num_random_browsing
     print("initialization complete...")
 
     # This is where the actor is
     # While this infinite loop runs, the game continues to generate data
     # To implement games of finite site -> bound this loop (e.g. use a for loop instead)
+    print(current_session.state)
     while current_session.state == True:
         # generate the activity
+        print("Running the game...")
         for actor in actors: 
+            print(actor.name)
             if actor.name == "Default":
-                generate_activity(actor, employees, num_passive_dns=10, num_email=10, num_random_browsing=5) 
+                generate_activity(actor, 
+                                 employees, 
+                                 num_passive_dns=10, 
+                                 num_email=10, 
+                                 num_random_browsing=5) 
             else:
-                generate_activity(actor, employees, num_passive_dns=1, num_email=2, num_random_browsing=3) 
+                generate_activity(actor, 
+                                  employees, 
+                                  num_passive_dns=1, 
+                                  num_email=2, 
+                                  num_random_browsing=3) 
 
 
     #     # Update the scores for each team - Used for live version of the game
