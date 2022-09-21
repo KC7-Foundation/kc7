@@ -28,7 +28,7 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 
 
 ## 🏁 Getting Started
-# Requirements
+### Requirements
 * [Python 3 or higher](https://www.python.org/downloads/)
 * [Git Bash](https://git-scm.com/downloads)
 
