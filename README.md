@@ -1,3 +1,5 @@
+![Admin Central button](readme_assets/kc7.png)
+
 # 🤖 👺 KC7 - a cybersecurity game 
 
 KC7 simulates an intrusion by multiple cyber threat actors against a fictitious company that spans the entire `Cyber Kill Chain`.
