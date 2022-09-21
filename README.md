@@ -79,5 +79,10 @@ Go check out the wiki for details on how the code base is structured
 * Greg Schloemer
 * Alton Henley
 * Andre Murrell
+* Emily Hacker
+* Matthew Kennedy
+* Justin Carroll
+* Syeda Sani-e-Zehra
+* Stuti Kanodia
 * Logo by David Hardman
 
