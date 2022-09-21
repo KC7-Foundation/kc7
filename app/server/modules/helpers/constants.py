@@ -37,3 +37,20 @@ MALICIOUS_FILES={
 	"mimikatz.exe":"6c9ad4e67032301a61a9897377d9cff8"
 	"advancedipscanner.exe":"597de376b1f80c06d501415dd973dcec"
 }
+
+LEGIT_COMMANDLINES={
+	"winword.exe":"-embedding"
+	"powershell.exe":"powershell Get-WmiObject -Class Win32_NetworkAdapterConfiguration"
+	"cmd.exe":"nslookup google.com"
+	"explorer.exe":"explorer"
+	"svchost.exe":"-k RPCSS -p"
+	"svchost.exe":"-k DcomLaunch -p"
+}
+
+MALICIOUS_COMMANDLINES={
+	"mimikatz.exe":"sekurlsa::logonpasswords"
+	"powershell.exe":"powershell -nop -w hidden -enc d2hvYW1p"
+	"mimikatz.exe":"lsadump::dcsync /user:domain\krbtgt /domain:lab.local" #Does our game have a company name variant to add here instead of "lab"
+	"sharphound.exe":"SharpHound.exe --CollectionMethods Session --Loop"
+
+}
