@@ -28,37 +28,46 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 
 
 ## 🏁 Getting Started
+# Requirements
+* [Python 3 or higher](https://www.python.org/downloads/)
+* [Git Bash](https://git-scm.com/downloads)
 
-Clone the repo
+### Installation
+* Open a new bash terminal and clone the repo using the following command:
 
 ```
 git clone https://github.com/kkneomis/cyber-challenger.git
 ```
 
-Install the required python packages
+* Install the required python packages
 ```
 pip install -r requirements.txt
 ```
+NOTE: After running this command some packages may require manual installation. If the command in the next step fails due to a missing package, the following command can be used to install it:
 
-Run the project
-```python
-python3 app.py
+```
+pip install [PACKAGE_NAME]
 ```
 
-Access the Guid by browsing to your local server @ `http://127.0.0.1:5000/`
+The package name may differ from the error message (for example: yaml is downloaded with the package name pyyaml)
 
+* Run the project
+```python
+python app.py
+```
 
-Browsing to the Login page: `http://127.0.0.1:5000/login` and login to the adminitator account using default creds `admin:admin`
+### Running the game
+* Access the Guid by browsing to your local server @ `http://127.0.0.1:5000/`
 
-Click on `Admin Central` in the left sidebar to get to the admin page
+* Browsing to the Login page: `http://127.0.0.1:5000/login` and login to the adminitator account using default creds `admin:admin`
+
+* Click on `Admin Central` in the left sidebar to get to the admin page
 
 ![Admin Central button](readme_assets/admin.png)
 
-
-Click `Start Game` to begin generating logs. The logs will be printed to your console (until you  configure your Azure secrets).
+* Click `Start Game` to begin generating logs. The logs will be printed to your console (until you  configure your Azure secrets).
 
 ![Start button](readme_assets/start.png)
-
 
 ## 🤠 How to contribute
 
