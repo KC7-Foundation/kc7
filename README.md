@@ -70,4 +70,5 @@ Go check out the wiki for details on how the code base is structured
 * Greg Schloemer
 * Alton Henley
 * Andre Murrell
+* Logo by David Hardman
 
