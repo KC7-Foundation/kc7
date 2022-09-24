@@ -17,7 +17,9 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 ### Here's an example scenario
 <img src="readme_assets/example.png" width=700 >
 
+## 📖 Our Story
 
+https://mem.ai/p/nlIjcw3yPTbb0DNDfPAI
 
 
 ## 👨🏽‍🎓 Who is this for?
