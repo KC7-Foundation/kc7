@@ -27,7 +27,13 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 * Cybersecurity professionals looking to **uplevel** their pivoting and analysis skills
 
 
-## 🏁 Getting Started
+## 🤾🏽‍♀️ Play with the data (No code required)!
+
+Check out the instructions to set up the data in a free Kusto cluster
+
+https://github.com/kkneomis/kc7/wiki/No-code-Required!-Loading-the-test-KC7-cluster-into-your-free-Kusto-instance
+
+## 🏁 Getting Started with the code!
 ### Requirements
 * [Python 3 or higher](https://www.python.org/downloads/)
 * [Git Bash](https://git-scm.com/downloads)
