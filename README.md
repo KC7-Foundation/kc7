@@ -19,7 +19,7 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 
 ## 📖 Our Story
 
-https://mem.ai/p/nlIjcw3yPTbb0DNDfPAI
+[Read our background story](https://mem.ai/p/nlIjcw3yPTbb0DNDfPAI)
 
 
 ## 👨🏽‍🎓 Who is this for?
@@ -33,7 +33,7 @@ https://mem.ai/p/nlIjcw3yPTbb0DNDfPAI
 
 * [Check out the instructions to set up the data in a free Kusto cluster](https://github.com/kkneomis/kc7/wiki/No-code-Required!-Loading-the-test-KC7-cluster-into-your-free-Kusto-instance)
 
-* (Get the walking through guide)[https://github.com/kkneomis/kc7/tree/master/training_materials]
+* [Get the walking through guide](https://github.com/kkneomis/kc7/tree/master/training_materials)
 
 
 ## 🏁 Getting Started with the code!
