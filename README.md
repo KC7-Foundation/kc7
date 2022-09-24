@@ -31,9 +31,10 @@ https://mem.ai/p/nlIjcw3yPTbb0DNDfPAI
 
 ## 🤾🏽‍♀️ Play with the data (No code required)!
 
-Check out the instructions to set up the data in a free Kusto cluster
+* [Check out the instructions to set up the data in a free Kusto cluster](https://github.com/kkneomis/kc7/wiki/No-code-Required!-Loading-the-test-KC7-cluster-into-your-free-Kusto-instance)
 
-https://github.com/kkneomis/kc7/wiki/No-code-Required!-Loading-the-test-KC7-cluster-into-your-free-Kusto-instance
+* (Get the walking through guide)[https://github.com/kkneomis/kc7/tree/master/training_materials]
+
 
 ## 🏁 Getting Started with the code!
 ### Requirements
