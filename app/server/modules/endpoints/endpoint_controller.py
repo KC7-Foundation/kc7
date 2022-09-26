@@ -1,7 +1,6 @@
 # Import external modules
 from enum import Enum
 import random
-from app.server.modules.endpoints.file_creation_event import FileCreationEvent
 from faker import Faker
 from faker.providers import internet, lorem
 
@@ -10,6 +9,7 @@ from faker.providers import internet, lorem
 from flask import current_app
 from app.server.models import *
 from app.server.modules.endpoints.file_creation_event import FileCreationEvent
+from app.server.modules.endpoints.processes import ProcessEvent
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
 from app.server.utils import *
@@ -44,7 +44,7 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
         upload_endpoint_event_to_azure(file_creation_event)
 
 
-def upload_endpoint_event_to_azure(event: FileCreationEvent, table_name: str = "FileCreationEvents") -> None:
+def upload_file_creation_event_to_azure(event: FileCreationEvent, table_name: str = "FileCreationEvents") -> None:
 
     """
     A function to upload a FileCreationEvent to ADX
@@ -53,5 +53,17 @@ def upload_endpoint_event_to_azure(event: FileCreationEvent, table_name: str = "
 
     from app.server.game_functions import LOG_UPLOADER
     LOG_UPLOADER.send_request(
+        data=[event.stringify()],
+        table_name=table_name)
+
+def upload_process_creation_event_to_azure(event: ProcessEvent, table_name: str = "ProcessEvents") -> None:
+
+    """
+    A function to upload a ProcessCreationEvent to ADX
+    References global log_uploader to queue log rows for uploading
+    """
+
+    from app.server.game_functions import log_uploader
+    log_uploader.send_request(
         data=[event.stringify()],
         table_name=table_name)

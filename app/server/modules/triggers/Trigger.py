@@ -13,7 +13,8 @@ from app.server.modules.clock.Clock import Clock
 from app.server.modules.endpoints.file_creation_event import File, FileCreationEvent
 from app.server.modules.endpoints.processes import Process, ProcessEvent
 from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
-from app.server.modules.endpoints.endpoint_controller import upload_endpoint_event_to_azure
+from app.server.modules.endpoints.endpoint_controller import upload_file_creation_event_to_azure
+from app.server.modules.endpoints.endpoint_controller import upload_process_creation_event_to_azure
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.authentication.auth_controller import auth_to_mail_server, upload_auth_event_to_azure
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_request, make_email_exfil_url
@@ -91,14 +92,34 @@ class Trigger:
         )
 
         # This will come from the filesystem controller
-        upload_endpoint_event_to_azure(file_creation_event)
+        upload_file_creation_event_to_azure(file_creation_event)
+
+        # The downloaded file causes a process to kick off after some time
+        Trigger.file_creates_process(recipient, time, email, file_creation_event)
 
         # if user runs the file then beacon from user machine
         # there should be a condition here
         if email.actor.name != "Default":
             Trigger.malware_beacons_on_user_machine(recipient, time, email)
 
-    @staticmethod
+    def file_creates_process(recipient: Employee, time: float, email: Email, file_creation_event: FileCreationEvent) -> None:
+        """
+        When a file is downloaded, it will kick off a process on the machine 
+        This occurs after a random amount of time between 30 and 180 seconds
+        """
+        process_time=Clock.increment_time(time, random.randint(30,180))
+        process = ProcessEvent(
+           creation_time=process_time, 
+           parent_process_name=email.link.split("/")[-1],
+           parent_process_hash=file_creation_event.md5,
+           process_commandline="powershell -nop -w hidden -enc d2hvYW1p",
+           process_name="powershell.exe",
+           process_hash="cda48fc75952ad12d99e526d0b6bf70a",
+           hostname=recipient.hostname
+        )
+
+        upload_process_creation_event_to_azure(process)
+
     def malware_beacons_on_user_machine(recipient: Employee, time: float, email: Email) -> None:
         """
         When a user dowloads a file, there is a chance the file gets executed

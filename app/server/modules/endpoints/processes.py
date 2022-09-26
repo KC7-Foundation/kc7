@@ -1,3 +1,5 @@
+from app.server.modules.clock import Clock
+
 class Process:
     """
     A class that represents the basic data model for a process
@@ -44,7 +46,7 @@ class ProcessEvent:
 
     def stringify(self):
         return {
-            "timestamp": self.timestamp,
+            "creation_time": Clock.from_timestamp_to_string(self.creation_time),
             "parent_process_name": self.parent_process_name,
             "parent_process_hash": self.parent_process_hash,
             "process_commandline": self.process_commandline,
