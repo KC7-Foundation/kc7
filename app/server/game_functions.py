@@ -131,7 +131,7 @@ def init_setup():
     return employees, actors
 
     
-def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_email:int, num_random_browsing:int):
+def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_email:int, num_random_browsing:int) -> None:
     """
     Given an actor, enerates one cycle of activity for users in the orgs
     Current:
@@ -155,7 +155,7 @@ def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_em
 
 
 
-def create_actors() -> NonCallableMagicMock:
+def create_actors() -> None:
     """
     Create a malicious actor in the game and adds them to the database
     Actors are read in from yaml files in the actor_configs folder
@@ -199,7 +199,7 @@ def create_actors() -> NonCallableMagicMock:
     except Exception as e:
         db.session.rollback()
         print("Failed to create actor %s" % e)
-
+        
 
 def read_actor_config_from_yaml(filename) -> dict:
     """
