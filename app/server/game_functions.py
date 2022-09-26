@@ -34,15 +34,11 @@ def start_game() -> None:
     2. Generate starter data
     3. Run infinite loop to generate additional activity
     """
-    global log_uploader
-    # The game session is a database table
-    # The current game is session (1) - could probably do this better later
-
-    # Create tables in Kusto as necessary
     print("Starting the game...")
 
     # instantiate a logUploader. This instance is used by all other modules to send logs to azure
     # we use a singular instances in order to queue up muliple rows of logs and send them all at once
+    global log_uploader
     log_uploader = LogUploader()
     log_uploader.create_tables(reset=True)
 
@@ -66,13 +62,11 @@ def start_game() -> None:
         print(actors)
         employees, actors  = init_setup()
     
-
-    # # (actor, employees, num_passive_dns, num_email, num_random_browsing
     print("initialization complete...")
 
-    # This is where the actor is
+    # This is where the action is
     # While this infinite loop runs, the game continues to generate data
-    # To implement games of finite site -> bound this loop (e.g. use a for loop instead)
+    # To implement games of finite size -> bound this loop (e.g. use a for loop instead)
     print(current_session.state)
     while current_session.state == True:
         # generate the activity
@@ -80,12 +74,14 @@ def start_game() -> None:
         for actor in actors: 
             print(actor.name)
             if actor.name == "Default":
+                # Default actor is used to create noise
                 generate_activity(actor, 
                                  employees, 
                                  num_passive_dns=10, 
                                  num_email=10, 
                                  num_random_browsing=5) 
             else:
+                # generate activity of actors defined in actor config
                 generate_activity(actor, 
                                   employees, 
                                   num_passive_dns=1, 
@@ -93,19 +89,6 @@ def start_game() -> None:
                                   num_random_browsing=3) 
 
 
-    #     # Update the scores for each team - Used for live version of the game
-    #   teams = Team.query.all()
-    #     for team in teams:
-    #         team.score += 1000
-
-    #         count_mitigations = len(team._mitigations)
-    #         mitigation_cost = count_mitigations 
-    #         team.score -= mitigation_cost
-
-    #     db.session.commit()
-    #     print("updated team scores")
-        # time.sleep(5)  #do this when liv
-    
 
 def init_setup():
     """
@@ -120,7 +103,7 @@ def init_setup():
     employees = Employee.query.all()
     actors = Actor.query.all()
 
-    # only  create employees for the company or actors 
+    # only create employees for the company or actors 
     # if they do not already exist
     if not employees:
         create_company()
@@ -129,7 +112,7 @@ def init_setup():
         create_actors()
         actors = Actor.query.all()
     
-    # generate soem initial activity for the actors
+    # generate some initial activity for the actors
     for actor in actors:
         generate_activity(
                             actor, 
@@ -157,29 +140,18 @@ def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_em
         - General 
     """
     print(f"generating activity for actor {actor.name}")
+    
     # Generate passive DNS for specified actor
     gen_passive_dns(actor, num_passive_dns)
 
     # Generate emails for random employees for specified actor
-    for i in range(num_email):
-        gen_email(employees, actor)
-
-    # for i in range(num_email):
-        # gen_email(employees, actor)
+    # TODO: handle number of emails generated in the function
+    gen_email(employees, actor, num_email)
 
     # Generate browsing activity for random emplyoees for the default actor
     # browsing for other actors should only come through email clicks
-    current_session = db.session.query(GameSession).get(1)
-
     if actor.name == "Default":
-        for i in range(num_random_browsing):
-            employee = random.choice(employees)
-
-            # time is returned as timestamp (float)
-            time = Clock.get_current_gametime(start_time=current_session.start_time,
-                                                    seed_date=current_session.seed_date)
-
-            browse_random_website(employee, actor, time)
+        browse_random_website(employees, actor, num_random_browsing)
 
 
 

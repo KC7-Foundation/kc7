@@ -41,7 +41,7 @@ def get_random_actor():
     pass
 
 
-def gen_email(employees: "list[Employee]", actor: Actor) -> None:
+def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> None:
     """
     Make a call to the Azure email function
     to create an email, post to log analytics
@@ -49,30 +49,32 @@ def gen_email(employees: "list[Employee]", actor: Actor) -> None:
     """
     # Get the current game session from the database
     current_session = db.session.query(GameSession).get(1)
+    
+    for _ in count_emails:
 
-    # time is returned as timestamp (float)
-    time = Clock.get_current_gametime(start_time=current_session.start_time,
-                                      seed_date=current_session.seed_date)
+        # time is returned as timestamp (float)
+        time = Clock.get_current_gametime(start_time=current_session.start_time,
+                                        seed_date=current_session.seed_date)
 
-    # If the actor is a malicious one, we will always generate an inbound email (external -> internal)
-    if actor.name == DEFAULT_ACTOR_NAME:
-        email_type = random.choice([t.value for t in EmailType])
-    else:
-        email_type = EmailType.INBOUND.value
+        # If the actor is a malicious one, we will always generate an inbound email (external -> internal)
+        if actor.name == DEFAULT_ACTOR_NAME:
+            email_type = random.choice([t.value for t in EmailType])
+        else:
+            email_type = EmailType.INBOUND.value
 
-    # Depending on the email type selected, call a different function
-    if email_type == EmailType.INBOUND.value:
-        recipient = random.choice(employees)
-        gen_inbound_mail(recipient, actor, time)
+        # Depending on the email type selected, call a different function
+        if email_type == EmailType.INBOUND.value:
+            recipient = random.choice(employees)
+            gen_inbound_mail(recipient, actor, time)
 
-    elif email_type == EmailType.OUTBOUND.value:
-        sender = random.choice(employees)
-        gen_outbound_mail(sender, actor, time)
+        elif email_type == EmailType.OUTBOUND.value:
+            sender = random.choice(employees)
+            gen_outbound_mail(sender, actor, time)
 
-    elif email_type == EmailType.INTERNAL.value:
-        sender = random.choice(employees)
-        recipient = random.choice(employees)
-        gen_internal_mail(sender, recipient, actor, time)
+        elif email_type == EmailType.INTERNAL.value:
+            sender = random.choice(employees)
+            recipient = random.choice(employees)
+            gen_internal_mail(sender, recipient, actor, time)
 
 
 def gen_inbound_mail(recipient: Employee, actor: Actor, time: float) -> None:
