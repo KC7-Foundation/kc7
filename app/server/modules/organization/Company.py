@@ -1,12 +1,16 @@
 from os import name
 import random
 import string
-import json
+import ipaddress
 from json import JSONEncoder
 from faker import Faker
 from faker.providers import internet, user_agent, person
+from sqlalchemy import func
 
 from app.server.models import Base
+from app.server.modules.clock.Clock import Clock
+from app.server.models import GameSession
+
 from app import db
 
 #import Employee
@@ -35,26 +39,28 @@ class Company(Base):
         else:
             # If a domain is not provided, take the name and add a random TLD
             self.domain = str.lower("".join(name.split())).replace(",", "") + "." + fake.tld()
-        self.employees = []
-        self.add_employees()
+        
 
-    def add_employees(self, count_employees: int = 50) -> None:
-        """
-        Generates count_employees number of employees and associates them with the company
-        """
-        # TODO: Num of employees should be passed in from config
-        for i in range(count_employees):
-            employee = self.generate_employee()
-            self.employees.append(employee)
 
-    def generate_employee(self):
+    def get_new_employee(self, creation_time:float=None, user_agent:str="", name:str="", days_since_hire:int=0):
         """
         Constructs a single employee instance and returns it.
+        This function can take a specific creation time
+        or uses days_since_hire to compute accopunt creation time
         """
+        # time is returned as timestamp (float)
+        #Get the current game session from the database
+        current_session = db.session.query(GameSession).get(1)
+        time = Clock.get_current_gametime(start_time=current_session.start_time,
+                                                    seed_date=current_session.seed_date)
+                                                    
+        time_since_account_creation = days_since_hire * 24 * 60 * 60 # days to seconds
+        account_creation_datetime = Clock.increment_time(time, time_since_account_creation * -1 )
+
         employee = Employee(
-            name=fake.name(),
-            user_agent=fake.user_agent(),
-            # TODO: Let's put these ont the same network
+            creation_time=creation_time or account_creation_datetime or Clock.get_current_gametime(),
+            name=name or fake.name(),
+            user_agent=user_agent or fake.user_agent(),
             ip_addr=self.generate_ip(),
             company=self
         )
@@ -73,10 +79,15 @@ class Company(Base):
         """
         return [employee.stringify() for employee in self.employees]
 
+
     def generate_ip(self) -> str:
-        """Create a dummy RFC1918 IP"""
-        # TODO: Can we make these all on the same subnet?
-        return fake.ipv4_private()
+        """Assign the employee an IP on the local network"""
+        # get the largest assigned IP addr and add 1
+        # this ensures we don't have IP collisions
+        # TODO: make thid better
+        company =  db.session.query(Company).get(1)
+        count_of_existing_employees = company.employees.count()
+        return format(ipaddress.IPv4Address('192.168.0.2') + count_of_existing_employees)
 
     def __repr__(self) -> str:
         return '<Company %r>' % self.name
@@ -96,22 +107,27 @@ class Employee(Base):
     email_addr = db.Column(db.String(50))
     username = db.Column(db.String(50))
     hostname = db.Column(db.String(50))
+    creation_time = db.Column(db.String(50))
+    
 
     # Define database relationships
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
     company = db.relationship(
         'Company', backref=db.backref('employees', lazy='dynamic'))
 
-    def __init__(self, name: str, user_agent: str, ip_addr: str, company: Company) -> None:
+    def __init__(self, name: str, user_agent: str, ip_addr: str, company: Company, creation_time:float) -> None:
         self.name = name
+        
         self.user_agent = user_agent
         self.ip_addr = ip_addr
         self.company = company
         # TODO: Make this global setting
         self.awareness = random.randint(30, 90)
+        self.creation_time = Clock.from_timestamp_to_string(creation_time)
         self.set_email()
         self.set_username()
         self.set_hostname()
+        
 
     def set_email(self) -> None:
         """
@@ -151,6 +167,7 @@ class Employee(Base):
         Used for uploading data to ADX.
         """
         return {
+            "creation_time": self.creation_time,
             "name": self.name,
             "user_agent": self.user_agent,
             "ip_addr": self.ip_addr,
@@ -172,6 +189,7 @@ class Employee(Base):
         return (
             "Employees",  # table name
             {             # type dict
+                "creation_string":"string",
                 "name": "string",
                 "user_agent": "string",
                 "ip_addr": "string",

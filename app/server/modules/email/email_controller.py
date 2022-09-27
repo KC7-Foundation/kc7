@@ -50,7 +50,7 @@ def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> No
     # Get the current game session from the database
     current_session = db.session.query(GameSession).get(1)
     
-    for _ in count_emails:
+    for _ in range(count_emails):
 
         # time is returned as timestamp (float)
         time = Clock.get_current_gametime(start_time=current_session.start_time,
