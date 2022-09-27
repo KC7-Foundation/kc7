@@ -189,7 +189,7 @@ class Employee(Base):
         return (
             "Employees",  # table name
             {             # type dict
-                "creation_string":"string",
+                "creation_time":"string",
                 "name": "string",
                 "user_agent": "string",
                 "ip_addr": "string",
