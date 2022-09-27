@@ -27,7 +27,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     Generate n web requests to random websites on the internet    
     """
     # get a random user from the database
-    for _ in count_browsing:
+    for _ in range(count_browsing):
         employee = random.choice(employees)
 
         #Get the current game session from the database
