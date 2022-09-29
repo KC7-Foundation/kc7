@@ -84,25 +84,19 @@ class Actor(Base):
         """
         Assemble a domain name using the list of theme words from the Actor object
         """
-        separators = ["","-","and","or", "with", "on", "in" ]
+        separators = ["","-" ]
         tlds = self.tlds.split(" ")
         
-        # if actor is default, let's get a larger list of randomised world
+        # if actor is default, let's get a larger list of randomised words
         if self.name == "Default":
             domain_themes = wordGenerator.get_words(1000)
         else:
             # Splitting string representation of list from db into actual list
             domain_themes = self.domain_themes.split(" ")
 
-        words = random.choices(domain_themes, k=random.randint(2,3))
+        words = random.choices(domain_themes, k=random.randint(1,2))
         
-        domain_components = []
-        for loc, word in enumerate(words):
-            domain_components += word 
-            if loc < len(words)-2:
-                domain_components += random.choice(separators)
-
-        domain = "".join(domain_components) + "." + random.choice(tlds)
+        domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
 
         return domain
         
@@ -120,11 +114,22 @@ class Actor(Base):
         """Make a list of fake sender addresses"""
         sender_themes = self.sender_themes.split(" ")
 
-        # TODO: Centralize this list of freemail providers somewhere else (maybe helpers?)
-        free_email_service_domains = ['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com']
-        words = random.choices(sender_themes, k=random.randint(2,5))
+         # TODO: Centralize this list of freemail providers somewhere else (probably contants?)
+        email_domains = ['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com']
+
+        # just for fun: add and actor domain in the mix: so 1/8 chance senderd domain will be actor domain
+        # TODO: make this selectable 
+        email_domains.append(self.get_domain_name())
+        # senders will come in one of two flavors
+        # 1. themed_word@freemail.com
+        # 2. themed_word@actordomain.com
+       
+        # get one or two words from our sender themes
+        words = random.choices(sender_themes, k=random.randint(1,2))
         
-        sender_addr = "".join(words) + "@" + random.choice(free_email_service_domains)
+
+        splitter = random.choice(["", "_", "."])
+        sender_addr = splitter.join(words) + "@" + random.choice(email_domains)
         
         return sender_addr
 
