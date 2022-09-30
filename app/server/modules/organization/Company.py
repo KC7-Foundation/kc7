@@ -32,8 +32,10 @@ class Company(Base):
     name        = db.Column(db.String(50), nullable=False)
     domain      = db.Column(db.String(50), nullable=False)
 
-    def __init__(self, name: str, domain: str) -> None:
+    def __init__(self, name: str, domain: str, count_employees:int=100, roles:dict={}) -> None:
         self.name = name
+        self.count_employees = count_employees
+        self.roles = roles
         if domain:
             self.domain = domain
         else:
@@ -62,7 +64,8 @@ class Company(Base):
             name=name or fake.name(),
             user_agent=user_agent or fake.user_agent(),
             ip_addr=self.generate_ip(),
-            company=self
+            company=self,
+            role=self.get_role()
         )
 
         return employee
@@ -89,6 +92,29 @@ class Company(Base):
         count_of_existing_employees = company.employees.count()
         return format(ipaddress.IPv4Address('192.168.0.2') + count_of_existing_employees)
 
+    def get_role(self) -> str:
+        """
+        Get a role from the company's dictionary of possible positions
+        Decrement the limit
+        Role Dict should look something like: 
+          "roles": [
+            {
+            "role": "Chief Executive Officer",
+            "limit": 1
+            },
+            {
+            "role": "Chief Financial Officer",
+            "limit": 3
+            },
+        """
+        role = random.choice(self.roles)
+        # decrement role because we've already assigned all the slots
+        role["limit"] -= 1
+        if role["limit"] == 0:
+            self.roles.remove(role)
+        print(f"assigning out role: {role}")
+        return role.get('title')
+
     def __repr__(self) -> str:
         return '<Company %r>' % self.name
 
@@ -100,14 +126,15 @@ class Employee(Base):
     """
     # Define attributes that will be represented in database
     # NOTE: Only the following attributes are returned when retrieving an Employee object from the database
-    name = db.Column(db.String(50))
-    user_agent = db.Column(db.String(50))
-    ip_addr = db.Column(db.String(50))
-    awareness = db.Column(db.Integer)
-    email_addr = db.Column(db.String(50))
-    username = db.Column(db.String(50))
-    hostname = db.Column(db.String(50))
-    creation_time = db.Column(db.String(50))
+    name                = db.Column(db.String(50))
+    user_agent          = db.Column(db.String(50))
+    ip_addr             = db.Column(db.String(50))
+    awareness           = db.Column(db.Integer)
+    email_addr          = db.Column(db.String(50))
+    username            = db.Column(db.String(50))
+    hostname            = db.Column(db.String(50))
+    creation_time       = db.Column(db.String(50))
+    role                = db.Column(db.String(50))
     
 
     # Define database relationships
@@ -115,7 +142,8 @@ class Employee(Base):
     company = db.relationship(
         'Company', backref=db.backref('employees', lazy='dynamic'))
 
-    def __init__(self, name: str, user_agent: str, ip_addr: str, company: Company, creation_time:float) -> None:
+    def __init__(self, name: str, user_agent: str, ip_addr: str, company: Company, 
+                creation_time:float, role:str="") -> None:
         self.name = name
         
         self.user_agent = user_agent
@@ -124,6 +152,7 @@ class Employee(Base):
         # TODO: Make this global setting
         self.awareness = random.randint(30, 90)
         self.creation_time = Clock.from_timestamp_to_string(creation_time)
+        self.role = role
         self.set_email()
         self.set_username()
         self.set_hostname()
@@ -174,7 +203,8 @@ class Employee(Base):
             "email_addr": self.email_addr,
             "company_domain": self.company.domain,
             "username": self.username,
-            "hostname": self.hostname
+            "hostname": self.hostname,
+            "role":self.role
         }
 
     @staticmethod
@@ -196,6 +226,7 @@ class Employee(Base):
                 "email_addr": "string",
                 "company_domain": "string",
                 "username": "string",
+                "role":"string",
                 "hostname": "string"
             }
         )

@@ -1,0 +1,26 @@
+name: Acme Inc.
+domain: acme.com
+count_employees: 1000
+roles:
+  - title: Chief Executive Officer
+    limit: 1
+  - title: Chief Financial Officer
+    limit: 1
+  - title: Chief Marketing Officer
+    limit: 1
+  - title: Chief Information Security Officer
+    limit: 1
+  - title: Vice President
+    limit: 10
+  - title: IT associate
+    limit: 999
+  - title: Finance associate
+    limit: 999
+  - title: Marketing associate
+    limit: 999
+  - title: Human Resources associate
+    limit: 999
+  - title: Database administrator
+    limit: 10
+
+

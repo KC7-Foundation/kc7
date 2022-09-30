@@ -1,5 +1,4 @@
 from unittest.mock import NonCallableMagicMock
-import yaml 
 import glob
 
 from flask_security import roles_required
@@ -180,9 +179,9 @@ def create_actors() -> None:
 
     # use yaml configs to load other actors
     # read yaml file for each new actor, load json from yaml
-    actor_configs = glob.glob("app/actor_configs/*.yaml") 
+    actor_configs = glob.glob("app/game_configs/actors/*.yaml") 
     for file in actor_configs:
-        actor_config = read_actor_config_from_yaml(file)
+        actor_config = read_config_from_yaml(file)
         # use dictionary value to instantiate actor
         if actor_config:
             print(f"adding actor: {actor_config}")
@@ -201,14 +200,3 @@ def create_actors() -> None:
         print("Failed to create actor %s" % e)
         
 
-def read_actor_config_from_yaml(filename) -> dict:
-    """
-    Read actor_config from file.
-    Return a json representation of the yaml file 
-    """
-    with open(filename, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            return None
-            print(exc)
