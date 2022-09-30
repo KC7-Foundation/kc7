@@ -79,8 +79,8 @@ class LogUploader():
                     f".drop table {table_name} ifexists"
                 )
 
-        print("\n\n\n".join(drop_table_commands))
-        print("\n\n\n".join(create_table_commands))
+        # print("\n\n\n".join(drop_table_commands))
+        # print("\n\n\n".join(create_table_commands))
 
         if current_app.config["ADX_DEBUG_MODE"]:
             # If ADX_DEBUG_MODE is enabled, return early
