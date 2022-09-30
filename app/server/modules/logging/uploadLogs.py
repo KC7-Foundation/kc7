@@ -134,13 +134,6 @@ class LogUploader():
         convert to a pandas dataframe and upload to KUSTO
         """
 
-        if current_app.config["ADX_DEBUG_MODE"]:
-            # If ADX_DEBUG_MODE is enabled, print JSON representation of data
-            # Then, return early to prevent queueing and uploading to ADX
-            print(f"Uploading to table {table_name}...")
-            print(json.dumps(data))
-            return
-
         # put data in a dataframe for ingestion
         if isinstance(data, list):
             data = data[0]
@@ -174,11 +167,17 @@ class LogUploader():
                 print(f"uploading data for type {table_name}")
                 print(data_table_df.shape)
 
-                # submit logs to Kusto
-                result = self.ingest.ingest_from_dataframe(
-                    data_table_df, ingestion_properties=self.ingestion_props)
-                print(result)
-                print(f"....adding data to azure for {table_name} table")
+                if current_app.config["ADX_DEBUG_MODE"]:
+                    # If ADX_DEBUG_MODE is enabled, print JSON representation of data
+                    # Then, return early to prevent queueing and uploading to ADX
+                    print(f"Uploading to table {table_name}...")
+                    print(data_table_df.to_markdown())
+                else:
+                    # submit logs to Kusto
+                    result = self.ingest.ingest_from_dataframe(
+                        data_table_df, ingestion_properties=self.ingestion_props)
+                    print(result)
+                    print(f"....adding data to azure for {table_name} table")
 
             # reset the quee
             self.queue = {}

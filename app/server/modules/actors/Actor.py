@@ -37,10 +37,12 @@ class Actor(Base):
     count_init_passive_dns      = db.Column(db.Integer)
     count_init_email            = db.Column(db.Integer)
     count_init_browsing         = db.Column(db.Integer)   # >:D
+    max_wave_size               = db.Column(db.Integer) 
+
 
     def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
                 subject_themes:list=[],  tlds:list=[], spoof_email:bool=False, 
-                count_init_passive_dns:int=100, count_init_email:int=10, count_init_browsing:int=2, 
+                count_init_passive_dns:int=100, count_init_email:int=10, count_init_browsing:int=2, max_wave_size:int=2,
                 file_names:str="", file_extensions:str="" ):
 
         self.name = name
@@ -63,6 +65,7 @@ class Actor(Base):
         self.count_init_browsing        = int(count_init_browsing)
         self.count_init_email           = int(count_init_email)
         self.count_init_passive_dns     = int(count_init_passive_dns)
+        self.max_wave_size              = int(max_wave_size)
 
     
     def get_file_names(self) -> "list[str]":
@@ -80,6 +83,7 @@ class Actor(Base):
         file_extensions = self.file_extensions.split(" ")
         return [f for f in file_extensions if f!='']
 
+
     def get_domain_name(self) -> str:
         """
         Assemble a domain name using the list of theme words from the Actor object
@@ -95,7 +99,6 @@ class Actor(Base):
             domain_themes = self.domain_themes.split(" ")
 
         words = random.choices(domain_themes, k=random.randint(1,2))
-        
         domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
 
         return domain
@@ -132,6 +135,7 @@ class Actor(Base):
         sender_addr = splitter.join(words) + "@" + random.choice(email_domains)
         
         return sender_addr
+        
 
     def __repr__(self):
         return '<Actor %r>' % self.name

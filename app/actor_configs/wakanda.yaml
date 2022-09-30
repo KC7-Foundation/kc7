@@ -2,6 +2,7 @@ name : Wakanda
 effectiveness: 50
 count_init_passive_dns: 1
 count_init_email: 1
+max_wave_size: 5
 domain_themes:
   - warrior
   - king
