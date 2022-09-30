@@ -52,8 +52,7 @@ def create_company():
             domain=company_domain
     )
      # add the company to the database
-    db.session.add(company)
-    db.session.commit()
+    
 
     # Create 100 employees that work for the company
     # Specify how long they have been working at the company
@@ -66,20 +65,17 @@ def create_company():
                             days_since_hire=days_since_hire
                         )
         employees.append(new_employee)
-
+        db.session.add(new_employee)
         # this is not efficient ... but part of a workaround to avoid IP collisions
         # db must be aware of all employees during creation process
-        db.session.add(new_employee)
-        db.session.commit()
         upload_employee_to_azure(new_employee)
 
-       
 
     print("Generating company employees")
     # Add the employees to the database
     # add the employees to Azure
-    for employee in employees:
-        db.session.add(employee)
+    db.session.add(company)
+    db.session.commit()
         
 
         
