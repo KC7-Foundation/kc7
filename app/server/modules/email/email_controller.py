@@ -64,8 +64,9 @@ def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> No
 
         # Depending on the email type selected, call a different function
         if email_type == EmailType.INBOUND.value:
-            recipient = random.choice(employees)
-            gen_inbound_mail(recipient, actor, time)
+            wave_size = random.randint(1, actor.max_wave_size)
+            recipients = random.choices(employees, k=wave_size)
+            gen_inbound_mail(recipients, actor, time)
 
         elif email_type == EmailType.OUTBOUND.value:
             sender = random.choice(employees)
@@ -77,7 +78,7 @@ def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> No
             gen_internal_mail(sender, recipient, actor, time)
 
 
-def gen_inbound_mail(recipient: Employee, actor: Actor, time: float) -> None:
+def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, time: float) -> None:
     """
     Generate an email from someone outside the company to someone inside
     """
@@ -86,23 +87,24 @@ def gen_inbound_mail(recipient: Employee, actor: Actor, time: float) -> None:
     sender = actor.get_sender_address()
     reply_to = actor.get_sender_address() if actor.spoof_email else sender
 
-    email = Email(
-        time=time,
-        sender=actor.get_sender_address(),
-        recipient=recipient.email_addr,
-        subject=actor.get_email_subject(),
-        reply_to=reply_to,
-        link=link,
-        domain=domain,
-        actor=actor,
-        accepted=random.choices([True, False], weights=(80, 20), k=1)[0],
-        authenticity=actor.effectiveness
-    )
+    for recipient in recipients:
+        email = Email(
+            time=time,
+            sender=sender,
+            recipient=recipient.email_addr,
+            subject=actor.get_email_subject(),
+            reply_to=reply_to,
+            link=link,
+            domain=domain,
+            actor=actor,
+            accepted=random.choices([True, False], weights=(80, 20), k=1)[0],
+            authenticity=actor.effectiveness
+        )
 
-    send_email_to_azure(email)
+        send_email_to_azure(email)
 
-    # Initiate the trigger for the recipient receiving the constructed email
-    Trigger.user_receives_email(email, recipient)
+        # Initiate the trigger for the recipient receiving the constructed email
+        Trigger.user_receives_email(email, recipient)
 
 
 def gen_outbound_mail(sender: Employee, actor: Actor, time: float) -> None:

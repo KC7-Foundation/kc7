@@ -77,15 +77,15 @@ def start_game() -> None:
                 # Default actor is used to create noise
                 generate_activity(actor, 
                                  employees, 
-                                 num_passive_dns=10, 
-                                 num_email=10, 
-                                 num_random_browsing=5) 
+                                 num_passive_dns=50, 
+                                 num_email=100, 
+                                 num_random_browsing=500) 
             else:
                 # generate activity of actors defined in actor config
                 generate_activity(actor, 
                                   employees, 
                                   num_passive_dns=1, 
-                                  num_email=2, 
+                                  num_email=1, 
                                   num_random_browsing=3) 
 
 
@@ -169,8 +169,8 @@ def create_actors() -> None:
         name = "Default",  # Dont change the name!
         effectiveness = 99,
         count_init_passive_dns= 10, 
-        count_init_email= 10, 
-        count_init_browsing=10,
+        count_init_email= 100, 
+        count_init_browsing=100,
         domain_themes = wordGenerator.get_words(100),
         sender_themes = wordGenerator.get_words(100)
     )
