@@ -29,8 +29,8 @@ class Company(Base):
     The company is represented in the DB.
     """
     # Define attributes that will be represented in database
-    name        = db.Column(db.String(50), nullable=False)
-    domain      = db.Column(db.String(50), nullable=False)
+    name                    = db.Column(db.String(50), nullable=False)
+    domain                  = db.Column(db.String(50), nullable=False)
 
     def __init__(self, name: str, domain: str) -> None:
         self.name = name
@@ -40,7 +40,10 @@ class Company(Base):
             # If a domain is not provided, take the name and add a random TLD
             self.domain = str.lower("".join(name.split())).replace(",", "") + "." + fake.tld()
         
-
+        # this var will allow us to keep count of company employees 
+        # without making too many queries to the database
+        self.count_employees  = 0 
+        
 
     def get_new_employee(self, creation_time:float=None, user_agent:str="", name:str="", days_since_hire:int=0):
         """
@@ -49,7 +52,7 @@ class Company(Base):
         or uses days_since_hire to compute accopunt creation time
         """
         # time is returned as timestamp (float)
-        #Get the current game session from the database
+        # Get the current game session from the database
         current_session = db.session.query(GameSession).get(1)
         time = Clock.get_current_gametime(start_time=current_session.start_time,
                                                     seed_date=current_session.seed_date)
@@ -79,15 +82,30 @@ class Company(Base):
         """
         return [employee.stringify() for employee in self.employees]
 
+    def get_employee_count(self) -> int:
+        """
+        Get number of child employee object
+        If count_employees is 0 -> pull this number by querying the database
+        Else get cached number
+        """
+        if self.count_employees == 0:
+            self.count_employees = self.employees.count()
+        
+        return self.count_employees
+
 
     def generate_ip(self) -> str:
         """Assign the employee an IP on the local network"""
-        # get the largest assigned IP addr and add 1
-        # this ensures we don't have IP collisions
-        # TODO: make thid better
-        company =  db.session.query(Company).get(1)
-        count_of_existing_employees = company.employees.count()
-        return format(ipaddress.IPv4Address('192.168.0.2') + count_of_existing_employees)
+        #  IP is 192.168.0.2 + count of employee (using CIDR addition)
+        # this tries to reduce chance of IP collisions
+    
+        ip = format(ipaddress.IPv4Address('192.168.0.2') + self.get_employee_count())
+        # increment this -> so we know we have one more employee 
+        # without needing to query the DB
+        self.count_employees +=1
+        
+        return ip
+
 
     def __repr__(self) -> str:
         return '<Company %r>' % self.name
