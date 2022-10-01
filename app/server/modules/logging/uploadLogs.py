@@ -163,6 +163,12 @@ class LogUploader():
                 # TODO: sort by time before uploading -
                 #   need to first standardize time columns accross tables
                 data_table_df = pd.DataFrame(self.queue[table_name])
+                
+                try:
+                    # if possible sort value using the "Creation_time" column
+                    data_table_df = data_table_df.sort_values("creation_time", ascending=True)
+                except:
+                    pass
 
                 print(f"uploading data for type {table_name}")
                 print(data_table_df.shape)

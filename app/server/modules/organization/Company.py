@@ -34,17 +34,18 @@ class Company(Base):
 
     def __init__(self, name: str, domain: str, count_employees:int=100, roles:dict={}) -> None:
         self.name = name
-        self.count_employees = count_employees
+        self.count_employees = count_employees or 100
         self.roles = roles
         if domain:
             self.domain = domain
         else:
             # If a domain is not provided, take the name and add a random TLD
             self.domain = str.lower("".join(name.split())).replace(",", "") + "." + fake.tld()
-        
+
+        self.count_employees = count_employees
         # this var will allow us to keep count of company employees 
         # without making too many queries to the database
-        self.count_employees  = 0 
+        self.num_generated_ips  = 0
         
 
     def get_new_employee(self, creation_time:float=None, user_agent:str="", name:str="", days_since_hire:int=0):
@@ -85,16 +86,16 @@ class Company(Base):
         """
         return [employee.stringify() for employee in self.employees]
 
-    def get_employee_count(self) -> int:
+    def get_num_generated_ips(self) -> int:
         """
         Get number of child employee object
         If count_employees is 0 -> pull this number by querying the database
         Else get cached number
         """
-        if self.count_employees == 0:
-            self.count_employees = self.employees.count()
+        if self.num_generated_ips == 0:
+            self.num_generated_ips = self.employees.count()
         
-        return self.count_employees
+        return self.num_generated_ips
 
 
     def generate_ip(self) -> str:
@@ -102,10 +103,10 @@ class Company(Base):
         #  IP is 192.168.0.2 + count of employee (using CIDR addition)
         # this tries to reduce chance of IP collisions
     
-        ip = format(ipaddress.IPv4Address('192.168.0.2') + self.get_employee_count())
+        ip = format(ipaddress.IPv4Address('192.168.0.2') + self.get_num_generated_ips())
         # increment this -> so we know we have one more employee 
         # without needing to query the DB
-        self.count_employees +=1
+        self.num_generated_ips +=1
         
         return ip
 
@@ -147,6 +148,7 @@ class Employee(Base):
     name                = db.Column(db.String(50))
     user_agent          = db.Column(db.String(50))
     ip_addr             = db.Column(db.String(50))
+    home_ip_addr        = db.Column(db.String(50))  # sometimes the user needs to login from home
     awareness           = db.Column(db.Integer)
     email_addr          = db.Column(db.String(50))
     username            = db.Column(db.String(50))
@@ -166,6 +168,7 @@ class Employee(Base):
         
         self.user_agent = user_agent
         self.ip_addr = ip_addr
+        self.home_ip_addr = fake.ipv4_public()
         self.company = company
         # TODO: Make this global setting
         self.awareness = random.randint(30, 90)
