@@ -68,7 +68,6 @@ def start_game() -> None:
         # generate the activity
         print("Running the game...")
         for actor in actors: 
-            print(actor.name)
             if actor.name == "Default":
                 # Default actor is used to create noise
                 generate_activity(actor, 
@@ -126,6 +125,9 @@ def init_setup():
     all_dns_records = [d.stringify() for d in all_dns_records]
     upload_dns_records_to_azure(all_dns_records)
 
+    for actor in actors:
+        print(f"{actor.name}: {actor.get_attacks_by_type('email')}")
+
     return employees, actors
 
     
@@ -139,8 +141,7 @@ def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_em
 
     The Default actor is user to represent normal company activities
     """
-    print(f"generating activity for actor {actor.name}")
-    
+    print(f" activity for actor {actor.name}")
     # Generate passive DNS for specified actor
     gen_passive_dns(actor, num_passive_dns)
 
