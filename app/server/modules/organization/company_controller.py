@@ -1,4 +1,3 @@
-from itertools import count
 import random 
 
 # Import external modules
@@ -48,18 +47,15 @@ def create_company():
     # loads json file as diction
     company_config = read_config_from_yaml('app/game_configs/company.yaml')
     # instantiate a company object using config info
-    if not company_config:
-        raise("You must provide a company config to continue")
-
     company = Company(
-        **company_config
+            **company_config
     )
+     # add the company to the database
     
 
     # Create 100 employees that work for the company
     # Specify how long they have been working at the company
     employees = []
-
     for _ in range(company.count_employees):
         # employees have worked for the company from 6months - 10years
         days_since_hire = random.randint(60, 365*10)

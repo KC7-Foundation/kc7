@@ -26,6 +26,7 @@ class Actor(Base):
 
     # Lists cannot be represented in the flask db
     # This representation converts lists into a space-delimited string
+    attacks                     = db.Column(db.String(300))
     domain_themes               = db.Column(db.String(300))
     sender_themes               = db.Column(db.String(300))
     subject_themes              = db.Column(db.String(300))
@@ -43,7 +44,7 @@ class Actor(Base):
     def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
                 subject_themes:list=[],  tlds:list=[], spoof_email:bool=False, 
                 count_init_passive_dns:int=100, count_init_email:int=10, count_init_browsing:int=2, max_wave_size:int=2,
-                file_names:str="", file_extensions:str="" ):
+                file_names:list=[], file_extensions:list=[], attacks:list=[]):
 
         self.name = name
         self.effectiveness = effectiveness
@@ -55,6 +56,7 @@ class Actor(Base):
 
         # we can't have lists in a database, hence the funny business here
         # take in the list as a space delimited string - then split
+        self.attacks                    = " ".join(attacks)
         self.domain_themes              = " ".join(domain_themes + wordGenerator.get_words(10))  # adding random words for entropy
         self.sender_themes              = " ".join(sender_themes + wordGenerator.get_words(10))
         self.subject_themes             = " ".join(subject_themes + wordGenerator.get_words(10))
@@ -68,6 +70,28 @@ class Actor(Base):
         self.max_wave_size              = int(max_wave_size)
 
     
+    def get_attacks(self) -> "list[str]":
+        """
+        Converts string representation of file names into list
+        """
+        attacks = self.attacks.split(" ")
+        return [f for f in attacks if f!='']
+
+    
+    def get_attacks_by_type(self, attack_type:str) -> "list[str]":
+        """
+        Attacks are defined as attack_type:attack_name
+        Return all attack names given an attack type
+        attacks:
+        - email:credential_phishing
+        - email:malware_delivery
+        - remote_exploitation:proxyshell
+        """
+        attacks = self.get_attacks()
+        attacks = [attack.split(":")[1] for attack in attacks if attack_type in attack]
+        return attacks
+
+
     def get_file_names(self) -> "list[str]":
         """
         Converts string representation of file names into list

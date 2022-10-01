@@ -51,7 +51,7 @@ class Trigger:
             browse_website(recipient, email.link, time)
             Trigger.update_team_scores_for_browsing(email.domain)
 
-            if "." in email.link.split("/")[-1]:
+            if ("." in email.link.split("/")[-1]) and ("html" not in email.link): # could be cleaner
                 # This is a link to a file
                 #  #TODO make this more elegant
                 Trigger.user_downloads_file(recipient, email, time)

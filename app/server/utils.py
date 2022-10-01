@@ -28,11 +28,11 @@ def get_link(actor:Actor, return_domain:bool=False) -> str:
     dns_record.active = True  # set record to active so we can track which domains have been used
     domain = dns_record.domain
 
-    if actor.name == "Default":
-        uri_type = random.choice(['file', 'browsing', 'auth'])
-    else:
-        # TODO: This should be selected from actor config
-        uri_type = random.choice(['file', 'auth'])
+    try:
+        uri_type = random.choice(actor.get_attacks_by_type("email"))
+    except IndexError:
+        all_uri_types = ["browsing", "credential_phishing", "malware"]
+        uri_type = random.choice(all_uri_types)
 
     link = random.choice(["http://", "https://", ""]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
     
@@ -62,7 +62,7 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
     param_names = ['query','source','id','keyword', 'search', 'user','uid','aid','tracking','type']
     param_values = wordGenerator.get_words(100)
 
-    login_paths = ['login', 'login.html', 'signin', 'sign_in', 'enter','/login?language=en', 'auth']
+    login_paths = ['login', 'login.html', 'signin', 'sign_in', 'enter','login?language=en', 'auth']
 
    
     # Generate these using faker
@@ -90,17 +90,17 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
             param_name = random.choice(param_names)
             param_value = random.choice(param_values)
             uri_path += f"?{param_name}={param_value}"
-    elif uri_type == "file":
+    elif uri_type == "malware_delivery":
         file_name = random.choice(file_names)
         file_extension = random.choice(file_extensions)
         uri_path += f"/{file_name}.{file_extension}"
-    elif uri_type == "auth":
+    elif uri_type == "credential_phishing":
         # crude but will do for now
         uri_path += f"/{random.choice(login_paths)}"
     return uri_path
 
 
-def get_employees() -> list:
+def get_employees() -> "list[Employee]":
     employees = [employee for employee in Employee.query.all()]
     return employees
 
