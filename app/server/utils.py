@@ -29,9 +29,10 @@ def get_link(actor:Actor, return_domain:bool=False) -> str:
     domain = dns_record.domain
 
     if actor.name == "Default":
-        uri_type = random.choice(['file', 'browsing'])
+        uri_type = random.choice(['file', 'browsing', 'auth'])
     else:
-        uri_type = 'file'
+        # TODO: This should be selected from actor config
+        uri_type = random.choice(['file', 'auth'])
 
     link = random.choice(["http://", "https://", ""]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
     
@@ -43,13 +44,15 @@ def get_link(actor:Actor, return_domain:bool=False) -> str:
 
 
 
-def get_uri_path(max_depth:int=6, max_params:int=14, uri_type="browsing", actor=Actor) -> str:
+def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", actor:Actor=None) -> str:
     """
     Generate a uri_path: either browsing uri or path uri (for file downloads)
     browsing uri example: 
         - http://campaignandshould.us/public/share/files?type=protect?tracking=evening?id=discuss?user=board?type=marriage?query=P
     path uri example:
         - https://decisiondecision.biz/online/published/published/files/public/runner.xls
+    auth uri example
+        - google.com/login
     """
     uri_path = ""
 
@@ -58,6 +61,8 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type="browsing", actor=
     # Define constants for browsing-type
     param_names = ['query','source','id','keyword', 'search', 'user','uid','aid','tracking','type']
     param_values = wordGenerator.get_words(100)
+
+    login_paths = ['login', 'login.html', 'signin', 'sign_in', 'enter','/login?language=en', 'auth']
 
    
     # Generate these using faker
@@ -89,6 +94,9 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type="browsing", actor=
         file_name = random.choice(file_names)
         file_extension = random.choice(file_extensions)
         uri_path += f"/{file_name}.{file_extension}"
+    elif uri_type == "auth":
+        # crude but will do for now
+        uri_path += f"/{random.choice(login_paths)}"
     return uri_path
 
 
