@@ -31,12 +31,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
         employee = random.choice(employees)
 
         #Get the current game session from the database
-        current_session = db.session.query(GameSession).get(1)
-
-        # time is returned as timestamp (float)
-        time = Clock.get_current_gametime(start_time=current_session.start_time,
-                                                seed_date=current_session.seed_date)
-
+        time = get_time()
         browse_website(employee, get_link(actor), time)
 
 

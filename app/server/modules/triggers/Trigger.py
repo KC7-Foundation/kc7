@@ -73,6 +73,7 @@ class Trigger:
                 # TODO: Generate a logon attempt for the recipient (random success/fail rate??)
                 # print(f"The user {recipient.name} opened this email!")
 
+    @staticmethod
     def user_downloads_file(recipient: Employee, email: Email, time: float) -> None:
         """
         When a user clicks a bad link, they download a malicioud file
@@ -82,7 +83,7 @@ class Trigger:
             "/")[-1]  # in the future, this should be parsed from the link
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
-            creation_time=time,
+            timestamp=time,
             md5=FileCreationEvent.get_random_hash(),
             # TODO: generate in filesystem instead
             path=f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
@@ -98,6 +99,7 @@ class Trigger:
         if email.actor.name != "Default":
             Trigger.malware_beacons_on_user_machine(recipient, time, email)
 
+    @staticmethod
     def malware_beacons_on_user_machine(recipient: Employee, time: float, email: Email) -> None:
         """
         When a user dowloads a file, there is a chance the file gets executed
@@ -127,23 +129,38 @@ class Trigger:
 
         browse_website(recipient, c2_link, time)
 
-
+    @staticmethod
     def actor_auths_into_user_email(recipient:Employee, email: Email, time: float):
-
+        """
+        After use clicks on a credential phishing link and enters their creds (we assume this for now)
+        The threat actor will login to their account
+        Generate a main authentication where where
+            username = recipient's username
+            src_up = actor's ip
+        """
         # wait several hours before login
         time_delay = random.randint(5000, 99999)
         login_time = Clock.increment_time(time, time_delay)
         auth_results = ["Successful Login", "Failed Login"]
 
         src_ip = email.actor.dns_records.first().ip
+        result = random.choice(auth_results)
 
-        auth_event = auth_to_mail_server(
-            creation_time= login_time,
+        auth_to_mail_server(
+            timestamp= login_time,
             username=recipient.username,
             src_ip=src_ip,  
             user_agent = fake.firefox(),
-            result = random.choice(auth_results)
+            result = result
         )
 
-        #Trigger mroe bad stuff - e.g. download of email files from server
+        if result == "Successful Login":
+            Trigger.actor_downloads_files_from_email(recipient, src_ip)
 
+    @staticmethod
+    def actor_downloads_files_from_email(recipient:Employee, src_ip:str):
+        """
+        Following successful auth into a user's account
+        The actor downloads files from the user's email by making web requests
+        """
+        pass

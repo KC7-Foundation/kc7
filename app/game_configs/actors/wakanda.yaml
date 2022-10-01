@@ -3,6 +3,8 @@ effectiveness: 50
 count_init_passive_dns: 1
 count_init_email: 1
 max_wave_size: 5
+attacks:
+  - email:credential_phishing
 domain_themes:
   - warrior
   - king
