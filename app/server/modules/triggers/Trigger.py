@@ -1,3 +1,7 @@
+# Import external modules
+from faker import Faker
+from faker.providers import user_agent
+
 # Import internal modules
 from code import interact
 from flask import current_app
@@ -11,8 +15,13 @@ from app.server.modules.endpoints.processes import Processes
 from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
 from app.server.modules.endpoints.endpoint_controller import upload_endpoint_event_to_azure
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
+from app.server.modules.authentication.auth_controller import auth_to_mail_server, upload_auth_event_to_azure
 
 from app.server.utils import *
+
+# instantiate faker
+fake = Faker()
+fake.add_provider(user_agent)
 
 
 class Trigger:
@@ -46,6 +55,8 @@ class Trigger:
                 # This is a link to a file
                 #  #TODO make this more elegant
                 Trigger.user_downloads_file(recipient, email, time)
+            elif email.actor.name != "Default":
+                Trigger.actor_auths_into_user_email(recipient, email, time)
 
     @staticmethod
     def update_team_scores_for_browsing(domain: str) -> None:
@@ -99,7 +110,7 @@ class Trigger:
 
         # look up the domain in the DB and get actor from it
         # actor = DNSRecord.query.filter_by(domain=email.domain).first().actor
-        actor = Actor.query.filter_by(name=email.actor.name).first()
+        actor = email.actor
 
         actor_domains = [record.domain for record in actor.dns_records]
         actor_ips = [record.ip for record in actor.dns_records]
@@ -115,3 +126,24 @@ class Trigger:
         time = Clock.increment_time(time, time_delay)
 
         browse_website(recipient, c2_link, time)
+
+
+    def actor_auths_into_user_email(recipient:Employee, email: Email, time: float):
+
+        # wait several hours before login
+        time_delay = random.randint(5000, 99999)
+        login_time = Clock.increment_time(time, time_delay)
+        auth_results = ["Successful Login", "Failed Login"]
+
+        src_ip = email.actor.dns_records.first().ip
+
+        auth_event = auth_to_mail_server(
+            creation_time= login_time,
+            username=recipient.username,
+            src_ip=src_ip,  
+            user_agent = fake.firefox(),
+            result = random.choice(auth_results)
+        )
+
+        #Trigger mroe bad stuff - e.g. download of email files from server
+

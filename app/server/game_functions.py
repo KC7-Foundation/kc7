@@ -22,7 +22,7 @@ from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.actors.Actor import Actor
 from app.server.utils import *
 from app.server.modules.helpers.markov_sentence_generator import SentenceGenerator
-
+from app.server.modules.authentication.auth_controller import auth_random_user_to_mail_server
 
 
 def start_game() -> None:
@@ -57,8 +57,6 @@ def start_game() -> None:
     employees = Employee.query.all()
     actors = Actor.query.all()
     if not (employees or actors):
-        print(employees)
-        print(actors)
         employees, actors  = init_setup()
     
     print("initialization complete...")
@@ -66,7 +64,6 @@ def start_game() -> None:
     # This is where the action is
     # While this infinite loop runs, the game continues to generate data
     # To implement games of finite size -> bound this loop (e.g. use a for loop instead)
-    print(current_session.state)
     while current_session.state == True:
         # generate the activity
         print("Running the game...")
@@ -106,7 +103,9 @@ def init_setup():
     # if they do not already exist
     if not employees:
         create_company()
+        print("making employeesq")
         employees = Employee.query.all()
+        print(f"made {len(employees)} employees")
     if not actors:
         create_actors()
         actors = Actor.query.all()
@@ -130,13 +129,15 @@ def init_setup():
     return employees, actors
 
     
-def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_email:int, num_random_browsing:int) -> None:
+def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_email:int, num_random_browsing:int, num_auth_events:int=100) -> None:
     """
     Given an actor, enerates one cycle of activity for users in the orgs
     Current:
         - Generate Email
         - Generate Web Browsing
-        - General 
+        - Generate passiev DNS traffic
+
+    The Default actor is user to represent normal company activities
     """
     print(f"generating activity for actor {actor.name}")
     
@@ -151,6 +152,7 @@ def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_em
     # browsing for other actors should only come through email clicks
     if actor.name == "Default":
         browse_random_website(employees, actor, num_random_browsing)
+        auth_random_user_to_mail_server(employees, num_auth_events)
 
 
 

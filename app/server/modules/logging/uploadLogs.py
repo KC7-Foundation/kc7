@@ -15,6 +15,7 @@ from app.server.modules.endpoints.file_creation_event import FileCreationEvent
 from app.server.modules.email.email import Email
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.organization.Company import Employee
+from app.server.modules.authentication.authenticationEvent import AuthenticationEvent
 
 
 
@@ -34,7 +35,7 @@ class LogUploader():
         self.KUSTO_INGEST_URI = current_app.config["KUSTO_INGEST_URI"]
         self.DATABASE = current_app.config["DATABASE"]
         self.CUSTOM_TYPES = [DNSRecord, Employee,
-                             OutboundEvent, FileCreationEvent, Email]
+                             OutboundEvent, FileCreationEvent, Email, AuthenticationEvent]
 
         # Aauthenticate with AAD application.
         self.client_id = current_app.config["CLIENT_ID"]
@@ -163,6 +164,12 @@ class LogUploader():
                 # TODO: sort by time before uploading -
                 #   need to first standardize time columns accross tables
                 data_table_df = pd.DataFrame(self.queue[table_name])
+                
+                try:
+                    # if possible sort value using the "Creation_time" column
+                    data_table_df = data_table_df.sort_values("creation_time", ascending=True)
+                except:
+                    pass
 
                 print(f"uploading data for type {table_name}")
                 print(data_table_df.shape)
