@@ -63,19 +63,21 @@ def not_found(error):
 def load_user(id):
     return Users.query.get(int(id))
 
-
+    
 @app.before_request
 def before_request():
     """
     Prepopulate an admin team and user in the database
     """
     g.user = current_user
+    
+
+@app.before_first_request
+def before_first_request():
     db.create_all()
 
-    Team.query.all()
-
     #user_datastore.find_or_create_role(name='Admin')
-    if not Team.query.all():
+    if not Team.query.first():
         print("Creating admins teams")
         db.session.add(Team(name='admins', score=0))
         db.session.commit()
@@ -89,7 +91,7 @@ def before_request():
         #     db.session.add(team)
         #     db.session.commit()
 
-    if not Roles.query.all():
+    if not Roles.query.first():
         admin_role = Roles(name='Admin')
         db.session.add(admin_role)
         db.session.commit()
@@ -98,7 +100,7 @@ def before_request():
         
 
     admin_team = db.session.query(Team).get(1)
-    if not Users.query.all():
+    if not Users.query.first():
         # if no users are found in the database
         # see an initial "Admin" user 
         admin_user = Users(

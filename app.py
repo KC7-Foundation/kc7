@@ -22,8 +22,8 @@ For training Materials:
     """)
 
     print("""
-To get started go to http://127.0.0.1:5000/login
+To get started go to http://127.0.0.1:8889/login
 Login username:password -> admin:admin 
     """)
-    application.run(debug=True)
+    application.run(debug=True, port="8889")
 
