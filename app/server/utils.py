@@ -77,7 +77,6 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
     if actor and actor.get_file_extensions():
         file_extensions = actor.get_file_extensions()
 
-
     # Generate the URL
     for i in range(random.randint(1,max_depth)):
         if i > 0:
@@ -131,3 +130,5 @@ def read_config_from_yaml(path) -> dict:
         except yaml.YAMLError as exc:
             return None
             print(exc)
+
+
