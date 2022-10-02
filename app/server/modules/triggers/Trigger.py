@@ -10,8 +10,8 @@ from app.server.modules.email.email import Email
 from app.server.modules.outbound_browsing.browsing_controller import browse_website
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
-from app.server.modules.endpoints.file_creation_event import FileCreationEvent
-from app.server.modules.endpoints.processes import Processes
+from app.server.modules.endpoints.file_creation_event import File, FileCreationEvent
+from app.server.modules.endpoints.processes import Process, ProcessEvent
 from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
 from app.server.modules.endpoints.endpoint_controller import upload_endpoint_event_to_azure
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
@@ -84,12 +84,10 @@ class Trigger:
             "/")[-1]  # in the future, this should be parsed from the link
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
-            timestamp=time,
-            md5=FileCreationEvent.get_random_hash(),
+            creation_time=time,
+            filename=filename,
             # TODO: generate in filesystem instead
             path=f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
-            # TODO: have payload class that define properties. This was Greg's idea! :) "It will be trivial"
-            size=random.randint(100, 999999),
         )
 
         # This will come from the filesystem controller
