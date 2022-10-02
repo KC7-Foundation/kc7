@@ -35,7 +35,7 @@ class FileCreationEvent(File):
 
     def stringify(self) -> dict:
         return {
-            "timestamp": Clock.from_timestamp_to_string(self.timestamp),
+            "creation_time": Clock.from_timestamp_to_string(self.creation_time),
             "hostname": self.hostname,
             "sha256": self.sha256,
             "path": self.path,
@@ -49,7 +49,7 @@ class FileCreationEvent(File):
         return (
             'FileCreationEvents',  # table name in KQL
             {                     # dict representation of column names:types
-                'timestamp': 'string',
+                'creation_time': 'string',
                 'hostname': 'string',
                 'sha256': 'string',
                 'path': 'string',
