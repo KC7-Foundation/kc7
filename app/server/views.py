@@ -58,6 +58,8 @@ def manage_game():
     return render_template("admin/manage_game.html", game_state=game_state, indicators=indicators)
 
 
+
+
 @main.route("/admin/start_game", methods=['GET'])
 @roles_required('Admin')
 @login_required
