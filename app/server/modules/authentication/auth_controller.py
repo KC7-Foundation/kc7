@@ -33,7 +33,7 @@ def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events:
             auth_ip = user.home_ip_addr
 
         auth_to_mail_server(
-            creation_time=time,
+            timestamp=time,
             username=user.username,
             src_ip= auth_ip,
             user_agent=user.user_agent,
@@ -42,10 +42,10 @@ def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events:
 
 
 
-def auth_to_mail_server( creation_time:float, username:str, src_ip:str, user_agent:str, result:str) -> None:
+def auth_to_mail_server( timestamp:float, username:str, src_ip:str, user_agent:str, result:str) -> None:
 
     auth_event =  AuthenticationEvent(
-        creation_time= creation_time,
+        timestamp= timestamp,
         hostname="MAIL-SERVER01",
         username= username,
         src_ip= src_ip,

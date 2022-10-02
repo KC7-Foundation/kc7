@@ -2,7 +2,9 @@
 from app.server.models import db
 from app.server.modules.helpers.word_generator import WordGenerator
 from app.server.modules.actors.Actor import Actor
-from app.server.modules.organization.Company import Employee
+from app.server.modules.organization.Company import Company, Employee
+from app.server.modules.clock.Clock import Clock 
+from app.server.models import GameSession
 
 # Import external modules
 from fileinput import filename
@@ -70,9 +72,9 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
     file_extensions = ['zip','rar','docx','7z','pptx', 'xls','exe']
     
     # Overide default filenames if new ones provided in config
-    if actor.get_file_names():
+    if actor and actor.get_file_names():
         file_names = actor.get_file_names()
-    if actor.get_file_extensions():
+    if actor and actor.get_file_extensions():
         file_extensions = actor.get_file_extensions()
 
 
@@ -104,6 +106,18 @@ def get_employees() -> "list[Employee]":
     employees = [employee for employee in Employee.query.all()]
     return employees
 
+def get_company() -> Company:
+    comapany = Company.query.first()
+    return comapany
+
+
+def get_time() -> float:
+    # time is returned as timestamp (float)
+    current_session = db.session.query(GameSession).get(1)
+    time = Clock.get_current_gametime(start_time=current_session.start_time,
+                                    seed_date=current_session.seed_date)
+
+    return time
 
 
 def read_config_from_yaml(path) -> dict:

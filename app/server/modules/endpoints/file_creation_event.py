@@ -4,10 +4,10 @@ from app.server.modules.clock.Clock import Clock
 
 class FileCreationEvent:
 
-    def __init__(self, hostname: str, creation_time: float, md5: str, path: str, size: int):
+    def __init__(self, hostname: str, timestamp: float, md5: str, path: str, size: int):
 
         self.hostname = hostname
-        self.creation_time = creation_time
+        self.timestamp = timestamp
         self.md5 = md5
         self.path = path
         self.filename = self.path.split("\\")[-1] or ""
@@ -20,7 +20,7 @@ class FileCreationEvent:
 
     def stringify(self) -> dict:
         return {
-            "creation_time": Clock.from_timestamp_to_string(self.creation_time),
+            "timestamp": Clock.from_timestamp_to_string(self.timestamp),
             "hostname": self.hostname,
             "md5": self.md5,
             "path": self.path,
@@ -34,7 +34,7 @@ class FileCreationEvent:
         return (
             'FileCreationEvents',  # table name in KQL
             {                     # dict representation of column names:types
-                'creation_time': 'string',
+                'timestamp': 'string',
                 'hostname': 'string',
                 'md5': 'string',
                 'path': 'string',

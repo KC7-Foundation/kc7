@@ -1,5 +1,8 @@
 name : Flying Purple Vikings
 effectiveness: 50
+attacks:
+  - email:credential_phishing
+  - email:malware_delivery
 domain_themes:
   - vikings
   - thor

@@ -48,7 +48,7 @@ class Company(Base):
         self.num_generated_ips  = 0
         
 
-    def get_new_employee(self, creation_time:float=None, user_agent:str="", name:str="", days_since_hire:int=0):
+    def get_new_employee(self, timestamp:float=None, user_agent:str="", name:str="", days_since_hire:int=0):
         """
         Constructs a single employee instance and returns it.
         This function can take a specific creation time
@@ -64,7 +64,7 @@ class Company(Base):
         account_creation_datetime = Clock.increment_time(time, time_since_account_creation * -1 )
 
         employee = Employee(
-            creation_time=creation_time or account_creation_datetime or Clock.get_current_gametime(),
+            timestamp=timestamp or account_creation_datetime or Clock.get_current_gametime(),
             name=name or fake.name(),
             user_agent=user_agent or fake.user_agent(),
             ip_addr=self.generate_ip(),
@@ -153,7 +153,7 @@ class Employee(Base):
     email_addr          = db.Column(db.String(50))
     username            = db.Column(db.String(50))
     hostname            = db.Column(db.String(50))
-    creation_time       = db.Column(db.String(50))
+    timestamp       = db.Column(db.String(50))
     role                = db.Column(db.String(50))
     
 
@@ -163,7 +163,7 @@ class Employee(Base):
         'Company', backref=db.backref('employees', lazy='dynamic'))
 
     def __init__(self, name: str, user_agent: str, ip_addr: str, company: Company, 
-                creation_time:float, role:str="") -> None:
+                timestamp:float, role:str="") -> None:
         self.name = name
         
         self.user_agent = user_agent
@@ -172,7 +172,7 @@ class Employee(Base):
         self.company = company
         # TODO: Make this global setting
         self.awareness = random.randint(30, 90)
-        self.creation_time = Clock.from_timestamp_to_string(creation_time)
+        self.timestamp = Clock.from_timestamp_to_string(timestamp)
         self.role = role
         self.set_email()
         self.set_username()
@@ -217,7 +217,7 @@ class Employee(Base):
         Used for uploading data to ADX.
         """
         return {
-            "creation_time": self.creation_time,
+            "timestamp": self.timestamp,
             "name": self.name,
             "user_agent": self.user_agent,
             "ip_addr": self.ip_addr,
@@ -240,7 +240,7 @@ class Employee(Base):
         return (
             "Employees",  # table name
             {             # type dict
-                "creation_time":"string",
+                "timestamp":"string",
                 "name": "string",
                 "user_agent": "string",
                 "ip_addr": "string",
