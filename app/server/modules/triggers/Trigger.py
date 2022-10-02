@@ -16,6 +16,7 @@ from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
 from app.server.modules.endpoints.endpoint_controller import upload_endpoint_event_to_azure
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.authentication.auth_controller import auth_to_mail_server, upload_auth_event_to_azure
+from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_request, make_email_exfil_url
 
 from app.server.utils import *
 
@@ -142,7 +143,6 @@ class Trigger:
         time_delay = random.randint(5000, 99999)
         login_time = Clock.increment_time(time, time_delay)
         auth_results = ["Successful Login", "Failed Login"]
-
         src_ip = email.actor.dns_records.first().ip
         result = random.choice(auth_results)
 
@@ -155,12 +155,26 @@ class Trigger:
         )
 
         if result == "Successful Login":
-            Trigger.actor_downloads_files_from_email(recipient, src_ip)
+            Trigger.actor_downloads_files_from_email(recipient=recipient.username, src_ip=src_ip, time=login_time)
 
     @staticmethod
-    def actor_downloads_files_from_email(recipient:Employee, src_ip:str):
+    def actor_downloads_files_from_email(recipient:Employee, src_ip:str, time: float):
         """
         Following successful auth into a user's account
         The actor downloads files from the user's email by making web requests
         """
-        pass
+        # wait several hours before exfil
+        time_delay = random.randint(5000, 99999)
+        exfil_time = Clock.increment_time(time, time_delay)
+        exfil_url = make_email_exfil_url(recipient)
+
+        gen_inbound_request(
+            time=exfil_time,
+            src_ip=src_ip,
+            method="GET",
+            status_code="200", # TODO: maybe these fail sometimes?
+            url=exfil_url,
+            user_agent=fake.firefox()
+        )
+
+        

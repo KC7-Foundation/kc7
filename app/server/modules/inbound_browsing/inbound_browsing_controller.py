@@ -2,11 +2,13 @@
 # Import external modules
 import random
 from faker import Faker
+import urllib.parse
+
 from faker.providers import user_agent, internet
 from app.server.utils import *
-
 from app.server.modules.inbound_browsing.inboundEvent import InboundBrowsingEvent
 from app.server.modules.clock.Clock import Clock
+from app.server.modules.constants.constants import *
 
 #  instantiate faker
 fake = Faker()
@@ -45,6 +47,19 @@ def gen_inbound_request(time:float, src_ip:str, method:str, status_code:str, url
 
     upload_event_to_azure(browsing_event)
 
+def make_email_exfil_url(targeted_user: str) -> str:
+    """
+    Takes a targeted user as a parameter and returns a URL indicative of email exfil
+    """
+
+    company_domain = get_company().domain
+    # Use urllib.parse.quote() to URL-encode parameter values
+    prefix = random.choice(["http","https"])
+    mailbox_folder = urllib.parse.quote(random.choice(EMAIL_EXFIL_MAILBOX_FOLDER_NAMES))
+    output_file = urllib.parse.quote(f"{random.choice(EMAIL_EXFIL_OUTPUT_FILENAMES)}.{random.choice(EMAIL_EXFIL_OUTPUT_EXTENSIONS)}")
+
+    # Example URL = "https://mail.acme.com/readmail?login_user=jdoe@acme.com&mailbox_folder=Inbox&download=true&output=contents.rar"
+    return f"{prefix}://mail.{company_domain}/readmail?login_user={targeted_user}%40{company_domain}&mailbox_folder={mailbox_folder}&download=true&output={output_file}"
 
 def upload_event_to_azure(event):
 
