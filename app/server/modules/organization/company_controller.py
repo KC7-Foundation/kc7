@@ -10,7 +10,7 @@ from app.server.models import db
 from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
-from app.server.utils import read_config_from_yaml
+from app.server.modules.helpers.config_helper import read_config_from_yaml
 
 # instantiate faker
 fake = Faker()
