@@ -23,9 +23,9 @@ def upload_employee_to_azure(employee: Employee) -> None:
     """
     Take a Company object and uploads the employee data to Azure
     """
-    from app.server.game_functions import log_uploader
+    from app.server.game_functions import LOG_UPLOADER
 
-    log_uploader.send_request(
+    LOG_UPLOADER.send_request(
         data=employee.stringify(),
         table_name="Employees")
 

@@ -11,6 +11,8 @@ from fileinput import filename
 import random
 from faker import Faker
 from faker.providers import internet, lorem, file
+from itsdangerous import base64_encode
+import string
 
 # instantiate faker
 fake = Faker()
@@ -104,10 +106,17 @@ def get_employees() -> "list[Employee]":
     employees = [employee for employee in Employee.query.all()]
     return employees
 
-def get_company() -> Company:
-    comapany = Company.query.first()
-    return comapany
+def get_random_employee() -> Employee:
+    """
+    Return a random employee object
+    """
+    return random.choice(get_employees())
 
+def get_company() -> Company:
+    return Company.query.first()
+
+def get_actors() -> "list[Actor]":
+    return Actor.query.all()
 
 def get_time() -> float:
     # time is returned as timestamp (float)
@@ -117,7 +126,15 @@ def get_time() -> float:
 
     return time
 
+def write_seed_files(max_num_files: int = 25):
+    eicar_string = 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'
+    for i in range(1, max_num_files):
+        file_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))+random.choice(['.exe','.dll','.dat'])
+        unique_string = f"Welcome to KC7, the cybersecurity game. If you're a player, congrats! You found malware file {file_name}. If you aren't a player... how'd you find us? Visit kc7cyber.com to learn more!"
+        file_string = eicar_string + "\n\n\n" + base64_encode(unique_string).decode("utf-8")
 
+        file = open("output/"+file_name,"w")
+        file.write(file_string)
 
 
 

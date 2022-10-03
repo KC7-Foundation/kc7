@@ -58,8 +58,8 @@ def auth_to_mail_server( timestamp:float, username:str, src_ip:str, user_agent:s
 
 def upload_auth_event_to_azure(auth_event: AuthenticationEvent):
     # TODO: Let's abstract these. We have them strewn everywhere and its a bit chaotic
-    from app.server.game_functions import log_uploader
-    log_uploader.send_request(
+    from app.server.game_functions import LOG_UPLOADER
+    LOG_UPLOADER.send_request(
             data = auth_event.stringify(),
             table_name= "AuthenticationEvents")
 

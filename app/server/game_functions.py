@@ -10,7 +10,6 @@ from  sqlalchemy.sql.expression import func, select
 from app.server.models import db, GameSession
 from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
-from app.server.modules.actors.Actor import Actor
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.email.email_controller import gen_email
 from app.server.modules.outbound_browsing.browsing_controller import *
@@ -20,6 +19,7 @@ from app.server.modules.outbound_browsing.browsing_controller import browse_rand
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_random_inbound_browsing
 from app.server.modules.authentication.auth_controller import auth_random_user_to_mail_server
 from app.server.modules.helpers.config_helper import read_config_from_yaml
+from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host
 
 from app.server.utils import *
 from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
@@ -159,8 +159,7 @@ def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_em
         browse_random_website(employees, actor, num_random_browsing)
         auth_random_user_to_mail_server(employees, num_auth_events)
         gen_random_inbound_browsing(num_inbound_browsing_events=50)
-
-
+        gen_system_files_on_host(count_of_events=10)
 
 def create_actors() -> None:
     """

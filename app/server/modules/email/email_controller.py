@@ -144,8 +144,8 @@ def send_email_to_azure(email):
     """
     Upload email object to azure
     """
-    from app.server.game_functions import log_uploader
+    from app.server.game_functions import LOG_UPLOADER
 
-    log_uploader.send_request(
+    LOG_UPLOADER.send_request(
         data=[email.stringify()],
         table_name="Email")
