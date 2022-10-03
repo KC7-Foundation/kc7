@@ -63,7 +63,7 @@ def make_email_exfil_url(targeted_user: str) -> str:
 
 def upload_event_to_azure(event):
 
-    from app.server.game_functions import log_uploader
-    log_uploader.send_request(
+    from app.server.game_functions import LOG_UPLOADER
+    LOG_UPLOADER.send_request(
             data = [event.stringify()],
             table_name= "InboundBrowsing")
