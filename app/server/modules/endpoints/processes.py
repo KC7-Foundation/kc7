@@ -1,4 +1,15 @@
-class Processes:
+class Process:
+    """
+    A class that represents the basic data model for a process
+
+    This class is time and host agnostic
+    """
+
+    def __init__(self, process_name: str, process_arguments: str):
+        self.process_name = process_name
+        self.process_arguments = process_arguments
+
+class ProcessEvent:
     """
     A class that represents the data model for Processes
 

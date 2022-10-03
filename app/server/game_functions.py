@@ -1,6 +1,4 @@
-from unittest.mock import NonCallableMagicMock
 import glob
-
 from flask_security import roles_required
 
 from flask import Blueprint, request, render_template, \
@@ -9,22 +7,22 @@ from sqlalchemy import asc
 from  sqlalchemy.sql.expression import func, select
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
-from app.server.models import db, Team, Users, Roles, GameSession
+from app.server.models import db, GameSession
 from app.server.modules.organization.Company import Company, Employee
-from app.server.modules.organization.company_controller import create_company
-from app.server.modules.clock.Clock import Clock
+from app.server.modules.infrastructure.DNSRecord import DNSRecord
+from app.server.modules.actors.Actor import Actor
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.email.email_controller import gen_email
 from app.server.modules.outbound_browsing.browsing_controller import *
+from app.server.modules.infrastructure.passiveDNS_controller import *
+from app.server.modules.organization.company_controller import create_company
 from app.server.modules.outbound_browsing.browsing_controller import browse_random_website
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_random_inbound_browsing
-from app.server.modules.infrastructure.passiveDNS_controller import *
-from app.server.modules.infrastructure.DNSRecord import DNSRecord
-from app.server.modules.actors.Actor import Actor
-from app.server.utils import *
-from app.server.modules.helpers.markov_sentence_generator import SentenceGenerator
 from app.server.modules.authentication.auth_controller import auth_random_user_to_mail_server
+from app.server.modules.helpers.config_helper import read_config_from_yaml
 
+from app.server.utils import *
+from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
 
 def start_game() -> None:
     """
@@ -38,9 +36,15 @@ def start_game() -> None:
 
     # instantiate a logUploader. This instance is used by all other modules to send logs to azure
     # we use a singular instances in order to queue up muliple rows of logs and send them all at once
-    global log_uploader
-    log_uploader = LogUploader()
-    log_uploader.create_tables(reset=True)
+    global LOG_UPLOADER
+    LOG_UPLOADER = LogUploader()
+    LOG_UPLOADER.create_tables(reset=True)
+
+    # instantiate a global mapping of hashes to malware families. 
+    # this is updated to make sure we and a 1-1 mapping of hashes <-> malware types
+    global FILE_HASH_MALWARE_MAPPING 
+    FILE_HASH_MALWARE_MAPPING = {}
+    assign_hash_to_malware()
 
     # The the current game session
     # This data object tracks whether or not the game is currently running
@@ -83,7 +87,6 @@ def start_game() -> None:
                                   num_passive_dns=1, 
                                   num_email=1, 
                                   num_random_browsing=3) 
-
 
 
 def init_setup():
@@ -204,4 +207,32 @@ def create_actors() -> None:
         db.session.rollback()
         print("Failed to create actor %s" % e)
         
+
+def assign_hash_to_malware() -> None:
+    """
+    Take all available VT hashes and assign them to malware families 
+    there should be a 1-1 mapping of hash to malware family
+    """
+    malware_configs = glob.glob(f"app/game_configs/malware/*.yaml")
+    # Read all malware configs from YAML config files
+    malware_family_names = []
+    for path in malware_configs:
+        json_config = read_config_from_yaml(path)
+        malware_family_name = json_config.get("name", None)
+        malware_family_names.append(malware_family_name)
+
+    print(malware_family_names)
+
+    # Look through available hashes and assign them to malware families via a round robin
+    while FILES_MALICIOUS_VT_SEED_HASHES:
+        for malware_family_name in malware_family_names:
+            if not FILES_MALICIOUS_VT_SEED_HASHES:
+                break
+            # take a hash and remove it from our list of hashes
+            hash = FILES_MALICIOUS_VT_SEED_HASHES.pop()
+            # add hash to a key under malware the family name
+            if FILE_HASH_MALWARE_MAPPING.get(malware_family_name, []):
+                FILE_HASH_MALWARE_MAPPING.get(malware_family_name).append(hash)
+            else:
+                FILE_HASH_MALWARE_MAPPING[malware_family_name] = [hash]
 

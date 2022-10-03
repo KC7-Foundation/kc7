@@ -131,7 +131,6 @@ class Company(Base):
         role["limit"] -= 1
         if role["limit"] == 0:
             self.roles.remove(role)
-        print(f"assigning out role: {role}")
         return role.get('title')
 
     def __repr__(self) -> str:

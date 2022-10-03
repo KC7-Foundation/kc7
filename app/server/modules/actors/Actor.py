@@ -1,13 +1,16 @@
+# Import external modules
+import random
+from faker import Faker
+import glob
+from faker.providers import internet
+
 # Import internal modules
 from app.server.models import Base
 from app import db
 from app.server.modules.helpers.word_generator import WordGenerator
-
-# Import external modules
-import random
-from faker import Faker
-from faker.providers import internet
 from app.server.modules.helpers.markov_sentence_generator import SentenceGenerator
+from app.server.modules.file.malware import Malware
+from app.server.modules.helpers.config_helper import read_config_from_yaml
 
 # Instantiate classes to be used here
 wordGenerator = WordGenerator()
@@ -33,6 +36,7 @@ class Actor(Base):
     file_names                  = db.Column(db.String(300))
     file_extensions             = db.Column(db.String(300))
     tlds                        = db.Column(db.String(300))
+    malware                     = db.Column(db.String(300))
     spoof_email                 = db.Column(db.Boolean)
 
     count_init_passive_dns      = db.Column(db.Integer)
@@ -40,12 +44,14 @@ class Actor(Base):
     count_init_browsing         = db.Column(db.Integer)   # >:D
     max_wave_size               = db.Column(db.Integer) 
 
+    
 
     def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
                 subject_themes:list=[],  tlds:list=[], spoof_email:bool=False, 
                 count_init_passive_dns:int=100, count_init_email:int=10, count_init_browsing:int=2, max_wave_size:int=2,
-                file_names:list=[], file_extensions:list=[], attacks:list=[]):
+                file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[]):
 
+        print(f"Instantiating actor {name}....")
         self.name = name
         self.effectiveness = effectiveness
         
@@ -60,8 +66,9 @@ class Actor(Base):
         self.domain_themes              = " ".join(domain_themes + wordGenerator.get_words(10))  # adding random words for entropy
         self.sender_themes              = " ".join(sender_themes + wordGenerator.get_words(10))
         self.subject_themes             = " ".join(subject_themes + wordGenerator.get_words(10))
-        self.file_names                 = " ".join(file_names)
-        self.file_extensions            = " ".join(file_extensions)
+        self.file_names                 = " ".join(file_names)       # Will end up getting replaces by malware configs
+        self.file_extensions            = " ".join(file_extensions)  # Will end up getting replaces by malware configs
+        self.malware                    = " ".join(malware)
         self.tlds                       = tlds or " ".join(['com','net','biz','org','us']) # TODO: Put this in a config or something
         self.spoof_email                = spoof_email
         self.count_init_browsing        = int(count_init_browsing)
@@ -77,6 +84,40 @@ class Actor(Base):
         attacks = self.attacks.split(" ")
         return [f for f in attacks if f!='']
 
+
+    def get_malware(self) -> "list[Malware]":
+        """
+        Get a list of malware objects belonging to the actor
+        This takes a list of malware names and tries to load them from the malware config
+        """
+        malware_names = Actor.string_to_list(self.malware)
+        malware_objs = []
+
+        for malware_name in malware_names:
+            malware_obj = self.load_malware_obj_from_yaml(malware_name)
+            if malware_obj:
+                malware_objs.append(malware_obj)
+
+        return malware_objs
+
+
+    def load_malware_obj_from_yaml(self, malware_name) -> Malware:
+        """
+        Given a malware name, look for a malware config yaml file with that corresponding name
+        Use the malware config to build a Malware obj
+        return the Malware object
+        """
+        malware_config = glob.glob(f"app/game_configs/malware/{malware_name}.yaml")[0]
+        # Read all malware configs from YAML config files
+        malware_config_as_json = read_config_from_yaml(malware_config)
+        if malware_config_as_json:
+            return Malware(
+                        c2_ips = self.get_ips(count_of_ips=10),   
+                        **malware_config_as_json
+                    )
+        else:
+            return None
+
     
     def get_attacks_by_type(self, attack_type:str) -> "list[str]":
         """
@@ -89,23 +130,21 @@ class Actor(Base):
         """
         attacks = self.get_attacks()
         attacks = [attack.split(":")[1] for attack in attacks if attack_type in attack]
-        return attacks
+        return attacks    
 
 
     def get_file_names(self) -> "list[str]":
         """
         Converts string representation of file names into list
         """
-        file_names = self.file_names.split(" ")
-        return [f for f in file_names if f!='']
+        return Actor.string_to_list(self.file_names)
 
 
     def get_file_extensions(self) -> "list[str]":
         """
         Converts string representation of file extensions into list
         """
-        file_extensions = self.file_extensions.split(" ")
-        return [f for f in file_extensions if f!='']
+        return Actor.string_to_list(self.file_extensions)
 
 
     def get_domain_name(self) -> str:
@@ -126,6 +165,17 @@ class Actor(Base):
         domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
 
         return domain
+
+
+    def get_ips(self, count_of_ips:int=10) -> "list[str]":
+        """
+        Get a list of IPs for the actor
+        """
+        actor_ips = [record.ip for record in self.dns_records]
+        if actor_ips:
+            return random.choices(actor_ips, k=count_of_ips)
+        else:
+            return []
         
 
     def get_email_subject(self) -> str:
@@ -159,6 +209,17 @@ class Actor(Base):
         sender_addr = splitter.join(words) + "@" + random.choice(email_domains)
         
         return sender_addr
+
+
+    @staticmethod
+    def string_to_list(field_value_as_str:str) -> "list[str]":
+        """
+        Converts a long string into a unique list by splitting on space
+        removes any empty string values from list
+        """
+        vals = field_value_as_str.split(" ")
+        return list(set([f for f in vals if f!='']))
+
         
 
     def __repr__(self):

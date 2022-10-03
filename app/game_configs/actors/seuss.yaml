@@ -1,0 +1,38 @@
+name : Dr. Seuss
+effectiveness: 99
+attacks:
+  - email:credential_phishing
+  - email:malware_delivery
+spoof_email: True
+domain_themes:
+  - bangups 
+  - hangups
+  - prickle
+  - slump
+  - mind-maker-upper
+  - flip-flapping
+  - hakken-kraks
+sender_themes: 
+  - grinch
+  - cindywho
+  - sally
+  - lorax
+  - thing1
+  - thing2
+  - redfish
+  - bluefish
+  - horton
+  - yertle
+subject_themes:
+  - rhymes
+  - books
+  - author
+  - publishing
+  - celebrations
+  - climate
+tlds:
+  - info
+  - io
+  - xyz
+malware:
+ - green_egg

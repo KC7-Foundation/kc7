@@ -9,7 +9,6 @@ from app.server.models import GameSession
 # Import external modules
 from fileinput import filename
 import random
-import yaml 
 from faker import Faker
 from faker.providers import internet, lorem, file
 
@@ -77,7 +76,6 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
     if actor and actor.get_file_extensions():
         file_extensions = actor.get_file_extensions()
 
-
     # Generate the URL
     for i in range(random.randint(1,max_depth)):
         if i > 0:
@@ -120,14 +118,6 @@ def get_time() -> float:
     return time
 
 
-def read_config_from_yaml(path) -> dict:
-    """
-    Read config from file.
-    Return a json representation of the yaml file 
-    """
-    with open(path, 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            return None
-            print(exc)
+
+
+
