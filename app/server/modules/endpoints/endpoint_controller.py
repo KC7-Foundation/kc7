@@ -24,7 +24,7 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
     """
     Generates FileCreationEvents for system files generated on a host
     {
-            "creation_time": 2022-10-03 12:30:00
+            "timestamp": 2022-10-03 12:30:00
             "hostname": GXDR-4310,
             "sha256": 269eb0728413654856f4b2ee1fa7838cd69672ebc11baed4caa63f58c2df5823,
             "path": C:/Windows/System32/xcopy.exe,
@@ -36,12 +36,12 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
     for hash, path in hash_path_pairs:
         file_creation_event = FileCreationEvent(
             hostname=get_random_employee().hostname, #Pick a random employee to generate system files
-            creation_time=get_time(),
+            timestamp=get_time(),
             filename=path.split("/")[-1], # Get the filename from the path 
             path="C:/"+path, # Add a drive letter
             sha256=hash
         )
-        upload_endpoint_event_to_azure(file_creation_event)
+        upload_file_creation_event_to_azure(file_creation_event)
 
 
 def upload_file_creation_event_to_azure(event: FileCreationEvent, table_name: str = "FileCreationEvents") -> None:
@@ -63,7 +63,7 @@ def upload_process_creation_event_to_azure(event: ProcessEvent, table_name: str 
     References global log_uploader to queue log rows for uploading
     """
 
-    from app.server.game_functions import log_uploader
-    log_uploader.send_request(
+    from app.server.game_functions import LOG_UPLOADER
+    LOG_UPLOADER.send_request(
         data=[event.stringify()],
         table_name=table_name)

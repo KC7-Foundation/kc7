@@ -85,7 +85,7 @@ class Trigger:
             "/")[-1]  # in the future, this should be parsed from the link
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
-            creation_time=time,
+            timestamp=time,
             filename=filename,
             # TODO: generate in filesystem instead
             path=f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
@@ -109,9 +109,9 @@ class Trigger:
         """
         process_time=Clock.increment_time(time, random.randint(30,180))
         process = ProcessEvent(
-           creation_time=process_time, 
+           timestamp=process_time, 
            parent_process_name=email.link.split("/")[-1],
-           parent_process_hash=file_creation_event.md5,
+           parent_process_hash=file_creation_event.sha256,
            process_commandline="powershell -nop -w hidden -enc d2hvYW1p",
            process_name="powershell.exe",
            process_hash="cda48fc75952ad12d99e526d0b6bf70a",

@@ -1,4 +1,4 @@
-from app.server.modules.clock import Clock
+from app.server.modules.clock.Clock import Clock
 
 class Process:
     """
@@ -14,7 +14,7 @@ class Process:
 class ProcessEvent:
     """
     A class that represents the data model for Processes
-    creation_time is the in-game time when the process is created
+    timestamp is the in-game time when the process is created
     parent_process_name is the name of the initiating process or file
     parent_process_hash is the hash of the initiating process or file
     process_commandline is the commandline parameters associated with the created process
@@ -46,7 +46,7 @@ class ProcessEvent:
 
     def stringify(self):
         return {
-            "creation_time": Clock.from_timestamp_to_string(self.creation_time),
+            "timestamp": Clock.from_timestamp_to_string(self.timestamp),
             "parent_process_name": self.parent_process_name,
             "parent_process_hash": self.parent_process_hash,
             "process_commandline": self.process_commandline,
@@ -59,7 +59,7 @@ class ProcessEvent:
         return (
             "ProcessEvents",
             {
-                "creation_time":"string",
+                "timestamp":"string",
                 "parent_process_name":"string",
                 "parent_process_hash":"string",
                 "process_commandline":"string",
