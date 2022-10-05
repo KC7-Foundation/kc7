@@ -135,6 +135,3 @@ def write_seed_files(max_num_files: int = 25):
 
         file = open("output/"+file_name,"w")
         file.write(file_string)
-
-
-

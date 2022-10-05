@@ -126,6 +126,22 @@ class LogUploader():
 
         return kql_command
 
+    @staticmethod
+    def _create_user_permission_command(user_string:str, database: str) -> str:
+        """
+        Take a user string of the following format:
+        aaduser=user@contoso.com
+        msauser=user@outlook.com
+        """
+        # Does the user_string contain one of the required identifiers?
+        if not any(prefix in user_string for prefix in ['aaduser=','msauser=']):
+            raise Exception("ERROR: The user identifier must be prefixed by either aaduser= or msauser=")
+        return f".add database {database} viewers ('{user_string}')"
+
+    def add_user_permissions(self, user_string: str) -> None:
+        permission_command = LogUploader._create_user_permission_command(user_string, self.DATABASE)
+        response = self.client.execute_mgmt(self.DATABASE, permission_command)
+
     def get_queue_length(self):
         """
         Get the number of records stored in the queue
