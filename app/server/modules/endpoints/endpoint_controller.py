@@ -8,7 +8,7 @@ from faker.providers import internet, lorem
 # Import internal modules
 from flask import current_app
 from app.server.models import *
-from app.server.modules.endpoints.file_creation_event import FileCreationEvent
+from app.server.modules.endpoints.file_creation_event import FileCreationEvent, File
 from app.server.modules.endpoints.processes import ProcessEvent
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
@@ -67,3 +67,18 @@ def upload_process_creation_event_to_azure(event: ProcessEvent, table_name: str 
     LOG_UPLOADER.send_request(
         data=[event.stringify()],
         table_name=table_name)
+
+def write_file_to_host(hostname: str, timestamp: float, file: File) -> None:
+    """
+    Uploads a FileCreationEvent for a given host, time, and File
+    """
+    upload_file_creation_event_to_azure(
+        FileCreationEvent(
+            hostname=hostname,
+            timestamp=timestamp,
+            filename=file.filename,
+            path=file.path,
+            sha256=file.sha256,
+            size=file.size
+        )
+    )
