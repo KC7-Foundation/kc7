@@ -101,3 +101,4 @@ ENV/
 # cyber-challenger specific stuff
 config.py
 *.DS_Store
+/app/flaskr.db

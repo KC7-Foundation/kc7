@@ -27,15 +27,15 @@ class File:
 
 class FileCreationEvent(File):
 
-    def __init__(self, hostname: str, creation_time: float, filename: str, path: str, sha256: str=None, size:int=None):
+    def __init__(self, hostname: str, timestamp: float, filename: str, path: str, sha256: str=None, size:int=None):
 
         self.hostname = hostname
-        self.creation_time = creation_time
+        self.timestamp = timestamp
         super().__init__(filename, path, sha256, size)
 
     def stringify(self) -> dict:
         return {
-            "creation_time": Clock.from_timestamp_to_string(self.creation_time),
+            "timestamp": Clock.from_timestamp_to_string(self.timestamp),
             "hostname": self.hostname,
             "sha256": self.sha256,
             "path": self.path,
@@ -49,7 +49,7 @@ class FileCreationEvent(File):
         return (
             'FileCreationEvents',  # table name in KQL
             {                     # dict representation of column names:types
-                'creation_time': 'string',
+                'timestamp': 'string',
                 'hostname': 'string',
                 'sha256': 'string',
                 'path': 'string',

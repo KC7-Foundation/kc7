@@ -1,4 +1,5 @@
 # Import external modules
+from asyncore import write
 from faker import Faker
 from faker.providers import user_agent
 
@@ -13,9 +14,11 @@ from app.server.modules.clock.Clock import Clock
 from app.server.modules.endpoints.file_creation_event import File, FileCreationEvent
 from app.server.modules.endpoints.processes import Process, ProcessEvent
 from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
-from app.server.modules.endpoints.endpoint_controller import upload_endpoint_event_to_azure
+from app.server.modules.endpoints.endpoint_controller import upload_file_creation_event_to_azure
+from app.server.modules.endpoints.endpoint_controller import upload_process_creation_event_to_azure
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.authentication.auth_controller import auth_to_mail_server, upload_auth_event_to_azure
+from app.server.modules.file.malware_controller import get_malware_by_name, write_file_to_host
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_request, make_email_exfil_url
 
 from app.server.utils import *
@@ -84,21 +87,57 @@ class Trigger:
             "/")[-1]  # in the future, this should be parsed from the link
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
-            creation_time=time,
+            timestamp=time,
             filename=filename,
             # TODO: generate in filesystem instead
             path=f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
         )
 
         # This will come from the filesystem controller
-        upload_endpoint_event_to_azure(file_creation_event)
+        upload_file_creation_event_to_azure(file_creation_event)
+
+        # The downloaded file causes a process to kick off after some time
+        Trigger.file_creates_process(recipient, time, email, file_creation_event)
 
         # if user runs the file then beacon from user machine
         # there should be a condition here
         if email.actor.name != "Default":
-            Trigger.malware_beacons_on_user_machine(recipient, time, email)
+            if email.actor.malware:
+                Trigger.email_attachment_drops_payload(recipient, time, email)
+                Trigger.malware_beacons_on_user_machine(recipient, time, email)
 
-    @staticmethod
+    def email_attachment_drops_payload(recipient: Employee, time: float, email: Email) -> None:
+        """
+        When a file is downloaded from a URL sent by a malicious actor, an implant will be dropped
+        This will also trigger a process
+        """
+        malware_family_to_drop = email.actor.get_random_malware_name()
+        malware = get_malware_by_name(malware_family_to_drop)
+        implant = malware.get_implant()
+        write_file_to_host(
+            hostname=recipient.hostname,
+            timestamp=time,
+            file=implant
+        )
+
+    def file_creates_process(recipient: Employee, time: float, email: Email, file_creation_event: FileCreationEvent) -> None:
+        """
+        When a file is downloaded, it will kick off a process on the machine 
+        This occurs after a random amount of time between 30 and 180 seconds
+        """
+        process_time=Clock.increment_time(time, random.randint(30,180))
+        process = ProcessEvent(
+           timestamp=process_time, 
+           parent_process_name=email.link.split("/")[-1],
+           parent_process_hash=file_creation_event.sha256,
+           process_commandline="powershell -nop -w hidden -enc d2hvYW1p",
+           process_name="powershell.exe",
+           process_hash="cda48fc75952ad12d99e526d0b6bf70a",
+           hostname=recipient.hostname
+        )
+
+        upload_process_creation_event_to_azure(process)
+
     def malware_beacons_on_user_machine(recipient: Employee, time: float, email: Email) -> None:
         """
         When a user dowloads a file, there is a chance the file gets executed

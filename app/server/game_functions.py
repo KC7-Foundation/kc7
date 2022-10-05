@@ -20,6 +20,8 @@ from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_
 from app.server.modules.authentication.auth_controller import auth_random_user_to_mail_server
 from app.server.modules.helpers.config_helper import read_config_from_yaml
 from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host
+from app.server.modules.file.malware import Malware
+from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file
 
 from app.server.utils import *
 from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
@@ -40,11 +42,14 @@ def start_game() -> None:
     LOG_UPLOADER = LogUploader()
     LOG_UPLOADER.create_tables(reset=True)
 
+    global MALWARE_OBJECTS
+    MALWARE_OBJECTS = create_malware()
+
     # instantiate a global mapping of hashes to malware families. 
     # this is updated to make sure we and a 1-1 mapping of hashes <-> malware types
-    global FILE_HASH_MALWARE_MAPPING 
-    FILE_HASH_MALWARE_MAPPING = {}
-    assign_hash_to_malware()
+    # global FILE_HASH_MALWARE_MAPPING 
+    # FILE_HASH_MALWARE_MAPPING = {}
+    # assign_hash_to_malware()
 
     # The the current game session
     # This data object tracks whether or not the game is currently running
@@ -112,7 +117,7 @@ def init_setup():
     if not actors:
         create_actors()
         actors = Actor.query.all()
-    
+
     # generate some initial activity for the actors
     for actor in actors:
         generate_activity(
@@ -206,32 +211,45 @@ def create_actors() -> None:
         db.session.rollback()
         print("Failed to create actor %s" % e)
         
+def create_malware() -> list[Malware]:
+    """
+    Load all malware configs from YAML and configure a list of Malware objects
+    """
+    malware_objects = []
+    malware_configs = glob.glob(f"app/game_configs/malware/*.yaml")
+    for path in malware_configs:
+        malware_objects.append(load_malware_obj_from_yaml_by_file(path))
+    
+    malware_objects = assign_hash_to_malware(malware_objects)
+    return malware_objects
 
-def assign_hash_to_malware() -> None:
+def assign_hash_to_malware(malware_objects: list[Malware]) -> list[Malware]:
     """
     Take all available VT hashes and assign them to malware families 
     there should be a 1-1 mapping of hash to malware family
     """
-    malware_configs = glob.glob(f"app/game_configs/malware/*.yaml")
-    # Read all malware configs from YAML config files
-    malware_family_names = []
-    for path in malware_configs:
-        json_config = read_config_from_yaml(path)
-        malware_family_name = json_config.get("name", None)
-        malware_family_names.append(malware_family_name)
+    # malware_configs = glob.glob(f"app/game_configs/malware/*.yaml")
+    # # Read all malware configs from YAML config files
+    # malware_family_names = []
+    # for path in malware_configs:
+    #     json_config = read_config_from_yaml(path)
+    #     malware_family_name = json_config.get("name", None)
+    #     malware_family_names.append(malware_family_name)
 
-    print(malware_family_names)
+    # print(malware_family_names)
 
     # Look through available hashes and assign them to malware families via a round robin
     while FILES_MALICIOUS_VT_SEED_HASHES:
-        for malware_family_name in malware_family_names:
+        for malware_object in malware_objects:
             if not FILES_MALICIOUS_VT_SEED_HASHES:
                 break
             # take a hash and remove it from our list of hashes
             hash = FILES_MALICIOUS_VT_SEED_HASHES.pop()
-            # add hash to a key under malware the family name
-            if FILE_HASH_MALWARE_MAPPING.get(malware_family_name, []):
-                FILE_HASH_MALWARE_MAPPING.get(malware_family_name).append(hash)
-            else:
-                FILE_HASH_MALWARE_MAPPING[malware_family_name] = [hash]
+            malware_object.hashes.append(hash) # TODO: This might not work!!
+            # # add hash to a key under malware the family name
+            # if FILE_HASH_MALWARE_MAPPING.get(malware_family_name, []):
+            #     FILE_HASH_MALWARE_MAPPING.get(malware_family_name).append(hash)
+            # else:
+            #     FILE_HASH_MALWARE_MAPPING[malware_family_name] = [hash]
+    return malware_objects
 

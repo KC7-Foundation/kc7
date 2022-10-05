@@ -38,3 +38,5 @@ tlds:
   - tk
   - club
 spoof_email: True
+malware:
+  - panther
