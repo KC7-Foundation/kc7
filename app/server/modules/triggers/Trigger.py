@@ -11,11 +11,13 @@ from app.server.modules.email.email import Email
 from app.server.modules.outbound_browsing.browsing_controller import browse_website
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
-from app.server.modules.endpoints.file_creation_event import File, FileCreationEvent
+from app.server.modules.endpoints.file_creation_event import FileCreationEvent
 from app.server.modules.endpoints.processes import Process, ProcessEvent
 from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
-from app.server.modules.endpoints.endpoint_controller import upload_file_creation_event_to_azure
-from app.server.modules.endpoints.endpoint_controller import upload_process_creation_event_to_azure
+from app.server.modules.endpoints.endpoint_controller import (
+    upload_file_creation_event_to_azure, 
+    upload_process_creation_event_to_azure,
+    write_file_to_host )
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.authentication.auth_controller import auth_to_mail_server, upload_auth_event_to_azure
 from app.server.modules.file.malware_controller import get_malware_by_name, write_file_to_host
