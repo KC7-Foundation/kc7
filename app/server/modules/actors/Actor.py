@@ -85,40 +85,18 @@ class Actor(Base):
         return [f for f in attacks if f!='']
 
 
-    def get_malware(self) -> "list[Malware]":
+    def get_malware_names(self) -> "list[str]":
         """
-        Get a list of malware objects belonging to the actor
-        This takes a list of malware names and tries to load them from the malware config
+        Get a list of malware names belonging to the actor
         """
-        malware_names = Actor.string_to_list(self.malware)
-        malware_objs = []
+        return Actor.string_to_list(self.malware)
 
-        for malware_name in malware_names:
-            malware_obj = self.load_malware_obj_from_yaml(malware_name)
-            if malware_obj:
-                malware_objs.append(malware_obj)
-
-        return malware_objs
-
-
-    def load_malware_obj_from_yaml(self, malware_name) -> Malware:
+    def get_random_malware_name(self) -> str:
         """
-        Given a malware name, look for a malware config yaml file with that corresponding name
-        Use the malware config to build a Malware obj
-        return the Malware object
+        Get a random malware name belonging to the actor
         """
-        malware_config = glob.glob(f"app/game_configs/malware/{malware_name}.yaml")[0]
-        # Read all malware configs from YAML config files
-        malware_config_as_json = read_config_from_yaml(malware_config)
-        if malware_config_as_json:
-            return Malware(
-                        c2_ips = self.get_ips(count_of_ips=10),   
-                        **malware_config_as_json
-                    )
-        else:
-            return None
+        return random.choice(self.get_malware_names())
 
-    
     def get_attacks_by_type(self, attack_type:str) -> "list[str]":
         """
         Attacks are defined as attack_type:attack_name
@@ -132,13 +110,11 @@ class Actor(Base):
         attacks = [attack.split(":")[1] for attack in attacks if attack_type in attack]
         return attacks    
 
-
     def get_file_names(self) -> "list[str]":
         """
         Converts string representation of file names into list
         """
         return Actor.string_to_list(self.file_names)
-
 
     def get_file_extensions(self) -> "list[str]":
         """

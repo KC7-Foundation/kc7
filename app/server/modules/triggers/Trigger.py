@@ -1,4 +1,5 @@
 # Import external modules
+from asyncore import write
 from faker import Faker
 from faker.providers import user_agent
 
@@ -17,6 +18,7 @@ from app.server.modules.endpoints.endpoint_controller import upload_file_creatio
 from app.server.modules.endpoints.endpoint_controller import upload_process_creation_event_to_azure
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.authentication.auth_controller import auth_to_mail_server, upload_auth_event_to_azure
+from app.server.modules.file.malware_controller import get_malware_by_name, write_file_to_host
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_request, make_email_exfil_url
 
 from app.server.utils import *
@@ -100,7 +102,23 @@ class Trigger:
         # if user runs the file then beacon from user machine
         # there should be a condition here
         if email.actor.name != "Default":
-            Trigger.malware_beacons_on_user_machine(recipient, time, email)
+            if email.actor.malware:
+                Trigger.email_attachment_drops_payload(recipient, time, email)
+                Trigger.malware_beacons_on_user_machine(recipient, time, email)
+
+    def email_attachment_drops_payload(recipient: Employee, time: float, email: Email) -> None:
+        """
+        When a file is downloaded from a URL sent by a malicious actor, an implant will be dropped
+        This will also trigger a process
+        """
+        malware_family_to_drop = email.actor.get_random_malware_name()
+        malware = get_malware_by_name(malware_family_to_drop)
+        implant = malware.get_implant()
+        write_file_to_host(
+            hostname=recipient.hostname,
+            timestamp=time,
+            file=implant
+        )
 
     def file_creates_process(recipient: Employee, time: float, email: Email, file_creation_event: FileCreationEvent) -> None:
         """
