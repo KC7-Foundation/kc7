@@ -35,14 +35,15 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
         browse_website(employee, get_link(actor), time)
 
 
-def browse_website(employee:Employee, link:str, time:float):
+def browse_website(employee:Employee, link:str, time:float, method: str = None):
     """Browse a website on the web - given a link"""
 
     event = OutboundEvent(
         time = time, #TODO: Fix eventually
         src_ip = employee.ip_addr,
         user_agent = employee.user_agent,
-        url = link
+        url = link,
+        method = method
     )
     
     upload_event_to_azure(event)

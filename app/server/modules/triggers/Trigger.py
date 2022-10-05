@@ -1,5 +1,6 @@
 # Import external modules
 from asyncore import write
+from re import S
 from faker import Faker
 from faker.providers import user_agent
 
@@ -11,17 +12,19 @@ from app.server.modules.email.email import Email
 from app.server.modules.outbound_browsing.browsing_controller import browse_website
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
-from app.server.modules.endpoints.file_creation_event import FileCreationEvent
+from app.server.modules.endpoints.file_creation_event import FileCreationEvent, File
 from app.server.modules.endpoints.processes import Process, ProcessEvent
 from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
 from app.server.modules.endpoints.endpoint_controller import (
     upload_file_creation_event_to_azure, 
     upload_process_creation_event_to_azure,
-    write_file_to_host )
+    write_file_to_host,
+    create_process_on_host )
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.authentication.auth_controller import auth_to_mail_server, upload_auth_event_to_azure
-from app.server.modules.file.malware_controller import get_malware_by_name, write_file_to_host
+from app.server.modules.file.malware_controller import get_malware_by_name
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_request, make_email_exfil_url
+from app.server.modules.file.malware import Malware
 
 from app.server.utils import *
 
@@ -98,16 +101,14 @@ class Trigger:
         # This will come from the filesystem controller
         upload_file_creation_event_to_azure(file_creation_event)
 
-        # The downloaded file causes a process to kick off after some time
-        Trigger.file_creates_process(recipient, time, email, file_creation_event)
-
         # if user runs the file then beacon from user machine
         # there should be a condition here
         if email.actor.name != "Default":
             if email.actor.malware:
-                Trigger.email_attachment_drops_payload(recipient, time, email)
-                Trigger.malware_beacons_on_user_machine(recipient, time, email)
+                payload_time = Clock.delay_time_by(start_time=time, factor="seconds")
+                Trigger.email_attachment_drops_payload(recipient, payload_time, email)
 
+    @staticmethod
     def email_attachment_drops_payload(recipient: Employee, time: float, email: Email) -> None:
         """
         When a file is downloaded from a URL sent by a malicious actor, an implant will be dropped
@@ -121,24 +122,35 @@ class Trigger:
             timestamp=time,
             file=implant
         )
+        
+        process_creation_time = Clock.delay_time_by(start_time=time, factor="minutes")
+        Trigger.payload_creates_processes(recipient, process_creation_time, email, malware, payload=implant)
 
-    def file_creates_process(recipient: Employee, time: float, email: Email, file_creation_event: FileCreationEvent) -> None:
+    @staticmethod
+    def payload_creates_processes(recipient: Employee, time: float, email: Email, malware: Malware, payload: File) -> None:
         """
-        When a file is downloaded, it will kick off a process on the machine 
-        This occurs after a random amount of time between 30 and 180 seconds
+        When a payload is dropped to a user's system, it should also spawn processes.
+        The processes that are spawned are defined in the malware config
         """
-        process_time=Clock.increment_time(time, random.randint(30,180))
-        process = ProcessEvent(
-           timestamp=process_time, 
-           parent_process_name=email.link.split("/")[-1],
-           parent_process_hash=file_creation_event.sha256,
-           process_commandline="powershell -nop -w hidden -enc d2hvYW1p",
-           process_name="powershell.exe",
-           process_hash="cda48fc75952ad12d99e526d0b6bf70a",
-           hostname=recipient.hostname
-        )
+        # Get a C2 IP from the Actor's infrastructure
+        c2_ip = email.actor.get_ips(count_of_ips=1)[0]
+        # Get random processes
+        recon_process = malware.get_recon_process()
+        c2_process = malware.get_c2_process(c2_ip)
 
-        upload_process_creation_event_to_azure(process)
+        # Upload the recon and C2 processes to Azure
+        for process in [recon_process, c2_process]:
+            time = Clock.delay_time_by(start_time=time, factor="seconds")
+            create_process_on_host(
+                hostname=recipient.hostname,
+                timestamp=time,
+                parent_process_name=payload.filename,
+                parent_process_hash=payload.sha256,
+                process=process
+            )
+
+        beacon_time = Clock.delay_time_by(time, factor="seconds")
+        Trigger.malware_beacons_on_user_machine(recipient, beacon_time, email)
 
     def malware_beacons_on_user_machine(recipient: Employee, time: float, email: Email) -> None:
         """
@@ -167,7 +179,7 @@ class Trigger:
         time_delay = random.randint(5000, 99999)
         time = Clock.increment_time(time, time_delay)
 
-        browse_website(recipient, c2_link, time)
+        browse_website(recipient, c2_link, time, method="POST")
 
     @staticmethod
     def actor_auths_into_user_email(recipient:Employee, email: Email, time: float):

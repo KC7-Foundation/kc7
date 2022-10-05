@@ -8,6 +8,8 @@ class File:
         self.sha256 = sha256 or File.get_random_sha256()
         self.size = size or File.get_random_filesize()
 
+        self.set_filepath()
+
     @staticmethod
     def get_random_sha256() -> str:
         """
@@ -24,6 +26,13 @@ class File:
         """
         return random.randint(1000, 9999)
 
+    def set_filepath(self) -> None:
+        if "." in self.path.split("\\")[-1]:
+            return
+        elif self.path[-1] == "\\":
+            self.path = self.path+self.filename
+            
+
 
 class FileCreationEvent(File):
 
@@ -38,7 +47,7 @@ class FileCreationEvent(File):
             "timestamp": Clock.from_timestamp_to_string(self.timestamp),
             "hostname": self.hostname,
             "sha256": self.sha256,
-            "path": self.path,
+            "path": self.path.replace("/","\\"),
             "filename": self.filename,
             "size": self.size
         }

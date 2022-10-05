@@ -1,24 +1,26 @@
 # Import external modules
 from enum import Enum
+from multiprocessing import parent_process
 import random
 from faker import Faker
 from faker.providers import internet, lorem
-
 
 # Import internal modules
 from flask import current_app
 from app.server.models import *
 from app.server.modules.endpoints.file_creation_event import FileCreationEvent, File
-from app.server.modules.endpoints.processes import ProcessEvent
+from app.server.modules.endpoints.processes import ProcessEvent, Process
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
 from app.server.utils import *
 from app.server.modules.constants.legit_files import *
+from app.server.modules.constants.constants import COMMON_USER_FILE_LOCATIONS
 
 # instantiate faker
 fake = Faker()
 fake.add_provider(internet)
 fake.add_provider(lorem)
+fake.add_provider(file)
 
 def gen_system_files_on_host(count_of_events:int=10) -> None:
     """
@@ -41,7 +43,33 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
             path="C:/"+path, # Add a drive letter
             sha256=hash
         )
-        upload_file_creation_event_to_azure(file_creation_event)
+        upload_file_creation_event_to_azure(file_creation_event)    
+
+def gen_user_files_on_host(count_of_events:int=10) -> None:
+    """
+    Generates FileCreationEvents for user files generated on a host
+    TODO: Example here
+    """
+    for _ in range(count_of_events):
+        employee = get_random_employee()
+        path = random.choice(COMMON_USER_FILE_LOCATIONS).replace("{username}",employee.username)
+        if "Pictures" in path:
+            category='image'
+        elif "Videos" in path:
+            category='video'
+        elif "Music" in path:
+            category='audio'
+        else:
+            category='office'
+            
+        write_file_to_host(
+            hostname=employee.hostname,
+            timestamp=get_time(),
+            file=File(
+                filename=fake.file_name(category=category),
+                path=path
+            )
+        )
 
 
 def upload_file_creation_event_to_azure(event: FileCreationEvent, table_name: str = "FileCreationEvents") -> None:
@@ -80,5 +108,21 @@ def write_file_to_host(hostname: str, timestamp: float, file: File) -> None:
             path=file.path,
             sha256=file.sha256,
             size=file.size
+        )
+    )
+
+def create_process_on_host(hostname: str, timestamp: float, parent_process_name: str, parent_process_hash: str, process: Process):
+    """
+    Uploads a ProcessEvent for a given host, time, parent process, and process
+    """
+    upload_process_creation_event_to_azure(
+        ProcessEvent(
+            timestamp=timestamp,
+            hostname=hostname,
+            parent_process_name=parent_process_name,
+            parent_process_hash=parent_process_hash,
+            process_name=process.process_name,
+            process_commandline=process.process_commandline,
+            process_hash=process.process_hash
         )
     )
