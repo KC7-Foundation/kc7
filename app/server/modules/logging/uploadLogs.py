@@ -1,5 +1,6 @@
 # Import external modules
 from inspect import istraceback
+from multiprocessing.dummy import Process
 import pandas as pd
 import json
 from azure.kusto.data import KustoClient, KustoConnectionStringBuilder
@@ -12,6 +13,7 @@ from flask import current_app
 # Import internal modules
 from app.server.modules.outbound_browsing.outboundEvent import OutboundEvent
 from app.server.modules.endpoints.file_creation_event import FileCreationEvent
+from app.server.modules.endpoints.processes import ProcessEvent
 from app.server.modules.email.email import Email
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.organization.Company import Employee
@@ -37,7 +39,7 @@ class LogUploader():
         self.CUSTOM_TYPES = [
                                 DNSRecord, Employee,
                                 OutboundEvent, FileCreationEvent, 
-                                Email, AuthenticationEvent, InboundBrowsingEvent]
+                                Email, AuthenticationEvent, InboundBrowsingEvent, ProcessEvent]
 
         # Aauthenticate with AAD application.
         self.client_id = current_app.config["CLIENT_ID"]
