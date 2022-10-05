@@ -21,6 +21,7 @@ class AuthenticationEvent:
             "hostname": self.hostname,
             "src_ip": self.src_ip,
             "user_agent": self.user_agent,
+            "username": self.username,
             "result": self.result
         }
 

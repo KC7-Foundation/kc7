@@ -53,8 +53,7 @@ def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> No
     for _ in range(count_emails):
 
         # time is returned as timestamp (float)
-        time = Clock.get_current_gametime(start_time=current_session.start_time,
-                                        seed_date=current_session.seed_date)
+        time = get_time()
 
         # If the actor is a malicious one, we will always generate an inbound email (external -> internal)
         if actor.name == DEFAULT_ACTOR_NAME:

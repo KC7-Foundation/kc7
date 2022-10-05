@@ -163,7 +163,7 @@ def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_em
     if actor.name == "Default":
         browse_random_website(employees, actor, num_random_browsing)
         auth_random_user_to_mail_server(employees, num_auth_events)
-        gen_random_inbound_browsing(num_inbound_browsing_events=50)
+        gen_random_inbound_browsing(num_inbound_browsing_events=500)
         gen_system_files_on_host(count_of_events=10)
         gen_user_files_on_host(count_of_events=10)
 
@@ -212,7 +212,7 @@ def create_actors() -> None:
         db.session.rollback()
         print("Failed to create actor %s" % e)
         
-def create_malware() -> list[Malware]:
+def create_malware() -> "list[Malware]":
     """
     Load all malware configs from YAML and configure a list of Malware objects
     """
@@ -224,7 +224,7 @@ def create_malware() -> list[Malware]:
     malware_objects = assign_hash_to_malware(malware_objects)
     return malware_objects
 
-def assign_hash_to_malware(malware_objects: list[Malware]) -> list[Malware]:
+def assign_hash_to_malware(malware_objects: "list[Malware]") -> "list[Malware]":
     """
     Take all available VT hashes and assign them to malware families 
     there should be a 1-1 mapping of hash to malware family

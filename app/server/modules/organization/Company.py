@@ -152,7 +152,7 @@ class Employee(Base):
     email_addr          = db.Column(db.String(50))
     username            = db.Column(db.String(50))
     hostname            = db.Column(db.String(50))
-    timestamp       = db.Column(db.String(50))
+    timestamp           = db.Column(db.String(50))
     role                = db.Column(db.String(50))
     
 
@@ -223,8 +223,8 @@ class Employee(Base):
             "email_addr": self.email_addr,
             "company_domain": self.company.domain,
             "username": self.username,
+            "role":self.role,
             "hostname": self.hostname,
-            "role":self.role
         }
 
     @staticmethod
