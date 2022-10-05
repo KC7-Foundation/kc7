@@ -19,32 +19,15 @@ class OutboundEvent:
     Outbound Web browsing events. Represents an egress event 
     """
 
-    def __init__(self, time:float, src_ip:str, user_agent:str, url:str):
+    def __init__(self, time:float, src_ip:str, user_agent:str, url:str, method:str = None, status_code:str = None):
         """Set initial values"""
 
         self.time = Clock.from_timestamp_to_string(time)
         self.src_ip = src_ip
         self.user_agent = user_agent
-        self.set_method()
-        self.set_status_code()
-
+        self.method = method or random.choice(METHODS)
+        self.status_code = status_code or random.choice(STATUS_CODES)
         self.url = url or fake.uri()
-
-
-    def set_method(self):
-        """
-        Request method
-        e.g. GET, POST PUT
-        Currently limited to GET ONLY
-        """
-        self.method = random.choice(METHODS)
-
-    def set_status_code(self):
-        """
-        Result of the request
-        Chosen randomly from status codes defined above
-        """
-        self.status_code = random.choice(STATUS_CODES)
 
     def stringify(self):
         """Return event in json format"""    
@@ -55,7 +38,6 @@ class OutboundEvent:
                   "user_agent":self.user_agent,
                   "url": self.url
             }
-
 
     @staticmethod
     def get_kql_repr():

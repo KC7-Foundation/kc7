@@ -1,15 +1,15 @@
 # Import external modules
 from enum import Enum
+from multiprocessing import parent_process
 import random
 from faker import Faker
 from faker.providers import internet, lorem
-
 
 # Import internal modules
 from flask import current_app
 from app.server.models import *
 from app.server.modules.endpoints.file_creation_event import FileCreationEvent, File
-from app.server.modules.endpoints.processes import ProcessEvent
+from app.server.modules.endpoints.processes import ProcessEvent, Process
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
 from app.server.utils import *
@@ -41,8 +41,7 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
             path="C:/"+path, # Add a drive letter
             sha256=hash
         )
-        upload_file_creation_event_to_azure(file_creation_event)
-
+        upload_file_creation_event_to_azure(file_creation_event)    
 
 def upload_file_creation_event_to_azure(event: FileCreationEvent, table_name: str = "FileCreationEvents") -> None:
 
@@ -80,5 +79,21 @@ def write_file_to_host(hostname: str, timestamp: float, file: File) -> None:
             path=file.path,
             sha256=file.sha256,
             size=file.size
+        )
+    )
+
+def create_process_on_host(hostname: str, timestamp: float, parent_process_name: str, parent_process_hash: str, process: Process):
+    """
+    Uploads a ProcessEvent for a given host, time, parent process, and process
+    """
+    upload_process_creation_event_to_azure(
+        ProcessEvent(
+            timestamp=timestamp,
+            hostname=hostname,
+            parent_process_name=parent_process_name,
+            parent_process_hash=parent_process_hash,
+            process_name=process.process_name,
+            process_commandline=process.process_commandline,
+            process_hash=process.process_hash
         )
     )

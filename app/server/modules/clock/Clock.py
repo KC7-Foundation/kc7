@@ -1,8 +1,7 @@
 from code import interact
 from datetime import datetime
 from pickletools import floatnl
-import string
-
+from random import randint
 
 class Clock():
     """
@@ -103,3 +102,25 @@ class Clock():
         Returns new local datetime
         """
         return start_time + increment
+
+    @staticmethod
+    def delay_time_by(start_time: float, factor: str) -> float:
+        """
+        Increment time by hours, minutes, seconds
+        """
+        if factor not in ["days","hours","minutes","seconds"]:
+            raise Exception('"factor" must be one of the following values: ["days","hours","minutes","seconds"]')
+        
+        days, hours, minutes, seconds = 0, 0, 0, 0
+
+        if factor == "days":
+            days = randint(1, 7)
+        elif factor == "hours":
+            hours = randint(1,24)
+        elif factor == "minutes":
+            minutes = randint(1, 60)
+        elif factor == "seconds":
+            seconds = randint(1, 60)
+        increment_value = (days * 86400) + (hours * 3600) + (minutes * 60) + seconds
+
+        return start_time + increment_value

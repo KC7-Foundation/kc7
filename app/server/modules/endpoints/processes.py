@@ -1,4 +1,5 @@
 from app.server.modules.clock.Clock import Clock
+from app.server.modules.endpoints.file_creation_event import File
 
 class Process:
     """
@@ -7,11 +8,12 @@ class Process:
     This class is time and host agnostic
     """
 
-    def __init__(self, process_name: str, process_arguments: str):
+    def __init__(self, process_name: str, process_commandline: str, process_hash: str = None):
         self.process_name = process_name
-        self.process_arguments = process_arguments
+        self.process_commandline = process_commandline
+        self.process_hash = process_hash or File.get_random_sha256()
 
-class ProcessEvent:
+class ProcessEvent(Process):
     """
     A class that represents the data model for Processes
     timestamp is the in-game time when the process is created
@@ -39,10 +41,8 @@ class ProcessEvent:
         self.timestamp = timestamp
         self.parent_process_name = parent_process_name
         self.parent_process_hash = parent_process_hash
-        self.process_commandline = process_commandline
-        self.process_name = process_name
-        self.process_hash = process_hash
         self.hostname = hostname
+        super().__init__(process_name, process_commandline, process_hash)
 
     def stringify(self):
         return {

@@ -38,7 +38,7 @@ class FileCreationEvent(File):
             "timestamp": Clock.from_timestamp_to_string(self.timestamp),
             "hostname": self.hostname,
             "sha256": self.sha256,
-            "path": self.path,
+            "path": self.path.replace("/","\\"),
             "filename": self.filename,
             "size": self.size
         }
