@@ -24,6 +24,25 @@ EMAIL_EXFIL_OUTPUT_EXTENSIONS = [
     "gzip"
 ]
 
+WEBSITE_STATIC_PATHS = [
+    "home",
+    "about",
+    "contact",
+    "covid19",
+    "search?query=",
+    "investor-relations",
+    "about-us/history",
+    "about-us/diversity",
+    "faq",
+    "about-us/leadership/executives",
+    "careers",
+    "careers/apply",
+    "careers/company-culture",
+    "careers/next-steps",
+    "careers/internships",
+    "careers/"
+]
+
 # common files on user comuters
 COMMON_USER_FILE_LOCATIONS  = [
     "C:\\Users\\{username}\\Documents\\",
