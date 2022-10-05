@@ -141,6 +141,8 @@ class LogUploader():
     def add_user_permissions(self, user_string: str) -> None:
         permission_command = LogUploader._create_user_permission_command(user_string, self.DATABASE)
         response = self.client.execute_mgmt(self.DATABASE, permission_command)
+        if response.get_exceptions():
+            raise response.get_exceptions()
 
     def get_queue_length(self):
         """

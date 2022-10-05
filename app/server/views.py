@@ -200,7 +200,7 @@ def update_permissions():
         log_uploader = LogUploader()
         user_strings = [x for x in permissions_list.split("\n") if x]
         for user_string in user_strings:
-            log_uploader.add_user_permissions(user_string)
+                log_uploader.add_user_permissions(user_string)
         return jsonify(success=True)
     except Exception as e:
         print(e)
