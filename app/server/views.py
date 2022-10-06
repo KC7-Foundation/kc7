@@ -62,7 +62,9 @@ def manage_game():
 @roles_required('Admin')
 @login_required
 def manage_database():
-    return render_template("admin/manage_database.html")
+    log_uploader = LogUploader()
+    perms = log_uploader.get_user_permissions()
+    return render_template("admin/manage_database.html", perms=perms)
 
 @main.route("/admin/start_game", methods=['GET'])
 @roles_required('Admin')
@@ -204,6 +206,7 @@ def update_permissions():
         return jsonify(success=True)
     except Exception as e:
         print(e)
+        flash("Error updating ADX Permissions: ","error")
         return jsonify(success=False)
 
 @login_required
