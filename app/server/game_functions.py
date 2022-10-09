@@ -19,7 +19,7 @@ from app.server.modules.outbound_browsing.browsing_controller import browse_rand
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_random_inbound_browsing
 from app.server.modules.authentication.auth_controller import auth_random_user_to_mail_server
 from app.server.modules.helpers.config_helper import read_config_from_yaml
-from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host
+from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host, gen_system_processes_on_host
 from app.server.modules.file.malware import Malware
 from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file
 
@@ -166,6 +166,7 @@ def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_em
         gen_random_inbound_browsing(num_inbound_browsing_events=500)
         gen_system_files_on_host(count_of_events=10)
         gen_user_files_on_host(count_of_events=10)
+        gen_system_processes_on_host(count_of_events=10)
 
 def create_actors() -> None:
     """

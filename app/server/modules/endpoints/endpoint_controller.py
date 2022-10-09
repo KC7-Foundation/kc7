@@ -4,6 +4,7 @@ from multiprocessing import parent_process
 import random
 from faker import Faker
 from faker.providers import internet, lorem
+import re
 
 # Import internal modules
 from flask import current_app
@@ -14,7 +15,7 @@ from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
 from app.server.utils import *
 from app.server.modules.constants.legit_files import *
-from app.server.modules.constants.constants import COMMON_USER_FILE_LOCATIONS
+from app.server.modules.constants.constants import COMMON_USER_FILE_LOCATIONS, LEGIT_COMMANDLINES, LEGIT_PARENT_PROCESSES
 
 # instantiate faker
 fake = Faker()
@@ -44,6 +45,49 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
             sha256=hash
         )
         upload_file_creation_event_to_azure(file_creation_event)    
+
+def gen_system_processes_on_host(count_of_events:int=10) -> None:
+    """
+    Generates ProcessEvents for system files
+    """
+    for _ in range(count_of_events):
+        employee = get_random_employee()
+        process = get_legit_process(
+            username=employee.username, 
+            filename=fake.file_name(category='office')
+        )
+        parent_name, parent_hash = random.choice(list(LEGIT_PARENT_PROCESSES.items()))
+
+        process_event=ProcessEvent(
+            timestamp=get_time(),
+            parent_process_name=parent_name,
+            parent_process_hash=parent_hash,
+            process_commandline=process.process_commandline,
+            process_name=process.process_name,
+            hostname=employee.hostname
+        )
+        upload_process_creation_event_to_azure(process_event)
+
+def get_legit_process(username: str = None, filename: str = None) -> Process:
+    """
+    Build a legitimate process and return it
+    """
+    process_commandline = random.choice(LEGIT_COMMANDLINES)
+    print(process_commandline)
+    if username:
+        process_commandline = process_commandline.replace("{username}",username)
+    if filename:
+        process_commandline = process_commandline.replace("{filename}",filename)
+
+    try:
+        process_name = re.search('([^\\\\]+\\.exe)',process_commandline.lower()).group(1)
+    except:
+        process_name = "PARSE_ERROR.exe"
+
+    return Process(
+        process_name=process_name,
+        process_commandline=process_commandline
+    )
 
 def gen_user_files_on_host(count_of_events:int=10) -> None:
     """

@@ -35,8 +35,8 @@ class ProcessEvent(Process):
                 parent_process_hash: str,
                 process_commandline: str,
                 process_name: str,
-                process_hash: str,
-                hostname: str):
+                hostname: str,
+                process_hash: str = None):
 
         self.timestamp = timestamp
         self.parent_process_name = parent_process_name
