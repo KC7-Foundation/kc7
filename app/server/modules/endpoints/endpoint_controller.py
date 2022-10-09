@@ -73,7 +73,6 @@ def get_legit_process(username: str = None, filename: str = None) -> Process:
     Build a legitimate process and return it
     """
     process_commandline = random.choice(LEGIT_COMMANDLINES)
-    print(process_commandline)
     if username:
         process_commandline = process_commandline.replace("{username}",username)
     if filename:

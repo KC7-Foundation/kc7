@@ -6,6 +6,7 @@ from json import JSONEncoder
 from faker import Faker
 from faker.providers import internet, user_agent, person
 from sqlalchemy import func
+import names
 
 from app.server.models import Base
 from app.server.modules.clock.Clock import Clock
@@ -65,7 +66,7 @@ class Company(Base):
 
         employee = Employee(
             timestamp=timestamp or account_creation_datetime or Clock.get_current_gametime(),
-            name=name or fake.name(),
+            name=name or names.get_full_name(),
             user_agent=user_agent or fake.user_agent(),
             ip_addr=self.generate_ip(),
             company=self,
