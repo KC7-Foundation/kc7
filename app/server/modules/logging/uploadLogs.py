@@ -9,6 +9,7 @@ from azure.kusto.data.helpers import dataframe_from_result_table
 from azure.kusto.data.data_format import DataFormat
 from azure.kusto.ingest import QueuedIngestClient, IngestionProperties, FileDescriptor, BlobDescriptor, ReportLevel, ReportMethod
 from flask import current_app
+from azure.kusto.data.helpers import dataframe_from_result_table
 
 # Import internal modules
 from app.server.modules.outbound_browsing.outboundEvent import OutboundEvent
@@ -125,6 +126,38 @@ class LogUploader():
         kql_command = kql_command + "(" + ",\n".join(command_parts) + ")"
 
         return kql_command
+
+    @staticmethod
+    def _create_user_permission_command(user_string:str, database: str) -> str:
+        """
+        Take a user string of the following format:
+        aaduser=user@contoso.com
+        msauser=user@outlook.com
+        """
+        # Does the user_string contain one of the required identifiers?
+        if not any(prefix in user_string for prefix in ['aaduser=','msauser=']):
+            raise Exception("ERROR: The user identifier must be prefixed by either aaduser= or msauser=")
+        return f".add database {database} viewers ('{user_string}')"
+
+    def get_user_permissions(self) -> list:
+        """
+        Get a list of user permissions from ADX
+        """
+        show_permissions_command = f".show database {self.DATABASE} principals | distinct PrincipalDisplayName"
+        response = self.client.execute_mgmt(self.DATABASE, show_permissions_command)
+
+        # Handle errors from Kusto Client
+        if response.get_exceptions():
+            raise response.get_exceptions()
+
+        return dataframe_from_result_table(response.primary_results[0])['PrincipalDisplayName'].unique().tolist()
+
+    def add_user_permissions(self, user_string: str) -> None:
+        permission_command = LogUploader._create_user_permission_command(user_string, self.DATABASE)
+        response = self.client.execute_mgmt(self.DATABASE, permission_command)
+        # Raise any errors that come back from 
+        if response.get_exceptions():
+            raise response.get_exceptions()
 
     def get_queue_length(self):
         """
