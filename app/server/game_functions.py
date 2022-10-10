@@ -85,9 +85,9 @@ def start_game() -> None:
                 # generate activity of actors defined in actor config
                 generate_activity(actor, 
                                   employees, 
-                                  num_passive_dns=1, 
-                                  num_email=1, 
-                                  num_random_browsing=3) 
+                                  num_passive_dns=random.randint(5, 10), 
+                                  num_email=random.randint(1, 5), 
+                                ) 
 
 
 def init_setup():
@@ -120,9 +120,8 @@ def init_setup():
                             actor, 
                             employees, 
                             num_passive_dns=actor.count_init_passive_dns, 
-                            num_email=actor.count_init_email, 
-                            num_random_browsing=actor.count_init_browsing
-                        )
+                            num_email=actor.count_init_email
+                        )                        
     
     all_dns_records = DNSRecord.query.all()
     # shuffle the dns records so that pivot points are not all next to each other in azure
