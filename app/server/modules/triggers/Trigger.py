@@ -51,7 +51,7 @@ class Trigger:
 
         TODO: add some variability later?
         """
-        if email.authenticity >= recipient.awareness:
+        if email.authenticity >= recipient.awareness and email.accepted:
             # users click on email after 30 - 600 seconds after it was sent to them
             click_delay = random.randint(30, 600)
             # add time delay
@@ -182,7 +182,7 @@ class Trigger:
         browse_website(recipient, c2_link, time, method="POST")
 
     @staticmethod
-    def actor_auths_into_user_email(recipient:Employee, email: Email, time: float):
+    def actor_auths_into_user_email(recipient:Employee, email: Email, time: float) -> None:
         """
         After use clicks on a credential phishing link and enters their creds (we assume this for now)
         The threat actor will login to their account
@@ -209,7 +209,7 @@ class Trigger:
             Trigger.actor_downloads_files_from_email(recipient=recipient.username, src_ip=src_ip, time=login_time)
 
     @staticmethod
-    def actor_downloads_files_from_email(recipient:Employee, src_ip:str, time: float):
+    def actor_downloads_files_from_email(recipient:Employee, src_ip:str, time: float) -> None:
         """
         Following successful auth into a user's account
         The actor downloads files from the user's email by making web requests

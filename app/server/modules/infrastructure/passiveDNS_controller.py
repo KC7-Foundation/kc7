@@ -10,7 +10,7 @@ from flask import current_app
 import random
 
 
-def gen_passive_dns(actor: Actor, count_of_records: int = 1) -> None:
+def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
     """
     Generate passive DNS entries 
     This should happen in bulk and the start 
@@ -62,6 +62,7 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1) -> None:
             record = DNSRecord(actor)
             new_records.append(record.stringify())
             db.session.add(record)
+
     try:
         upload_dns_records_to_azure(new_records)
         db.session.commit()
@@ -77,6 +78,7 @@ def upload_dns_records_to_azure(dns_records):
     from app.server.game_functions import LOG_UPLOADER
 
     random.shuffle(dns_records)
-    LOG_UPLOADER.send_request(
-        data=dns_records,
-        table_name="PassiveDns")
+    for record in dns_records:
+        LOG_UPLOADER.send_request(
+            data=dns_records,
+            table_name="PassiveDns")

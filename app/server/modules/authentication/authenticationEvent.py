@@ -36,7 +36,7 @@ class AuthenticationEvent:
                 'src_ip': 'string',
                 'user_agent': 'string',
                 'username': 'string',
-                'result': 'int'
+                'result': 'string'
             }
         )
 
