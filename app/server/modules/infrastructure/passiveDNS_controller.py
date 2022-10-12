@@ -36,26 +36,27 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
         # TODO: if actor isn't default, IPs and Domains should be reused
         # listify DB results
         actor_records = [record for record in actor.dns_records]
-        if not actor_records:
-            # if no dns records exist, create one
-            print("no actor records were found")
-            seed_record = DNSRecord(actor)
-            db.session.add(seed_record)
-        else:
-            # else choose a seed record to pivot on
-            seed_record = random.choice(actor_records)
+        for i in range(count_of_records):
+            if not actor_records:
+                # if no dns records exist, create one
+                print("no actor records were found")
+                seed_record = DNSRecord(actor)
+                db.session.add(seed_record)
+            else:
+                # else choose a seed record to pivot on
+                seed_record = random.choice(actor_records)
 
-        # IP is known and domain is new
-        record = DNSRecord(actor, ip=seed_record.ip)
-        # Domain is known and IP is new
-        pivot_record = DNSRecord(actor, domain=record.domain)
+            # IP is known and domain is new
+            record = DNSRecord(actor, ip=seed_record.ip)
+            # Domain is known and IP is new
+            pivot_record = DNSRecord(actor, domain=record.domain)
 
-        # pick one new DNS record based on the two pivot methods above
-        new_record = random.choice([record, pivot_record])
+            # pick one new DNS record based on the two pivot methods above
+            new_record = random.choice([record, pivot_record])
 
-        # write the new record
-        db.session.add(new_record)
-        new_records.append(new_record.stringify())
+            # write the new record
+            db.session.add(new_record)
+            new_records.append(new_record.stringify())
     else:
         # this is the default actor
         for i in range(count_of_records):

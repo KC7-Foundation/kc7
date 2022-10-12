@@ -1,5 +1,7 @@
 name : Saturnium
 effectiveness: 80
+count_init_passive_dns: 10
+max_wave_size: 10
 attacks:
   - email:credential_phishing
   - email:malware_delivery
@@ -57,3 +59,4 @@ file_names:
   - Patient_Information
 malware:
   - covid22
+  - green_egg
