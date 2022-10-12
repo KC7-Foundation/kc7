@@ -96,7 +96,7 @@ def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, time: float) ->
             link=link,
             domain=domain,
             actor=actor,
-            accepted=random.choices([True, False], weights=(80, 20), k=1)[0],
+            accepted=random.choices([True, False], weights=(70, 30), k=1)[0],
             authenticity=actor.effectiveness
         )
 

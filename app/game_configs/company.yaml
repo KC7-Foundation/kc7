@@ -1,5 +1,5 @@
-name: Acme Inc.
-domain: acme.com
+name: Envolve Labs
+domain: envolvelabs.com
 count_employees: 1000
 roles:
   - title: Chief Executive Officer
@@ -20,7 +20,11 @@ roles:
     limit: 999
   - title: Human Resources associate
     limit: 999
-  - title: Database administrator
-    limit: 10
+  - title: Medical Researcher
+    limit: 499
+  - title: Lab Technician
+    limit: 499
+  - title: Trial Administrator
+    limit: 100
 
 

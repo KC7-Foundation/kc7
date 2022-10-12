@@ -6,14 +6,13 @@ from json import JSONEncoder
 from faker import Faker
 from faker.providers import internet, user_agent, person
 from sqlalchemy import func
+import names
 
 from app.server.models import Base
 from app.server.modules.clock.Clock import Clock
 from app.server.models import GameSession
 
 from app import db
-
-#import Employee
 
 # instantiate faker
 fake = Faker()
@@ -46,6 +45,12 @@ class Company(Base):
         # this var will allow us to keep count of company employees 
         # without making too many queries to the database
         self.num_generated_ips  = 0
+
+        # cache variables to keep track of used employee mames 
+        # so we don't have conflicts
+        self.employee_usernames = [employee.username for employee in self.employees]
+        self.employee_names = [employee.names for employee in self.employees]
+        self.employee_emails = [employee.email_addr for employee in self.employees]
         
 
     def get_new_employee(self, timestamp:float=None, user_agent:str="", name:str="", days_since_hire:int=0):
@@ -65,8 +70,8 @@ class Company(Base):
 
         employee = Employee(
             timestamp=timestamp or account_creation_datetime or Clock.get_current_gametime(),
-            name=name or fake.name(),
-            user_agent=user_agent or fake.user_agent(),
+            name= name or  self.get_employee_name(),
+            user_agent=user_agent or fake.chrome(),
             ip_addr=self.generate_ip(),
             company=self,
             role=self.get_role()
@@ -85,6 +90,22 @@ class Company(Base):
         Returns the JSON representation for every employee associated with the company.
         """
         return [employee.stringify() for employee in self.employees]
+
+    def get_employee_name(self) -> str:
+        """
+        Return a name that doesn't have conflicting username as another user
+        """
+        # get a random name
+        name = names.get_full_name()
+        # if the name has already been used, try again
+        while name in self.employee_names:
+            name = names.get_full_name()
+
+        # now get a unique email addr
+        # update the cached list of employee names
+        self.employee_names.append(name)
+
+        return name
 
     def get_num_generated_ips(self) -> int:
         """
@@ -185,8 +206,20 @@ class Employee(Base):
 
         Example: john doe -> john_doe@company.com
         """
-        self.email_addr = str.lower(
+        email_addr  = str.lower(
             "_".join(self.name.split(" "))) + '@' + self.company.domain
+
+        counter = 1
+        # if the email address is a duplicate, add the counter
+        # e.g. john.doe@acme.com -> john.doe1@acme.com
+        while email_addr in self.company.employee_emails:
+            email_addr  = str.lower(
+                "_".join(self.name.split(" "))) + str(counter) + '@' + self.company.domain
+            counter += 1
+        
+        self.company.employee_emails.append(email_addr)
+        self.email_addr = email_addr
+
 
     def set_username(self) -> None:
         """
@@ -196,8 +229,19 @@ class Employee(Base):
         Example: john doe -> jodoe
         """
         name_parts = self.name.split(" ")
-        self.username = str.lower(name_parts[0][:2] + name_parts[1])
+        username = str.lower(name_parts[0][:2] + name_parts[1])
 
+        counter = 1
+        # if the username is a duplicate, add the counter
+        # e.g. jdoe -> jdoe1
+        while username in self.company.employee_usernames:
+            username = str.lower(name_parts[0][:2] + name_parts[1] + str(counter))
+            counter += 1
+
+        self.company.employee_usernames.append(username)
+        self.username = username
+
+    
     def set_hostname(self) -> None:
         """
         Constructs a hostname for the employee's device.
@@ -209,6 +253,7 @@ class Employee(Base):
         prefix = str.upper("".join(prefix))
         postfix = random.choice(["DESKTOP", "LAPTOP", "MACHINE"])
         self.hostname = f"{prefix}-{postfix}"
+
 
     def stringify(self) -> "dict[str,str]":
         """

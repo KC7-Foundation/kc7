@@ -51,7 +51,7 @@ class Trigger:
 
         TODO: add some variability later?
         """
-        if email.authenticity >= recipient.awareness:
+        if email.authenticity >= recipient.awareness and email.accepted:
             # users click on email after 30 - 600 seconds after it was sent to them
             click_delay = random.randint(30, 600)
             # add time delay
@@ -138,9 +138,11 @@ class Trigger:
         recon_process = malware.get_recon_process()
         c2_process = malware.get_c2_process(c2_ip)
 
+        print(f"process {c2_process.process_commandline} for user {recipient.hostname}")
+
         # Upload the recon and C2 processes to Azure
         for process in [recon_process, c2_process]:
-            time = Clock.delay_time_by(start_time=time, factor="seconds")
+            time = Clock.delay_time_by(start_time=time, factor="minutes")
             create_process_on_host(
                 hostname=recipient.hostname,
                 timestamp=time,
@@ -149,40 +151,8 @@ class Trigger:
                 process=process
             )
 
-        beacon_time = Clock.delay_time_by(time, factor="seconds")
-        Trigger.malware_beacons_on_user_machine(recipient, beacon_time, email)
-
-    def malware_beacons_on_user_machine(recipient: Employee, time: float, email: Email) -> None:
-        """
-        When a user dowloads a file, there is a chance the file gets executed
-        On execution, the victim's machine should begin beaconing to an actor IP 
-        The beacons are logged in the outbound browsing logs
-        e.g. victim ip -> actor C2 IP
-        """
-        c2_commands = ["whoami", "dir", "net view", "ping%208.8.8.8", "netsh%20advfirewall",
-                       "systeminfo", "ipconfig", "tasklist", "net%20time", "netstat"]
-
-        # look up the domain in the DB and get actor from it
-        # actor = DNSRecord.query.filter_by(domain=email.domain).first().actor
-        actor = email.actor
-
-        actor_domains = [record.domain for record in actor.dns_records]
-        actor_ips = [record.ip for record in actor.dns_records]
-
-        c2_command = random.choice(c2_commands)
-
-        c2 = random.choice(actor_domains + actor_ips)
-        c2_link = c2 + ":" + \
-            str(random.randint(8000, 14000)) + "/" + c2_command
-
-        # wait several hours before beaconing
-        time_delay = random.randint(5000, 99999)
-        time = Clock.increment_time(time, time_delay)
-
-        browse_website(recipient, c2_link, time, method="POST")
-
     @staticmethod
-    def actor_auths_into_user_email(recipient:Employee, email: Email, time: float):
+    def actor_auths_into_user_email(recipient:Employee, email: Email, time: float) -> None:
         """
         After use clicks on a credential phishing link and enters their creds (we assume this for now)
         The threat actor will login to their account
@@ -209,7 +179,7 @@ class Trigger:
             Trigger.actor_downloads_files_from_email(recipient=recipient.username, src_ip=src_ip, time=login_time)
 
     @staticmethod
-    def actor_downloads_files_from_email(recipient:Employee, src_ip:str, time: float):
+    def actor_downloads_files_from_email(recipient:Employee, src_ip:str, time: float) -> None:
         """
         Following successful auth into a user's account
         The actor downloads files from the user's email by making web requests

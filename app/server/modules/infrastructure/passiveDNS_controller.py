@@ -10,7 +10,7 @@ from flask import current_app
 import random
 
 
-def gen_passive_dns(actor: Actor, count_of_records: int = 1) -> None:
+def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
     """
     Generate passive DNS entries 
     This should happen in bulk and the start 
@@ -36,32 +36,34 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1) -> None:
         # TODO: if actor isn't default, IPs and Domains should be reused
         # listify DB results
         actor_records = [record for record in actor.dns_records]
-        if not actor_records:
-            # if no dns records exist, create one
-            print("no actor records were found")
-            seed_record = DNSRecord(actor)
-            db.session.add(seed_record)
-        else:
-            # else choose a seed record to pivot on
-            seed_record = random.choice(actor_records)
+        for i in range(count_of_records):
+            if not actor_records:
+                # if no dns records exist, create one
+                print("no actor records were found")
+                seed_record = DNSRecord(actor)
+                db.session.add(seed_record)
+            else:
+                # else choose a seed record to pivot on
+                seed_record = random.choice(actor_records)
 
-        # IP is known and domain is new
-        record = DNSRecord(actor, ip=seed_record.ip)
-        # Domain is known and IP is new
-        pivot_record = DNSRecord(actor, domain=record.domain)
+            # IP is known and domain is new
+            record = DNSRecord(actor, ip=seed_record.ip)
+            # Domain is known and IP is new
+            pivot_record = DNSRecord(actor, domain=record.domain)
 
-        # pick one new DNS record based on the two pivot methods above
-        new_record = random.choice([record, pivot_record])
+            # pick one new DNS record based on the two pivot methods above
+            new_record = random.choice([record, pivot_record])
 
-        # write the new record
-        db.session.add(new_record)
-        new_records.append(new_record.stringify())
+            # write the new record
+            db.session.add(new_record)
+            new_records.append(new_record.stringify())
     else:
         # this is the default actor
         for i in range(count_of_records):
             record = DNSRecord(actor)
             new_records.append(record.stringify())
             db.session.add(record)
+
     try:
         upload_dns_records_to_azure(new_records)
         db.session.commit()
@@ -77,6 +79,7 @@ def upload_dns_records_to_azure(dns_records):
     from app.server.game_functions import LOG_UPLOADER
 
     random.shuffle(dns_records)
-    LOG_UPLOADER.send_request(
-        data=dns_records,
-        table_name="PassiveDns")
+    for record in dns_records:
+        LOG_UPLOADER.send_request(
+            data=record,
+            table_name="PassiveDns")

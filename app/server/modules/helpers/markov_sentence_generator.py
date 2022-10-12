@@ -8,9 +8,9 @@ class SentenceGenerator:
     """
 
     def __init__(self, 
-                word_site="https://raw.githubusercontent.com/wess/iotr/master/lotr.txt"):
+                word_source="app/game_configs/gameplay/seed_text.txt"):
         
-        self.word_site = word_site
+        self.word_source = word_source
         self.load_words()
         self.markovLength = 1
 
@@ -35,7 +35,11 @@ class SentenceGenerator:
         """
         Load a list of words from a given text url
         """
-        response = requests.get(self.word_site).text
+        if "http" in self.word_source:
+            response = requests.get(self.word_source).text
+        else:
+            with open(self.word_source) as f:
+                response = f.read()
 
         # remove unwanted characters
         table = str.maketrans(dict.fromkeys('#<>-'))

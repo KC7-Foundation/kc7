@@ -19,7 +19,7 @@ from app.server.modules.outbound_browsing.browsing_controller import browse_rand
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_random_inbound_browsing
 from app.server.modules.authentication.auth_controller import auth_random_user_to_mail_server
 from app.server.modules.helpers.config_helper import read_config_from_yaml
-from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host
+from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host, gen_system_processes_on_host
 from app.server.modules.file.malware import Malware
 from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file
 
@@ -39,7 +39,7 @@ def start_game() -> None:
     # instantiate a logUploader. This instance is used by all other modules to send logs to azure
     # we use a singular instances in order to queue up muliple rows of logs and send them all at once
     global LOG_UPLOADER
-    LOG_UPLOADER = LogUploader()
+    LOG_UPLOADER = LogUploader(queue_limit=10000)
     LOG_UPLOADER.create_tables(reset=True)
 
     global MALWARE_OBJECTS
@@ -80,18 +80,14 @@ def start_game() -> None:
         for actor in actors: 
             if actor.name == "Default":
                 # Default actor is used to create noise
-                generate_activity(actor, 
-                                 employees, 
-                                 num_passive_dns=50, 
-                                 num_email=100, 
-                                 num_random_browsing=500) 
+                generate_activity(actor, employees) 
             else:
                 # generate activity of actors defined in actor config
                 generate_activity(actor, 
                                   employees, 
-                                  num_passive_dns=1, 
-                                  num_email=1, 
-                                  num_random_browsing=3) 
+                                  num_passive_dns=random.randint(5, 10), 
+                                  num_email=random.randint(1, 5), 
+                                ) 
 
 
 def init_setup():
@@ -124,9 +120,8 @@ def init_setup():
                             actor, 
                             employees, 
                             num_passive_dns=actor.count_init_passive_dns, 
-                            num_email=actor.count_init_email, 
-                            num_random_browsing=actor.count_init_browsing
-                        )
+                            num_email=actor.count_init_email
+                        )                        
     
     all_dns_records = DNSRecord.query.all()
     # shuffle the dns records so that pivot points are not all next to each other in azure
@@ -140,7 +135,11 @@ def init_setup():
     return employees, actors
 
     
-def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_email:int, num_random_browsing:int, num_auth_events:int=100) -> None:
+def generate_activity(actor: Actor, employees: list, 
+                        num_passive_dns:int=500, num_email:int=1000, 
+                        num_random_browsing:int=500, 
+                        num_auth_events:int=100,
+                        count_of_endpoint_events=100) -> None:
     """
     Given an actor, enerates one cycle of activity for users in the orgs
     Current:
@@ -163,9 +162,10 @@ def generate_activity(actor: Actor, employees: list, num_passive_dns:int, num_em
     if actor.name == "Default":
         browse_random_website(employees, actor, num_random_browsing)
         auth_random_user_to_mail_server(employees, num_auth_events)
-        gen_random_inbound_browsing(num_inbound_browsing_events=500)
-        gen_system_files_on_host(count_of_events=10)
-        gen_user_files_on_host(count_of_events=10)
+        gen_random_inbound_browsing(num_random_browsing)
+        gen_system_files_on_host(count_of_endpoint_events)
+        gen_user_files_on_host(count_of_endpoint_events)
+        gen_system_processes_on_host(count_of_endpoint_events)
 
 def create_actors() -> None:
     """
@@ -180,9 +180,9 @@ def create_actors() -> None:
     default_actor = Actor(
         name = "Default",  # Dont change the name!
         effectiveness = 99,
-        count_init_passive_dns= 10, 
-        count_init_email= 100, 
-        count_init_browsing=100,
+        count_init_passive_dns= 500, 
+        count_init_email= 2000, 
+        count_init_browsing=2000,
         domain_themes = wordGenerator.get_words(100),
         sender_themes = wordGenerator.get_words(100)
     )
@@ -229,16 +229,6 @@ def assign_hash_to_malware(malware_objects: "list[Malware]") -> "list[Malware]":
     Take all available VT hashes and assign them to malware families 
     there should be a 1-1 mapping of hash to malware family
     """
-    # malware_configs = glob.glob(f"app/game_configs/malware/*.yaml")
-    # # Read all malware configs from YAML config files
-    # malware_family_names = []
-    # for path in malware_configs:
-    #     json_config = read_config_from_yaml(path)
-    #     malware_family_name = json_config.get("name", None)
-    #     malware_family_names.append(malware_family_name)
-
-    # print(malware_family_names)
-
     # Look through available hashes and assign them to malware families via a round robin
     while FILES_MALICIOUS_VT_SEED_HASHES:
         for malware_object in malware_objects:
@@ -247,10 +237,6 @@ def assign_hash_to_malware(malware_objects: "list[Malware]") -> "list[Malware]":
             # take a hash and remove it from our list of hashes
             hash = FILES_MALICIOUS_VT_SEED_HASHES.pop()
             malware_object.hashes.append(hash) # TODO: This might not work!!
-            # # add hash to a key under malware the family name
-            # if FILE_HASH_MALWARE_MAPPING.get(malware_family_name, []):
-            #     FILE_HASH_MALWARE_MAPPING.get(malware_family_name).append(hash)
-            # else:
-            #     FILE_HASH_MALWARE_MAPPING[malware_family_name] = [hash]
+   
     return malware_objects
 
