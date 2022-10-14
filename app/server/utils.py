@@ -13,6 +13,8 @@ from faker import Faker
 from faker.providers import internet, lorem, file
 from itsdangerous import base64_encode
 import string
+from functools import wraps
+from time import time
 
 # instantiate faker
 fake = Faker()
@@ -23,13 +25,11 @@ fake.add_provider(lorem)
 # instantiate word genertor
 wordGenerator = WordGenerator()
 
-def get_link(actor:Actor, return_domain:bool=False) -> str:
+def get_link(actor:Actor, actor_domains="list[str]", return_domain:bool=False) -> str:
     """Get a link containing actor's domain"""
 
-    dns_records = [record for record in actor.dns_records]
-    dns_record = random.choice(dns_records)
-    dns_record.active = True  # set record to active so we can track which domains have been used
-    domain = dns_record.domain
+    domain = random.choice(actor_domains)
+
 
     try:
         uri_type = random.choice(actor.get_attacks_by_type("email"))
@@ -135,3 +135,16 @@ def write_seed_files(max_num_files: int = 25):
 
         file = open("output/"+file_name,"w")
         file.write(file_string)
+
+
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        print(f"function {f.__name__} took: {te-ts}")
+        # print 'func:%r args:[%r, %r] took: %2.4f sec' % (f.__name__, args, kw, te-ts)
+        return result
+    return wrap
+

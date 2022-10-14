@@ -40,18 +40,16 @@ def get_random_actor():
     """Return a random actor from the database"""
     pass
 
-
 def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> None:
     """
     Make a call to the Azure email function
     to create an email, post to log analytics
     and send a secondary request to generate browsing traffic
     """
-    # Get the current game session from the database
-    current_session = db.session.query(GameSession).get(1)
-    
-    for _ in range(count_emails):
 
+    actor_domains = [record.domain for record in actor.dns_records]
+
+    for _ in range(count_emails):
         # time is returned as timestamp (float)
         time = get_time()
 
@@ -65,24 +63,23 @@ def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> No
         if email_type == EmailType.INBOUND.value:
             wave_size = random.randint(1, actor.max_wave_size)
             recipients = random.choices(employees, k=wave_size)
-            gen_inbound_mail(recipients, actor, time)
+            gen_inbound_mail(recipients, actor, actor_domains, time, )
 
         elif email_type == EmailType.OUTBOUND.value:
             sender = random.choice(employees)
-            gen_outbound_mail(sender, actor, time)
+            gen_outbound_mail(sender, actor, actor_domains, time)
 
         elif email_type == EmailType.INTERNAL.value:
             sender = random.choice(employees)
             recipient = random.choice(employees)
-            gen_internal_mail(sender, recipient, actor, time)
+            gen_internal_mail(sender, recipient, actor, actor_domains, time)
 
 
-def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, time: float) -> None:
+def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"list[str]", time: float) -> None:
     """
     Generate an email from someone outside the company to someone inside
     """
-
-    link, domain = get_link(actor, return_domain=True)
+    link, domain = get_link(actor, actor_domains, return_domain=True)
     sender = actor.get_sender_address()
     reply_to = actor.get_sender_address() if actor.spoof_email else sender
 
@@ -103,10 +100,10 @@ def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, time: float) ->
         send_email_to_azure(email)
 
         # Initiate the trigger for the recipient receiving the constructed email
-        Trigger.user_receives_email(email, recipient)
+        # Trigger.user_receives_email(email, recipient)
 
 
-def gen_outbound_mail(sender: Employee, actor: Actor, time: float) -> None:
+def gen_outbound_mail(sender: Employee, actor: Actor, actor_domains:"list[str]", time: float) -> None:
     """
     Generate an email from someone inside the company to someone outside
     """
@@ -115,14 +112,14 @@ def gen_outbound_mail(sender: Employee, actor: Actor, time: float) -> None:
         sender=sender.email_addr,
         recipient=fake.ascii_email(),
         subject=actor.get_email_subject(),
-        link=get_link(actor),
+        link=get_link(actor, actor_domains=actor_domains),
         accepted=True
     )
 
     send_email_to_azure(email)
 
 
-def gen_internal_mail(sender: Employee, recipient: Employee, actor: Actor, time: float) -> None:
+def gen_internal_mail(sender: Employee, recipient: Employee, actor: Actor, actor_domains:"list[str]", time: float) -> None:
     """
     Generate mail from someone inside the company to someone else in the company
     """
@@ -131,7 +128,7 @@ def gen_internal_mail(sender: Employee, recipient: Employee, actor: Actor, time:
         sender=sender.email_addr,
         recipient=recipient.email_addr,
         subject=actor.get_email_subject(),
-        link=get_link(actor),
+        link=get_link(actor, actor_domains=actor_domains),
         accepted=True,
         authenticity=INTERNAL_EMAIL_AUTHENTICITY
     )
