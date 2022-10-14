@@ -137,8 +137,6 @@ def write_seed_files(max_num_files: int = 25):
         file.write(file_string)
 
 
-
-
 def timing(f):
     @wraps(f)
     def wrap(*args, **kw):
@@ -149,5 +147,4 @@ def timing(f):
         # print 'func:%r args:[%r, %r] took: %2.4f sec' % (f.__name__, args, kw, te-ts)
         return result
     return wrap
-
 

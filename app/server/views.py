@@ -58,7 +58,13 @@ def manage_game():
     return render_template("admin/manage_game.html", game_state=game_state, indicators=indicators)
 
 
-
+@main.route("/admin/manage_database")
+@roles_required('Admin')
+@login_required
+def manage_database():
+    log_uploader = LogUploader()
+    perms = log_uploader.get_user_permissions()
+    return render_template("admin/manage_database.html", perms=perms)
 
 @main.route("/admin/start_game", methods=['GET'])
 @roles_required('Admin')
@@ -180,6 +186,28 @@ def update_deny_list():
         print(e)
         return jsonify(success=False)
 
+@main.route("/updatePermissions", methods=['POST'])
+@roles_required('Admin')
+@login_required
+def update_permissions():
+    """
+    POST request from mitigations page on click
+    Take a list of indicators from the view
+    Update the user's _mitigations attribute to reflect
+    Mitigations are stored as a strigified list
+    Must be json loaded after being retrieved
+    """
+    try:
+        permissions_list = request.form['plist']
+        log_uploader = LogUploader()
+        user_strings = [x for x in permissions_list.split("\n") if x]
+        for user_string in user_strings:
+                log_uploader.add_user_permissions(user_string)
+        return jsonify(success=True)
+    except Exception as e:
+        print(e)
+        flash("Error updating ADX Permissions: ","error")
+        return jsonify(success=False)
 
 @login_required
 @main.route('/deluser', methods=['GET', 'POST'])

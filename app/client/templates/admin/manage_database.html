@@ -1,0 +1,105 @@
+{% extends "main/base.html" %}
+{% block body %}
+
+  
+  <!-- Page Heading -->
+   <div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+  </div>
+
+
+ <!-- Begin Page Content -->
+  <div class="container-fluid">
+    <div class="row">
+         <!-- Pie Chart -->
+    <div class="col-xl-4 col-lg-5">
+      <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Users to Add to ADX Database</h6>
+          <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Dropdown Header:</div>
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+          <form action="#">
+            <div class="form-group">
+                <textarea class="form-control" id="permissionslist" rows="10"></textarea>
+            </div>
+            <button type="submit" id="dbpermissionsupdate" class="btn btn-primary btn-block mb-2">Update ADX Permissions</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-8 col-lg-7">
+      <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">Existing Users</h6>
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            {% for user in perms %}
+              <li class="list-group-item">{{user}}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <script>
+    
+
+
+    $.get("/getPermissionsList",
+      function(data){
+        $("#permissionslist").val(JSON.parse(data).join("\n"));
+      }
+    );
+   
+    $( "#dbpermissionsupdate" ).click(function(event) {
+            event.preventDefault();
+            
+            console.log("updating permissions...");
+            
+            try {
+                permissionsList = $("#permissionslist").val();
+                console.log(permissionsList);
+                //console.log(student_id)
+                $.post( "/updatePermissions",
+                       {plist: permissionsList},
+                       function(data){
+                            console.log(data)
+                            if (data.success == true) {
+                              toastr['success']('Successfully updated ADX permissions!');
+                            }
+                            else {
+                              toastr['error']('Error updating PermissionsList.')
+                            }
+                            //console.log(data)
+                       });
+                
+            } catch(err) {
+              toastr['error']('Error Updating PermissionsList. Contact your administrator');
+                console.log("Request to update PermissionsList failed")
+                console.log(err)
+            }
+
+        });
+      
+    </script>
+
+  {% endblock %}
