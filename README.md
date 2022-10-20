@@ -93,5 +93,6 @@ Go check out the wiki for details on how the code base is structured
 * Justin Carroll
 * Syeda Sani-e-Zehra
 * Stuti Kanodia
+* Helton Wernik
 * Logo by David Hardman
 
