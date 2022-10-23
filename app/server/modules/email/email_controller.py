@@ -100,7 +100,7 @@ def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"
         send_email_to_azure(email)
 
         # Initiate the trigger for the recipient receiving the constructed email
-        # Trigger.user_receives_email(email, recipient)
+        Trigger.user_receives_email(email, recipient)
 
 
 def gen_outbound_mail(sender: Employee, actor: Actor, actor_domains:"list[str]", time: float) -> None:

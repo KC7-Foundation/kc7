@@ -25,7 +25,7 @@ fake.add_provider(lorem)
 # instantiate word genertor
 wordGenerator = WordGenerator()
 
-def get_link(actor:Actor, actor_domains="list[str]", return_domain:bool=False) -> str:
+def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
     """Get a link containing actor's domain"""
 
     domain = random.choice(actor_domains)

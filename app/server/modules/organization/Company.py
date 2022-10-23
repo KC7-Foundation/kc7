@@ -72,7 +72,7 @@ class Company(Base):
             timestamp=timestamp or account_creation_datetime or Clock.get_current_gametime(),
             name= name or  self.get_employee_name(),
             user_agent=user_agent or fake.chrome(),
-            ip_addr=self.generate_ip(),
+            ip_addr=self.get_internal_ip(),
             company=self,
             role=self.get_role()
         )
@@ -119,7 +119,7 @@ class Company(Base):
         return self.num_generated_ips
 
 
-    def generate_ip(self) -> str:
+    def get_internal_ip(self) -> str:
         """Assign the employee an IP on the local network"""
         #  IP is 192.168.0.2 + count of employee (using CIDR addition)
         # this tries to reduce chance of IP collisions

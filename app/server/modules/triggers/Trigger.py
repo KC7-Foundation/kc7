@@ -138,7 +138,6 @@ class Trigger:
         recon_process = malware.get_recon_process()
         c2_process = malware.get_c2_process(c2_ip)
 
-        print(f"process {c2_process.process_commandline} for user {recipient.hostname}")
 
         # Upload the recon and C2 processes to Azure
         for process in [recon_process, c2_process]:
