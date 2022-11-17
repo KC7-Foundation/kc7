@@ -75,6 +75,7 @@ class Actor(Base):
         self.count_init_email           = int(count_init_email)
         self.count_init_passive_dns     = int(count_init_passive_dns)
         self.max_wave_size              = int(max_wave_size)
+        self.sender_emails              = self.gen_sender_emails()
 
     
     def get_attacks(self) -> "list[str]":
@@ -164,6 +165,12 @@ class Actor(Base):
 
 
     def get_sender_address(self) -> str:
+        """
+        Return a random email from the actor's pool of email addresses
+        """
+        return random.choice(self.sender_emails)
+
+    def gen_sender_address(self) -> str:
         """Make a list of fake sender addresses"""
         sender_themes = self.sender_themes.split(" ")
 
@@ -186,6 +193,11 @@ class Actor(Base):
         
         return sender_addr
 
+    def gen_sender_emails(self, num_emails=5) -> "list[str]":
+        """
+        Generates actor email addresses to be used in email attacks
+        """
+        return [self.gen_sender_address() for _ in range(num_emails)]
 
     @staticmethod
     def string_to_list(field_value_as_str:str) -> "list[str]":
