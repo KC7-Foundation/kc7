@@ -1,6 +1,6 @@
 ![Admin Central button](readme_assets/kc7.png)
 
-# KC7 - a cybersecurity game 
+# KC7 - a cybersecurity game (kc7cyber.com)
 
 KC7 simulates an intrusion by multiple cyber threat actors against a fictitious company that spans the entire `Cyber Kill Chain`.
 
@@ -31,7 +31,7 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 
 ## 🚨 🤾🏽‍♀️ Getting started with the data (No code required)!
 
-* [Check out the instructions to set up the data in a free Kusto cluster](https://github.com/kkneomis/kc7/wiki/No-code-Required!-Loading-the-test-KC7-cluster-into-your-free-Kusto-instance)
+* [Check out the instructions to set up the data in a free Kusto cluster](https://github.com/kkneomis/kc7/wiki/No-code-Required!-Loading-the-test-KC7-cluster-into-your-free-Kusto-instance) / https://youtu.be/aHJxEHIHq0k
 
 * [Get the walking through guide](https://github.com/kkneomis/kc7/tree/master/training_materials)
 
