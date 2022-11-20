@@ -82,13 +82,14 @@ def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"
     link, domain = get_link(actor, actor_domains, return_domain=True)
     sender = actor.get_sender_address()
     reply_to = actor.get_sender_address() if actor.spoof_email else sender
+    subject = actor.get_email_subject()
 
     for recipient in recipients:
         email = Email(
             time=time,
             sender=sender,
             recipient=recipient.email_addr,
-            subject=actor.get_email_subject(),
+            subject=subject,
             reply_to=reply_to,
             link=link,
             domain=domain,

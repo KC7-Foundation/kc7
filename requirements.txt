@@ -28,3 +28,4 @@ tzlocal==2.1
 urllib3==1.26.7
 Werkzeug==2.0.2
 PyYAML==6.0
+names==0.3.0
