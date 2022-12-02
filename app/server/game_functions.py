@@ -83,10 +83,13 @@ def start_game() -> None:
                 generate_activity(actor, employees) 
             else:
                 # generate activity of actors defined in actor config
+                # num_email is actually number of emails waves sent
+                # waves contain multiple emails
+                # TODO: abstract this out to the actor / make this more elegant
                 generate_activity(actor, 
                                   employees, 
                                   num_passive_dns=random.randint(5, 10), 
-                                  num_email=random.randint(1, 5), 
+                                  num_email=random.randint(0, 3), 
                                 ) 
 
 

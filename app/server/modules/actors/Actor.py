@@ -32,11 +32,12 @@ class Actor(Base):
     attacks                     = db.Column(db.String(300))
     domain_themes               = db.Column(db.String(300))
     sender_themes               = db.Column(db.String(300))
-    subject_themes              = db.Column(db.String(300))
+    subjects                    = db.Column(db.String(300))
     file_names                  = db.Column(db.String(300))
     file_extensions             = db.Column(db.String(300))
     tlds                        = db.Column(db.String(300))
     malware                     = db.Column(db.String(300))
+    sender_emails               = db.Column(db.String(300))
     spoof_email                 = db.Column(db.Boolean)
 
     count_init_passive_dns      = db.Column(db.Integer)
@@ -47,41 +48,44 @@ class Actor(Base):
     
 
     def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
-                subject_themes:list=[],  tlds:list=[], spoof_email:bool=False, 
-                count_init_passive_dns:int=100, count_init_email:int=10, count_init_browsing:int=2, max_wave_size:int=2,
+                subjects:list=[],  tlds:list=[], spoof_email:bool=False, 
+                count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
                 file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[]):
 
         print(f"Instantiating actor {name}....")
         self.name = name
         self.effectiveness = effectiveness
         
-        # if any of these values are provided as strings, convert them to lists
-        if isinstance(tlds, list):
-            tlds = " ".join(tlds)
-        
-
         # we can't have lists in a database, hence the funny business here
         # take in the list as a space delimited string - then split
-        self.attacks                    = " ".join(attacks)
-        self.domain_themes              = " ".join(domain_themes + wordGenerator.get_words(10))  # adding random words for entropy
-        self.sender_themes              = " ".join(sender_themes + wordGenerator.get_words(10))
-        self.subject_themes             = " ".join(subject_themes + wordGenerator.get_words(10))
-        self.file_names                 = " ".join(file_names)       # Will end up getting replaces by malware configs
-        self.file_extensions            = " ".join(file_extensions)  # Will end up getting replaces by malware configs
-        self.malware                    = " ".join(malware)
-        self.tlds                       = tlds or " ".join(['com','net','biz','org','us']) # TODO: Put this in a config or something
+        self.attacks                    = "~".join(attacks)
+        self.domain_themes              = "~".join(domain_themes + wordGenerator.get_words(10))  # adding random words for entropy
+        self.sender_themes              = "~".join(sender_themes)
+        self.subjects                   = "~".join(subjects)
+        self.file_names                 = "~".join(file_names)       # Will end up getting replaces by malware configs
+        self.file_extensions            = "~".join(file_extensions)  # Will end up getting replaces by malware configs
+        self.malware                    = "~".join(malware)
+        self.tlds                       = "~".join(tlds) or "~".join(['com','net','biz','org','us']) # TODO: Put this in a config or something
         self.spoof_email                = spoof_email
         self.count_init_browsing        = int(count_init_browsing)
         self.count_init_email           = int(count_init_email)
         self.count_init_passive_dns     = int(count_init_passive_dns)
         self.max_wave_size              = int(max_wave_size)
+        self.sender_emails              = "~".join(self.gen_sender_addresses())
+        
 
-    
+    @property
+    def is_default_actor(self) -> bool:
+        if self.name == "Default":
+            return True
+        else:
+            return False
+
     def get_attacks(self) -> "list[str]":
         """
         Converts string representation of file names into list
         """
-        attacks = self.attacks.split(" ")
+        attacks = Actor.string_to_list(self.attacks)
         return [f for f in attacks if f!='']
 
 
@@ -128,14 +132,14 @@ class Actor(Base):
         Assemble a domain name using the list of theme words from the Actor object
         """
         separators = ["","-" ]
-        tlds = self.tlds.split(" ")
+        tlds = Actor.string_to_list(self.tlds)  
         
         # if actor is default, let's get a larger list of randomised words
         if self.name == "Default":
             domain_themes = wordGenerator.get_words(1000)
         else:
             # Splitting string representation of list from db into actual list
-            domain_themes = self.domain_themes.split(" ")
+            domain_themes = Actor.string_to_list(self.domain_themes) 
 
         words = random.choices(domain_themes, k=random.randint(1,2))
         domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
@@ -158,14 +162,27 @@ class Actor(Base):
         """
         Assemble a subject line using list of theme words from the Actor object
         """
-
-        subject_themes = self.subject_themes.split(" ")
-        return sentenceGenerator.genSentence(seedWords=subject_themes)
+        subjects = Actor.string_to_list(self.subjects) 
+        if subjects:
+            return random.choice(subjects)
+        else:
+            return sentenceGenerator.genSentence()
 
 
     def get_sender_address(self) -> str:
+        """
+        Return a random email from the actor's pool of email addresses
+        If the actor is default, then get a random address each time
+        """
+        if self.is_default_actor:
+            return self.gen_sender_address()
+        else:
+            print(Actor.string_to_list(self.sender_emails))
+            return random.choice(Actor.string_to_list(self.sender_emails))
+
+    def gen_sender_address(self) -> str:
         """Make a list of fake sender addresses"""
-        sender_themes = self.sender_themes.split(" ")
+        sender_themes = Actor.string_to_list(self.sender_themes) 
 
          # TODO: Centralize this list of freemail providers somewhere else (probably contants?)
         email_domains = ['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com']
@@ -186,6 +203,12 @@ class Actor(Base):
         
         return sender_addr
 
+    def gen_sender_addresses(self, num_emails=5) -> "list[str]":
+        """
+        Generates actor email addresses to be used in email attacks
+        """
+        emails = [self.gen_sender_address() for _ in range(num_emails)]
+        return emails
 
     @staticmethod
     def string_to_list(field_value_as_str:str) -> "list[str]":
@@ -193,7 +216,7 @@ class Actor(Base):
         Converts a long string into a unique list by splitting on space
         removes any empty string values from list
         """
-        vals = field_value_as_str.split(" ")
+        vals = field_value_as_str.split("~")
         return list(set([f for f in vals if f!='']))
 
         
