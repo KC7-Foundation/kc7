@@ -37,6 +37,7 @@ class Actor(Base):
     file_extensions             = db.Column(db.String(300))
     tlds                        = db.Column(db.String(300))
     malware                     = db.Column(db.String(300))
+    recon_search_terms          = db.Column(db.String(300))
     sender_emails               = db.Column(db.String(300))
     spoof_email                 = db.Column(db.Boolean)
 
@@ -50,7 +51,7 @@ class Actor(Base):
     def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
                 subjects:list=[],  tlds:list=[], spoof_email:bool=False, 
                 count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
-                file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[]):
+                file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[]):
 
         print(f"Instantiating actor {name}....")
         self.name = name
@@ -65,6 +66,7 @@ class Actor(Base):
         self.file_names                 = "~".join(file_names)       # Will end up getting replaces by malware configs
         self.file_extensions            = "~".join(file_extensions)  # Will end up getting replaces by malware configs
         self.malware                    = "~".join(malware)
+        self.recon_search_terms         = "~".join(recon_search_terms)
         self.tlds                       = "~".join(tlds) or "~".join(['com','net','biz','org','us']) # TODO: Put this in a config or something
         self.spoof_email                = spoof_email
         self.count_init_browsing        = int(count_init_browsing)
@@ -88,6 +90,11 @@ class Actor(Base):
         attacks = Actor.string_to_list(self.attacks)
         return [f for f in attacks if f!='']
 
+    def get_recon_search_terms(self) -> "list[str]":
+        """
+        Get a list of recon search terms belonging to the actor
+        """
+        return Actor.string_to_list(self.recon_search_terms)
 
     def get_malware_names(self) -> "list[str]":
         """

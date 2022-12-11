@@ -16,7 +16,7 @@ from app.server.modules.outbound_browsing.browsing_controller import *
 from app.server.modules.infrastructure.passiveDNS_controller import *
 from app.server.modules.organization.company_controller import create_company
 from app.server.modules.outbound_browsing.browsing_controller import browse_random_website
-from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_random_inbound_browsing
+from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_browsing_activity
 from app.server.modules.authentication.auth_controller import auth_random_user_to_mail_server
 from app.server.modules.helpers.config_helper import read_config_from_yaml
 from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host, gen_system_processes_on_host
@@ -144,7 +144,7 @@ def generate_activity(actor: Actor, employees: list,
                         num_auth_events:int=400,
                         count_of_endpoint_events=300) -> None:
     """
-    Given an actor, enerates one cycle of activity for users in the orgs
+    Given an actor, generates one cycle of activity for users in the orgs
     Current:
         - Generate Email
         - Generate Web Browsing
@@ -156,16 +156,20 @@ def generate_activity(actor: Actor, employees: list,
     # Generate passive DNS for specified actor
     gen_passive_dns(actor, num_passive_dns)
 
+    # Perform recon (if enabled)
+    if "recon:browsing" in actor.get_attacks():
+        gen_inbound_browsing_activity(actor, 10) #TODO: Fix this to read from config
+
     # Generate emails for random employees for specified actor
     # TODO: handle number of emails generated in the function
     gen_email(employees, actor, num_email)
 
     # Generate browsing activity for random emplyoees for the default actor
     # browsing for other actors should only come through email clicks
-    if actor.name == "Default":
+    if actor.is_default_actor:
         browse_random_website(employees, actor, num_random_browsing)
         auth_random_user_to_mail_server(employees, num_auth_events)
-        gen_random_inbound_browsing(num_random_browsing)
+        gen_inbound_browsing_activity(actor, num_random_browsing)
         gen_system_files_on_host(count_of_endpoint_events)
         gen_user_files_on_host(count_of_endpoint_events)
         gen_system_processes_on_host(count_of_endpoint_events)

@@ -29,7 +29,6 @@ WEBSITE_STATIC_PATHS = [
     "about",
     "contact",
     "covid19",
-    "search?query=",
     "investor-relations",
     "about-us/history",
     "about-us/diversity",

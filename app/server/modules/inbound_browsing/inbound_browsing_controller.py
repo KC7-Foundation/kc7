@@ -28,42 +28,50 @@ class BrowsingType(Enum):
     STATIC = 1
     BLOG = 2
     MAIL = 3
-    OTHER = 4
+    SEARCH = 4
+    OTHER = 5
 
-def gen_random_inbound_browsing(num_inbound_browsing_events:int=10) -> None:
+def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=10) -> None:
     """
     Generate browsing to the company's website by random users
     This is background noise
     """
     for _ in range(num_inbound_browsing_events):
 
-        src_ip = fake.ipv4_public()
+        # Choose an IP for the browsing
+        # If non-default actor, then choose an actor IP as the source
+        if actor.is_default_actor:
+            src_ip = fake.ipv4_public()
+        else:
+            src_ip = actor.get_ips(count_of_ips=1)[0]
         status_code = random.choice(STATUS_CODES)
         method = "GET"
+
+        # Generate a random sentence to be used for blog or search term
+        random_sentence =  sentenceGenerator.gen_sentence_nopunc()
 
         # URI Path should be one of three things (for now)
         # Browsing to static page on company website
         # browsing to dynamic uri on blog of website
         # downloading file from mailserver (this will serve to hide our exfil for now)
 
-        browsing_type = random.choices( population = [t.value for t in BrowsingType], weights=(47, 30, 3, 20), k=1)[0]
+        browsing_type = random.choices(population = [t.value for t in BrowsingType], weights=(47, 30, 3, 10, 10), k=1)[0]
         if browsing_type == BrowsingType.STATIC.value:
             uri_path = random.choice(WEBSITE_STATIC_PATHS)
         elif browsing_type == BrowsingType.BLOG.value:
-            # generate a random sentence
-            # use the sentence to create a blog url
-            random_sentence =  sentenceGenerator.genSentence().split(' ')
-            # remove non-alphanumerical chars
-            random_sentence = [
-                ''.join(filter(str.isalnum, word))
-                for word in random_sentence
-            ]
-            blog_title = " ".join(random_sentence).replace(" ", "-").lower()
+            blog_title = random_sentence.replace(" ", "-").lower()
             uri_path = "blog/" + blog_title
-        elif browsing_type == BrowsingType.MAIL.value:
+        elif browsing_type == BrowsingType.MAIL.value and not actor.is_default_actor:
+            # We do not want random mail browsing for malicious actor
             employee = get_random_employee()
             src_ip = employee.home_ip_addr  #overide this value with the employee's home IP 
             uri_path = make_email_exfil_url(employee.username, add_prefix=False)
+        elif browsing_type == BrowsingType.SEARCH.value:
+            if actor.get_recon_search_terms():
+                search_term = random.choice(actor.get_recon_search_terms())
+            else:
+                search_term = random_sentence
+            uri_path = f"search?query={urllib.parse.quote(search_term)}"
         else:
             uri_path = get_uri_path(uri_type="browsing")
         

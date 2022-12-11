@@ -138,6 +138,17 @@ class SentenceGenerator:
                 retval = k
         return retval
 
+    def gen_sentence_nopunc(self) -> str:
+        """
+        Returns a markov sentence without any punctuation
+        """
+        random_sentence =  self.genSentence().split(' ')
+        # remove non-alphanumerical chars
+        random_sentence = [
+            ''.join(filter(str.isalnum, word))
+            for word in random_sentence
+        ]
+        return " ".join(random_sentence)
 
     def genSentence(self, 
                     markovLength:int=1, 
