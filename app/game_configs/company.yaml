@@ -26,5 +26,6 @@ roles:
     limit: 499
   - title: Trial Administrator
     limit: 100
-
+partners:
+  - partnerdomain.com
 

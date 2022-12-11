@@ -3,9 +3,11 @@ import random
 from faker import Faker
 import glob
 from faker.providers import internet
+import names
 
 # Import internal modules
 from app.server.models import Base
+from app.server.modules.organization.Company import Company
 from app import db
 from app.server.modules.helpers.word_generator import WordGenerator
 from app.server.modules.helpers.markov_sentence_generator import SentenceGenerator
@@ -180,6 +182,16 @@ class Actor(Base):
             print(Actor.string_to_list(self.sender_emails))
             return random.choice(Actor.string_to_list(self.sender_emails))
 
+    def gen_partner_address(self) -> str:
+        """
+        Returns a partner email address
+        """
+        company = Company.query.first()
+
+        email_prefix = "_".join(names.get_full_name().split(" ")).lower()
+        partner_domain = random.choice(company.get_partners())
+        return f"{email_prefix}@{partner_domain}"
+
     def gen_sender_address(self) -> str:
         """Make a list of fake sender addresses"""
         sender_themes = Actor.string_to_list(self.sender_themes) 
@@ -203,23 +215,15 @@ class Actor(Base):
         
         return sender_addr
 
-    def gen_sender_addresses(self, num_emails=5) -> "list[str]":
+    def gen_sender_addresses(self, num_emails=5, num_compromised_partner_emails=2) -> "list[str]":
         """
         Generates actor email addresses to be used in email attacks
+        Also includes logic to write compromised partner emails
         """
         emails = [self.gen_sender_address() for _ in range(num_emails)]
-        return emails
-
-    @staticmethod
-    def string_to_list(field_value_as_str:str) -> "list[str]":
-        """
-        Converts a long string into a unique list by splitting on space
-        removes any empty string values from list
-        """
-        vals = field_value_as_str.split("~")
-        return list(set([f for f in vals if f!='']))
-
-        
+        if "email:supply_chain" in self.get_attacks():
+            emails += [self.gen_partner_address() for _ in range(num_compromised_partner_emails)]
+        return emails        
 
     def __repr__(self):
         return '<Actor %r>' % self.name
