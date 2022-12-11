@@ -3,6 +3,7 @@ from asyncore import write
 from re import S
 from faker import Faker
 from faker.providers import user_agent
+import uuid
 
 # Import internal modules
 from code import interact
@@ -164,14 +165,21 @@ class Trigger:
         login_time = Clock.increment_time(time, time_delay)
         auth_results = ["Successful Login", "Failed Login"]
         src_ip = email.actor.dns_records.first().ip
+        
         result = random.choice(auth_results)
+        if result == "Successful Login":
+            password = f"{recipient.username}2023"
+        else:
+            # Get a random password (that is incorrect) if we have an unsuccessful login
+            password = f"{uuid.uuid4()}"
 
         auth_to_mail_server(
             timestamp= login_time,
             username=recipient.username,
             src_ip=src_ip,  
             user_agent = fake.firefox(),
-            result = result
+            result = result,
+            password=password
         )
 
         if result == "Successful Login":

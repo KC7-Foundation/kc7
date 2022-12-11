@@ -1,6 +1,9 @@
 ### for now we assume there is only one mail server
 # TODO: model this as an object later
 import random
+import uuid
+from faker import Faker
+from faker.providers import user_agent
 
 from app.server.modules.authentication.authenticationEvent import AuthenticationEvent
 from app.server.modules.organization.Company import Employee
@@ -10,6 +13,10 @@ from app.server.models import db
 from app.server.utils import *
 
 AUTH_RESULTS = ["Successful Login", "Failed Login"]
+
+# instantiate faker
+fake = Faker()
+fake.add_provider(user_agent)
 
 def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events:int) -> None:
     """
@@ -31,19 +38,52 @@ def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events:
         else:
             auth_ip = user.home_ip_addr
 
+        auth_result = random.choice(AUTH_RESULTS)
+        if auth_result == "Successful Login":
+            password = f"{user.username}2023"
+        else:
+            # Get a random password (that is incorrect) if we have an unsuccessful login
+            password = f"{uuid.uuid4()}"
+
         auth_to_mail_server(
             timestamp=time,
             username=user.username,
             src_ip= auth_ip,
             user_agent=user.user_agent,
-            result= random.choice(AUTH_RESULTS)
+            result= random.choice(AUTH_RESULTS),
+            password=password
         )
 
+def actor_password_spray(actor: Actor, num_employees:int = 25, num_passwords:int = 5) -> None:
+    """
+    Launches a password spray attack from a given actor given a specific actor
+    """
+
+    spray_time = get_time()
+    targeted_employees = random.choices(get_employees(), k=num_employees)
+    spray_passwords = [f"{uuid.uuid4()}" for _ in range(num_passwords)]
+    user_agent = fake.user_agent()
+    src_ip = actor.get_ips(count_of_ips=1)[0]
+
+    for password in spray_passwords:
+        for employee in targeted_employees:
+            result = random.choices(["Successful Login","Failed Login"],weights=[5, 95])[0]
+            auth_to_mail_server(
+                timestamp=spray_time,
+                username=employee.username,
+                src_ip=src_ip,
+                user_agent=user_agent,
+                result=result,
+                password=password
+            )
+            spray_time = Clock.delay_time_by(spray_time, "seconds")
+            
 
 def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:
     """
     Tske a given user and have them login ot the mail server
     """
+    # TODO: Possible deprecation? This isn't getting used anywhere.
     for _ in range(num_auth_events):
         time = get_time()
         # auths happen anywhere from one hour to one week ago
@@ -55,18 +95,26 @@ def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:
         else:
             auth_ip = user.home_ip_addr
 
+        auth_result = random.choice(AUTH_RESULTS)
+        if auth_result == "Successful Login":
+            password = f"{user.username}2023"
+        else:
+            # Get a random password (that is incorrect) if we have an unsuccessful login
+            password = f"{uuid.uuid4()}"
+
         auth_to_mail_server(
             timestamp=time,
             username=user.username,
             src_ip= auth_ip,
             user_agent=user.user_agent,
-            result= random.choice(AUTH_RESULTS)
+            result= random.choice(AUTH_RESULTS),
+            password=password
         )
     
 
 
 
-def auth_to_mail_server( timestamp:float, username:str, src_ip:str, user_agent:str, result:str) -> None:
+def auth_to_mail_server( timestamp:float, username:str, src_ip:str, user_agent:str, result:str, password:str) -> None:
 
     auth_event =  AuthenticationEvent(
         timestamp= timestamp,
@@ -74,7 +122,8 @@ def auth_to_mail_server( timestamp:float, username:str, src_ip:str, user_agent:s
         username= username,
         src_ip= src_ip,
         user_agent= user_agent,
-        result=result
+        result=result, 
+        password=password
     )
 
     upload_auth_event_to_azure(auth_event)

@@ -1,11 +1,12 @@
 
 from unittest import result
+import hashlib
 from app.server.modules.clock.Clock import Clock 
 
 
 class AuthenticationEvent:
 
-    def __init__(self, timestamp:float, hostname:str, src_ip:str, user_agent:str, username:str, result:str) -> None:
+    def __init__(self, timestamp:float, hostname:str, src_ip:str, user_agent:str, username:str, result:str, password: str) -> None:
 
         self.timestamp = timestamp
         self.hostname = hostname
@@ -13,6 +14,7 @@ class AuthenticationEvent:
         self.user_agent = user_agent
         self.username = username
         self.result = result
+        self.password_hash = hashlib.md5(password.encode('utf-8')).hexdigest()
         
 
     def stringify(self) -> dict:
@@ -22,7 +24,8 @@ class AuthenticationEvent:
             "src_ip": self.src_ip,
             "user_agent": self.user_agent,
             "username": self.username,
-            "result": self.result
+            "result": self.result,
+            "password_hash": self.password_hash
         }
 
     @staticmethod
@@ -36,7 +39,8 @@ class AuthenticationEvent:
                 'src_ip': 'string',
                 'user_agent': 'string',
                 'username': 'string',
-                'result': 'string'
+                'result': 'string',
+                'password_hash': 'string'
             }
         )
 

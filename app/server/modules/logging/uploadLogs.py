@@ -215,7 +215,7 @@ class LogUploader():
                     # If ADX_DEBUG_MODE is enabled, print JSON representation of data
                     # Then, return early to prevent queueing and uploading to ADX
                     print(f"Uploading to table {table_name}...")
-                    if "Email" in table_name:
+                    if "AuthenticationEvents" in table_name:
                         print(data_table_df.to_markdown())
                 else:
                     # submit logs to Kusto
