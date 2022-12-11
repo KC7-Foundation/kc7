@@ -15,6 +15,7 @@ from itsdangerous import base64_encode
 import string
 from functools import wraps
 from time import time
+import names
 
 # instantiate faker
 fake = Faker()
@@ -125,6 +126,9 @@ def get_time() -> float:
                                     seed_date=current_session.seed_date)
 
     return time
+
+def get_email_prefix() -> str:
+    return "_".join(names.get_full_name().split(" ")).lower()
 
 def write_seed_files(max_num_files: int = 25):
     eicar_string = 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*'

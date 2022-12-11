@@ -3,6 +3,7 @@ from enum import Enum
 import random
 from faker import Faker
 from faker.providers import internet, lorem
+import names
 
 
 # Import internal modules
@@ -29,10 +30,12 @@ class EmailType(Enum):
     """
     INBOUND = 1,
     OUTBOUND = 2,
-    INTERNAL = 3
+    INTERNAL = 3,
+    PARTNER = 4
 
 
 INTERNAL_EMAIL_AUTHENTICITY = 95
+PARTNER_EMAIL_AUTHENTICITY = 90
 DEFAULT_ACTOR_NAME = "Default"
 
 
@@ -40,7 +43,7 @@ def get_random_actor():
     """Return a random actor from the database"""
     pass
 
-def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> None:
+def gen_email(employees: "list[Employee]", partners: "list[str]", actor: Actor, count_emails:int) -> None:
     """
     Make a call to the Azure email function
     to create an email, post to log analytics
@@ -53,9 +56,13 @@ def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> No
         # time is returned as timestamp (float)
         time = get_time()
 
-        # If the actor is a malicious one, we will always generate an inbound email (external -> internal)
-        if actor.name == DEFAULT_ACTOR_NAME:
+        # If the actor is default, we'll randomly pick an email type
+        if actor.is_default_actor:
             email_type = random.choice([t.value for t in EmailType])
+        # If the actor is a malicious one and does supply chain attacks, we'll pick a random type
+        elif "email:supply_chain" in actor.get_attacks():
+            email_type = random.choices([EmailType.INBOUND.value, EmailType.PARTNER.value], weights=[90,10])[0]
+        # If the actor is a malicioous one and DOES NOT do supply chain attacks, then email type is always inbound
         else:
             email_type = EmailType.INBOUND.value
 
@@ -73,6 +80,12 @@ def gen_email(employees: "list[Employee]", actor: Actor, count_emails:int) -> No
             sender = random.choice(employees)
             recipient = random.choice(employees)
             gen_internal_mail(sender, recipient, actor, actor_domains, time)
+
+        elif email_type == EmailType.PARTNER.value:
+            partner_domain = random.choice(partners)
+            employee = random.choice(employees)
+            gen_partner_mail(employee, partner_domain, actor, actor_domains, time)
+        
 
 
 def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"list[str]", time: float) -> None:
@@ -135,6 +148,39 @@ def gen_internal_mail(sender: Employee, recipient: Employee, actor: Actor, actor
     )
 
     send_email_to_azure(email)
+
+def gen_partner_mail(employee: Employee, partner_domain: str, actor: Actor, actor_domains:"list[str]", time: float) -> None:
+    """
+    Generates mail to/from one of the company's partner organizations
+    """
+    # Determine partner email directionality (inbound or outbound)
+    if actor.is_default_actor:
+        directionality = random.choice([EmailType.INBOUND.value, EmailType.OUTBOUND.value])
+    else:
+        directionality = EmailType.INBOUND.value
+
+    partner_email = f"{get_email_prefix()}@{partner_domain}"
+
+    # Set the sender and recipient based on the directionality
+    if directionality == EmailType.INBOUND.value:
+        sender = partner_email
+        recipient = employee.email_addr
+    else:
+        sender = employee.email_addr
+        recipient = partner_email
+
+    email = Email(
+        time=time,
+        sender=sender,
+        recipient=recipient,
+        subject=actor.get_email_subject(),
+        link=get_link(actor, actor_domains),
+        accepted=True,
+        authenticity=PARTNER_EMAIL_AUTHENTICITY
+    )
+
+    send_email_to_azure(email)
+    
 
 
 def send_email_to_azure(email):
