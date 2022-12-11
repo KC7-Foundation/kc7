@@ -31,6 +31,15 @@ class Base(db.Model):
 
         self.id = id
 
+    @staticmethod
+    def string_to_list(field_value_as_str:str) -> "list[str]":
+        """
+        Converts a long string into a unique list by splitting on space
+        removes any empty string values from list
+        """
+        vals = field_value_as_str.split("~")
+        return list(set([f for f in vals if f!='']))
+
 
 ##########################################################
 # The following classes are specific to user autentication

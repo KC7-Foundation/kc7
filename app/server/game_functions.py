@@ -158,7 +158,7 @@ def generate_activity(actor: Actor, employees: list,
 
     # Generate emails for random employees for specified actor
     # TODO: handle number of emails generated in the function
-    gen_email(employees, ["partnerdomain.com"], actor, num_email)
+    gen_email(employees, get_company().get_partners(), actor, num_email)
 
     # Generate browsing activity for random emplyoees for the default actor
     # browsing for other actors should only come through email clicks

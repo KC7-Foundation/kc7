@@ -59,10 +59,6 @@ def gen_email(employees: "list[Employee]", partners: "list[str]", actor: Actor, 
         # If the actor is default, we'll randomly pick an email type
         if actor.is_default_actor:
             email_type = random.choice([t.value for t in EmailType])
-        # If the actor is a malicious one and does supply chain attacks, we'll pick a random type
-        elif "email:supply_chain" in actor.get_attacks():
-            email_type = random.choices([EmailType.INBOUND.value, EmailType.PARTNER.value], weights=[90,10])[0]
-        # If the actor is a malicioous one and DOES NOT do supply chain attacks, then email type is always inbound
         else:
             email_type = EmailType.INBOUND.value
 
@@ -154,10 +150,7 @@ def gen_partner_mail(employee: Employee, partner_domain: str, actor: Actor, acto
     Generates mail to/from one of the company's partner organizations
     """
     # Determine partner email directionality (inbound or outbound)
-    if actor.is_default_actor:
-        directionality = random.choice([EmailType.INBOUND.value, EmailType.OUTBOUND.value])
-    else:
-        directionality = EmailType.INBOUND.value
+    directionality = random.choice([EmailType.INBOUND.value, EmailType.OUTBOUND.value])
 
     partner_email = f"{get_email_prefix()}@{partner_domain}"
 

@@ -30,12 +30,13 @@ class Company(Base):
     # Define attributes that will be represented in database
     name                    = db.Column(db.String(50), nullable=False)
     domain                  = db.Column(db.String(50), nullable=False)
+    partners                = db.Column(db.String(300))
 
     def __init__(self, name: str, domain: str, count_employees:int=100, roles:dict={}, partners:list=[]) -> None:
         self.name = name
         self.count_employees = count_employees or 100
         self.roles = roles
-        self.partners = partners
+        self.partners = "~".join(partners)
         if domain:
             self.domain = domain
         else:
@@ -155,12 +156,12 @@ class Company(Base):
             self.roles.remove(role)
         return role.get('title')
 
-    def get_partner_domain(self) -> str:
-        return random.choice(self.partners)
+    def get_partners(self) -> str:
+        return Company.string_to_list(self.partners)
 
     def __repr__(self) -> str:
         return '<Company %r>' % self.name
-
+    
 
 class Employee(Base):
     """
