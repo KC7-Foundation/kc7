@@ -124,7 +124,11 @@ def init_setup():
                             employees, 
                             num_passive_dns=actor.count_init_passive_dns, 
                             num_email=actor.count_init_email
-                        )                        
+                        ) 
+
+        if "recon:browsing" in actor.get_attacks():
+            gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
+
     
     all_dns_records = DNSRecord.query.all()
     # shuffle the dns records so that pivot points are not all next to each other in azure
@@ -155,10 +159,6 @@ def generate_activity(actor: Actor, employees: list,
     print(f" activity for actor {actor.name}")
     # Generate passive DNS for specified actor
     gen_passive_dns(actor, num_passive_dns)
-
-    # Perform recon (if enabled)
-    if "recon:browsing" in actor.get_attacks():
-        gen_inbound_browsing_activity(actor, 10) #TODO: Fix this to read from config
 
     # Generate emails for random employees for specified actor
     # TODO: handle number of emails generated in the function

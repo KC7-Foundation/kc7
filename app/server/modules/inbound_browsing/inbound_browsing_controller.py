@@ -39,7 +39,7 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
     for _ in range(num_inbound_browsing_events):
 
         # Choose an IP for the browsing
-        # If non-default actor, then choose an actor IP as the source
+        # If non-default actor, then choose an actor IP as the source        
         if actor.is_default_actor:
             src_ip = fake.ipv4_public()
         else:
@@ -50,12 +50,18 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
         # Generate a random sentence to be used for blog or search term
         random_sentence =  sentenceGenerator.gen_sentence_nopunc()
 
+        #weights determine likelyhood of each browsing type
+        if actor.is_default_actor:
+            weights = [47, 30, 3, 10, 10]
+        else:
+            weights = [10, 10, 0, 70, 10]
+
         # URI Path should be one of three things (for now)
         # Browsing to static page on company website
         # browsing to dynamic uri on blog of website
-        # downloading file from mailserver (this will serve to hide our exfil for now)
+        # downloading file from mailserver (this will serve to hide our exfil for now
 
-        browsing_type = random.choices(population = [t.value for t in BrowsingType], weights=(47, 30, 3, 10, 10), k=1)[0]
+        browsing_type = random.choices(population = [t.value for t in BrowsingType], weights=weights, k=1)[0]
         if browsing_type == BrowsingType.STATIC.value:
             uri_path = random.choice(WEBSITE_STATIC_PATHS)
         elif browsing_type == BrowsingType.BLOG.value:
@@ -67,7 +73,7 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
             src_ip = employee.home_ip_addr  #overide this value with the employee's home IP 
             uri_path = make_email_exfil_url(employee.username, add_prefix=False)
         elif browsing_type == BrowsingType.SEARCH.value:
-            if actor.get_recon_search_terms():
+            if not actor.is_default_actor and actor.get_recon_search_terms():
                 search_term = random.choice(actor.get_recon_search_terms())
             else:
                 search_term = random_sentence
@@ -76,7 +82,13 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
             uri_path = get_uri_path(uri_type="browsing")
         
         url = random.choice(["http://", "https://", ""]) + get_company().domain + "/" + uri_path
-        time = get_time()
+
+        # if actor is not default, then recon should happen retroactively
+        if actor.is_default_actor:
+            time = get_time()
+        else:
+            # recon will happen a couple days back
+            time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
 
         gen_inbound_request(time, src_ip, method, status_code, url)
 
