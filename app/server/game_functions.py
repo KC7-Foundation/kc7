@@ -124,7 +124,11 @@ def init_setup():
                             employees, 
                             num_passive_dns=actor.count_init_passive_dns, 
                             num_email=actor.count_init_email
-                        )                        
+                        ) 
+
+        if "recon:browsing" in actor.get_attacks():
+            gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
+
     
     all_dns_records = DNSRecord.query.all()
     # shuffle the dns records so that pivot points are not all next to each other in azure
@@ -144,7 +148,7 @@ def generate_activity(actor: Actor, employees: list,
                         num_auth_events:int=400,
                         count_of_endpoint_events=300) -> None:
     """
-    Given an actor, enerates one cycle of activity for users in the orgs
+    Given an actor, generates one cycle of activity for users in the orgs
     Current:
         - Generate Email
         - Generate Web Browsing
@@ -166,10 +170,10 @@ def generate_activity(actor: Actor, employees: list,
 
     # Generate browsing activity for random emplyoees for the default actor
     # browsing for other actors should only come through email clicks
-    if actor.name == "Default":
+    if actor.is_default_actor:
         browse_random_website(employees, actor, num_random_browsing)
         auth_random_user_to_mail_server(employees, num_auth_events)
-        gen_random_inbound_browsing(num_random_browsing)
+        gen_inbound_browsing_activity(actor, num_random_browsing)
         gen_system_files_on_host(count_of_endpoint_events)
         gen_user_files_on_host(count_of_endpoint_events)
         gen_system_processes_on_host(count_of_endpoint_events)

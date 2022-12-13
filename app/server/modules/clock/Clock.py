@@ -104,7 +104,7 @@ class Clock():
         return start_time + increment
 
     @staticmethod
-    def delay_time_by(start_time: float, factor: str) -> float:
+    def delay_time_by(start_time: float, factor: str, is_negative=False) -> float:
         """
         Increment time by hours, minutes, seconds
         """
@@ -113,14 +113,22 @@ class Clock():
         
         days, hours, minutes, seconds = 0, 0, 0, 0
 
+        if is_negative:
+            direction = -1
+        else:
+            direction = 1
+
         if factor == "days":
-            days = randint(1, 7)
+            days = randint(1, 7) * direction
         elif factor == "hours":
-            hours = randint(1,24)
+            hours = randint(1,24) * direction
         elif factor == "minutes":
-            minutes = randint(1, 60)
+            minutes = randint(1, 60) * direction
         elif factor == "seconds":
-            seconds = randint(1, 60)
+            seconds = randint(1, 60) * direction
+
+
+
         increment_value = (days * 86400) + (hours * 3600) + (minutes * 60) + seconds
 
         return start_time + increment_value
