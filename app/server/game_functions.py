@@ -16,7 +16,7 @@ from app.server.modules.outbound_browsing.browsing_controller import *
 from app.server.modules.infrastructure.passiveDNS_controller import *
 from app.server.modules.organization.company_controller import create_company
 from app.server.modules.outbound_browsing.browsing_controller import browse_random_website
-from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_random_inbound_browsing
+from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_browsing_activity
 from app.server.modules.authentication.auth_controller import auth_random_user_to_mail_server, actor_password_spray
 from app.server.modules.helpers.config_helper import read_config_from_yaml
 from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host, gen_system_processes_on_host
