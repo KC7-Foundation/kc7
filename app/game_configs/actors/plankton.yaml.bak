@@ -4,7 +4,9 @@ count_init_passive_dns: 5
 max_wave_size: 3
 attacks:
   - email:credential_phishing
-  - email:supply_chain
+  - recon:browsing
+  - identity:password_spray
+  - delivery:supply_chain
 domain_themes:
   - jellyfish
   - chum
@@ -33,10 +35,19 @@ subjects:
   - "Proposal: New advanced grill technology"
   - "Urgent: Potential plankton activity detected on your device!"
   - Your login information for free-jellyfish-nets.com
+recon_search_terms:
+  - it_employees.csv
+  - helpdesk
+  - how to contact helpdesk
+  - it helpdesk
+  - get help with IT stuff
+  - it admin roles
+  - it associates 
+  - associate IT position
 tlds:
   - com
   - net
   - org
   - food
   - pizza
-spoof_email: True
+spoof_email: False

@@ -27,5 +27,8 @@ roles:
   - title: Trial Administrator
     limit: 100
 partners:
-  - partnerdomain.com
+  - wesellbeakers.com
+  - pharmasupplies.org
+  - vaccinedistributors.com
+  - researchcompliance.com
 

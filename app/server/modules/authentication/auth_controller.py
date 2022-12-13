@@ -88,7 +88,7 @@ def actor_password_spray(actor: Actor, num_employees:int = 25, num_passwords:int
             )
             spray_time = Clock.delay_time_by(spray_time, "seconds")
 
-            if "Sucess" in result:
+            if "Success" in result:
                 login_time = Clock.delay_time_by(spray_time, factor="hours")
                 Trigger.actor_downloads_files_from_email(recipient=employee.username, src_ip=actor_ip, time=login_time)
             

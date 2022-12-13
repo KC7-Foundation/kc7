@@ -228,7 +228,7 @@ class Actor(Base):
         Also includes logic to write compromised partner emails
         """
         emails = [self.gen_sender_address() for _ in range(num_emails)]
-        if "email:supply_chain" in self.get_attacks():
+        if "delivery:supply_chain" in self.get_attacks():
             emails += [self.gen_partner_address() for _ in range(num_compromised_partner_emails)]
         return emails        
 

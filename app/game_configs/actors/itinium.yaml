@@ -1,0 +1,55 @@
+name : Itinium
+effectiveness: 80
+count_init_passive_dns: 10
+max_wave_size: 3
+attacks:
+  - recon:browsing
+  - delivery:supply_chain
+  - email:malware_delivery
+domain_themes:
+  - software
+  - update
+  - mobile
+  - verify
+  - security
+  - install
+  - notice
+  - scan
+  - alert
+sender_themes: 
+  - helpdesk
+  - support
+  - admin
+  - it
+  - notifications
+  - noreply
+  - info
+subjects:
+  - "IMPORTANT: YOUR PASSWORD IS EXPIRING"
+  - "RE: Purchase Order 12393" 
+  - "IMPORTANT: VPN UPDATE - INSTALL NOW!!!"
+  - A suspicious login attempt was observed for your account
+  - Missed call - New voicemail
+  - New heldesk procedures - READ NOW
+recon_search_terms:
+  - envolve helpdesk
+  - how to get it support
+  - are macros enabled - envolve
+  - it support process
+  - helpdesk ticket system
+  - password expiration policy
+  - default password EnvolveLabs
+file_names:
+  - Software_Update
+  - IT_PASSWORD_RESET_TOOL
+  - Critical_Security_Path
+  - Patch_instructions
+  - EnvolveLabs_Research_Tool
+  - IMPORTANT_INSTRUCTIONS
+tlds:
+  - com
+  - io
+  - info
+spoof_email: False
+malware:
+  - unhelpfuldesk

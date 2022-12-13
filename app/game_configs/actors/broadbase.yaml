@@ -1,0 +1,15 @@
+name : Plankton
+effectiveness: 80
+count_init_passive_dns: 5
+max_wave_size: 3
+attacks:
+  - identity:password_spray
+sender_themes: 
+  - none
+subjects:
+  - none
+domain_themes:
+  - none
+tlds:
+  - com
+spoof_email: False
