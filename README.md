@@ -96,3 +96,7 @@ Go check out the wiki for details on how the code base is structured
 * Helton Wernik
 * Logo by David Hardman
 
+## Follow us on twitter
+
+https://twitter.com/KC7cyber
+
