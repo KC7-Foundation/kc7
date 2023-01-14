@@ -25,6 +25,7 @@ from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_
 
 from app.server.utils import *
 from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
+from app.server.utils import AttackTypes
 
 def start_game() -> None:
     """
@@ -144,7 +145,7 @@ def init_setup():
                             num_email=actor.count_init_email
                         ) 
 
-        if "recon:browsing" in actor.get_attacks():
+        if AttackTypes.RECONNAISSANCE_VIA_BROWSING.value in actor.get_attacks():
             gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
 
     
@@ -183,7 +184,7 @@ def generate_activity(actor: Actor, employees: list,
     gen_email(employees, get_company().get_partners(), actor, num_email)
 
     # Perform password spray attack
-    if "identity:password_spray" in actor.get_attacks():
+    if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
         actor_password_spray(actor=actor, num_employees=random.randint(5,50), num_passwords=5)
 
     # Generate browsing activity for random emplyoees for the default actor
