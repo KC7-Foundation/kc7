@@ -66,7 +66,7 @@ def gen_email(employees: "list[Employee]", partners: "list[str]", actor: Actor, 
         if email_type == EmailType.INBOUND.value:
             wave_size = random.randint(1, actor.max_wave_size)
             recipients = random.choices(employees, k=wave_size)
-            gen_inbound_mail(recipients, actor, actor_domains, time, )
+            gen_inbound_mail(recipients, actor, actor_domains, time )
 
         elif email_type == EmailType.OUTBOUND.value:
             sender = random.choice(employees)

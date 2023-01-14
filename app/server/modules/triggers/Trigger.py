@@ -151,6 +151,48 @@ class Trigger:
                 process=process
             )
 
+        # wait a couple hours before running post exploitation commands
+        post_exploit_time = Clock.delay_time_by(start_time=time, factor="hours")
+        actor = email.actor
+        Trigger.actor_runs_post_exploitation_commands(recipient=recipient, time=post_exploit_time, actor=actor )
+
+    @staticmethod
+    def actor_runs_post_exploitation_commands(recipient: Employee, time: float, actor: Actor) -> None:
+        """
+        After the malware runs automated commands and establishes C2 channel,
+        Run custom hands-on-keyboard commands defined on the actor
+        """
+        pass
+
+
+        # Get a C2 IP from the Actor's infrastructure
+        c2_ip = actor.get_ips(count_of_ips=1)[0]
+        # Get random processes
+        processes = actor.get_exploit_processes()
+
+        # Upload the recon and C2 processes to Azure
+        for process in processes:
+           
+            # now turn the command into necessry process object
+            print("getting actor hands on keyboard")
+            print(process)
+
+            # turn process from dict into object
+            process_obj = Malware.get_process_obj({
+                "name": process.get("name", None),
+                "process": process.get("process", None)
+            })
+
+            time = Clock.delay_time_by(start_time=time, factor="seconds")
+            create_process_on_host(
+                hostname=recipient.hostname,
+                timestamp=time,
+                parent_process_name=process_obj.process_name,
+                parent_process_hash=process.get("hash", None) or "614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f",
+                process=process_obj
+            )
+
+
     @staticmethod
     def actor_auths_into_user_email(recipient:Employee, email: Email, time: float) -> None:
         """

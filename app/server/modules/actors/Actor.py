@@ -1,5 +1,6 @@
 # Import external modules
 import random
+import json
 from faker import Faker
 import glob
 from faker.providers import internet
@@ -40,6 +41,7 @@ class Actor(Base):
     tlds                        = db.Column(db.String(300))
     malware                     = db.Column(db.String(300))
     recon_search_terms          = db.Column(db.String(300))
+    post_exploit_commands       = db.Column(db.String(1000))
     sender_emails               = db.Column(db.String(300))
     spoof_email                 = db.Column(db.Boolean)
 
@@ -53,7 +55,8 @@ class Actor(Base):
     def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
                 subjects:list=[],  tlds:list=[], spoof_email:bool=False, 
                 count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
-                file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[]):
+                file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[],
+                post_exploit_commands:list=[]):
 
         print(f"Instantiating actor {name}....")
         self.name = name
@@ -76,6 +79,11 @@ class Actor(Base):
         self.count_init_passive_dns     = int(count_init_passive_dns)
         self.max_wave_size              = int(max_wave_size)
         self.sender_emails              = "~".join(self.gen_sender_addresses())
+
+        # post_exploit_commands come in as a list of dictionaries
+        # turn the dicts into strings and join the list into a string
+        # so list[dict] -> str~str~str
+        self.post_exploit_commands      = "~".join([json.dumps(p) for p in post_exploit_commands])
         
 
     @property
@@ -231,6 +239,17 @@ class Actor(Base):
         if "delivery:supply_chain" in self.get_attacks():
             emails += [self.gen_partner_address() for _ in range(num_compromised_partner_emails)]
         return emails        
+
+    def get_exploit_processes(self) -> "list[str]":
+        """
+        Converts string representation of file names into list
+        """
+       
+        return [
+            json.loads(command) for command in
+            self.post_exploit_commands.split("~")
+        ]
+    
 
     def __repr__(self):
         return '<Actor %r>' % self.name
