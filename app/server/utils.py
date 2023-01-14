@@ -8,6 +8,7 @@ from app.server.models import GameSession
 
 # Import external modules
 from fileinput import filename
+from enum import Enum
 import random
 from faker import Faker
 from faker.providers import internet, lorem, file
@@ -25,6 +26,18 @@ fake.add_provider(lorem)
 
 # instantiate word genertor
 wordGenerator = WordGenerator()
+
+
+class AttackTypes(Enum):
+    """
+    An enum to describe types of attacks that cna be conducted by an actor
+    """
+    PHISHING_VIA_EMAIL              = "delivery:supply_chain"
+    MALWARE_VIA_EMAIL               = "email:malware_delivery"
+    SUPPLY_CHAIN_VIA_EMAIL          = "delivery:supply_chain"
+    PASSWORD_SPRAY                  = "identity:password_spray"
+    RECONNAISSANCE_VIA_BROWSING     = "recon:browsing"
+
 
 def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
     """Get a link containing actor's domain"""
