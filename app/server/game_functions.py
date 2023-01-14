@@ -59,6 +59,7 @@ def start_game() -> None:
 
     # instantiate the clock
     print(f"Game started at {current_session.start_time}")
+    game_start_time = get_time()
 
     # TODO: allow users ot modify start time in the web UI
     db.session.commit()
@@ -74,9 +75,13 @@ def start_game() -> None:
     # This is where the action is
     # While this infinite loop runs, the game continues to generate data
     # To implement games of finite size -> bound this loop (e.g. use a for loop instead)
-    while current_session.state == True:
+    # while current_session.state == True:
+    count_cycles = 10
+    for i in range(count_cycles):
         # generate the activity
-        print("Running the game...")
+        print("##########################################")
+        print(f"## Running cycle {i+1} of the game...")
+        print("##########################################")
         for actor in actors: 
             if actor.name == "Default":
                 # Default actor is used to create noise
@@ -91,6 +96,19 @@ def start_game() -> None:
                                   num_passive_dns=random.randint(5, 10), 
                                   num_email=random.randint(0, 3), 
                                 ) 
+
+
+
+    ##########################################
+    # deg statements to help time tracking
+    # on average, one cycle=one day in game
+    game_end_time =  get_time()
+    days_elapse_in_game = (game_end_time - game_start_time) /(60*60*24)
+    print(f"Game started at {Clock.from_timestamp_to_string(game_start_time)}")
+    print(f"Game ended at {Clock.from_timestamp_to_string(game_end_time)}")
+    print(f"{days_elapse_in_game} days elapsed in the game")
+    print(f"Ran {count_cycles} cycles...")
+    ##########################################
 
 
 def init_setup():
@@ -136,8 +154,8 @@ def init_setup():
     all_dns_records = [d.stringify() for d in all_dns_records]
     upload_dns_records_to_azure(all_dns_records)
 
-    for actor in actors:
-        print(f"{actor.name}: {actor.get_attacks_by_type('email')}")
+    # for actor in actors:
+    #     print(f"{actor.name}: {actor.get_attacks_by_type('email')}")
 
     return employees, actors
 
@@ -156,7 +174,7 @@ def generate_activity(actor: Actor, employees: list,
 
     The Default actor is user to represent normal company activities
     """
-    print(f" activity for actor {actor.name}")
+    # print(f" activity for actor {actor.name}")
     # Generate passive DNS for specified actor
     gen_passive_dns(actor, num_passive_dns)
 
@@ -208,7 +226,7 @@ def create_actors() -> None:
         actor_config = read_config_from_yaml(file)
         # use dictionary value to instantiate actor
         if actor_config:
-            print(f"adding actor: {actor_config}")
+            # print(f"adding actor: {actor_config}")
             # use dict to instantiate the actor
             actors.append(
                 Actor(**actor_config)
