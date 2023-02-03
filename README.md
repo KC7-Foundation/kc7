@@ -31,9 +31,7 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 
 ## 🚨 🤾🏽‍♀️ Getting started with the data (No code required)!
 
-* [Watch this video!](https://youtu.be/aHJxEHIHq0k) and/or [Check out the instructions to set up the data in a free Kusto cluster](https://github.com/kkneomis/kc7/wiki/No-code-Required!-Loading-the-test-KC7-cluster-into-your-free-Kusto-instance) / x
-
-* [Get the walking through guide](https://github.com/kkneomis/kc7/tree/master/training_materials)
+* http://kc7cyber.com/modules.html
 
 
 ## 🏁 Contribute to the code!
