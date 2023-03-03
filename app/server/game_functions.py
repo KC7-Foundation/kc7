@@ -233,6 +233,7 @@ def create_actors() -> None:
                 Actor(**actor_config)
             )
 
+
     # add all the actors to the database
     try:
         for actor in actors:
