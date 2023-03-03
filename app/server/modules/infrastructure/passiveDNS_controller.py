@@ -39,7 +39,7 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
         for i in range(count_of_records):
             if not actor_records:
                 # if no dns records exist, create one
-                print("no actor records were found")
+                # print("no actor records were found")
                 seed_record = DNSRecord(actor)
                 db.session.add(seed_record)
             else:

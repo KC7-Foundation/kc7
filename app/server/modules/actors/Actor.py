@@ -92,7 +92,7 @@ class Actor(Base):
             return True
         else:
             return False
-
+            
     def get_attacks(self) -> "list[str]":
         """
         Converts string representation of file names into list
@@ -194,7 +194,7 @@ class Actor(Base):
         if self.is_default_actor:
             return self.gen_sender_address()
         else:
-            print(Actor.string_to_list(self.sender_emails))
+            # print(Actor.string_to_list(self.sender_emails))
             return random.choice(Actor.string_to_list(self.sender_emails))
 
     def gen_partner_address(self) -> str:
@@ -235,8 +235,10 @@ class Actor(Base):
         Generates actor email addresses to be used in email attacks
         Also includes logic to write compromised partner emails
         """
+        from app.server.utils import AttackTypes
+
         emails = [self.gen_sender_address() for _ in range(num_emails)]
-        if "delivery:supply_chain" in self.get_attacks():
+        if AttackTypes.SUPPLY_CHAIN_VIA_EMAIL.value in self.get_attacks():
             emails += [self.gen_partner_address() for _ in range(num_compromised_partner_emails)]
         return emails        
 

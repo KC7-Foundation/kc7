@@ -133,6 +133,7 @@ class Trigger:
         When a payload is dropped to a user's system, it should also spawn processes.
         The processes that are spawned are defined in the malware config
         """
+        print("Got to KC6...")
         # Get a C2 IP from the Actor's infrastructure
         c2_ip = email.actor.get_ips(count_of_ips=1)[0]
         # Get random processes
@@ -202,6 +203,7 @@ class Trigger:
             username = recipient's username
             src_up = actor's ip
         """
+        print("Got to KC7...")
         # wait several hours before login
         time_delay = random.randint(5000, 99999)
         login_time = Clock.increment_time(time, time_delay)
