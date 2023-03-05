@@ -32,8 +32,7 @@ main = Blueprint('main', __name__)
 @main.route("/")
 def home():
     print("initialization complete...")
-
-    return render_template("main/score.html")
+    return redirect(url_for('main.manage_game'))
 
 
 
@@ -53,9 +52,7 @@ def manage_game():
     current_session = db.session.query(GameSession).get(1)
     game_state = current_session.state
 
-    indicators = db.session.query(DNSRecord).filter(DNSRecord.active == True)
-
-    return render_template("admin/manage_game.html", game_state=game_state, indicators=indicators)
+    return render_template("admin/manage_game.html", game_state=game_state)
 
 
 @main.route("/admin/manage_database")

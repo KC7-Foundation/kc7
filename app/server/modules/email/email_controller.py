@@ -50,7 +50,7 @@ def gen_email(employees: "list[Employee]", partners: "list[str]", actor: Actor, 
     and send a secondary request to generate browsing traffic
     """
 
-    actor_domains = [record.domain for record in actor.dns_records]
+    actor_domains = [domain.name for domain in actor.domains]
 
     for _ in range(count_emails):
         # time is returned as timestamp (float)
@@ -90,7 +90,7 @@ def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"
     """
     link, domain = get_link(actor, actor_domains, return_domain=True)
     sender = actor.get_sender_address()
-    reply_to = actor.get_sender_address() if actor.spoof_email else sender
+    reply_to = actor.get_sender_address() if actor.spoofs_email else sender
     subject = actor.get_email_subject()
 
     for recipient in recipients:
