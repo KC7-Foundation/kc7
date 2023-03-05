@@ -1,0 +1,41 @@
+name : Shinobium
+effectiveness: 70
+count_init_passive_dns: 10
+max_wave_size: 5
+attacks:
+  - recon:browsing
+  - email:credential_phishing
+domain_themes:
+  - jutsu
+  - chakra
+  - village
+  - clan
+  - tail
+  - curse
+  - sage
+sender_themes: 
+  - naruto
+  - sasuke
+  - sakura
+  - itachi
+  - hinata
+  - obito
+  - orochimaru
+  - gaara
+  - nagato
+  - madara
+  - jiraiya
+  - tenen
+subjects:
+  - "50% discount on Naruto anime this weekend"
+  - "The hidden leaf is under attack and we need your help!"
+  - "Sneak peak as NEW!!!! never-before-seen episode"
+  - "This Sasuke cosplay will make you look dreamy!"
+  - "Dear Ninja - I have a mission for you! Login to see it"
+tlds:
+  - com
+  - org
+  - tk
+  - io
+  - info
+spoof_email: false
