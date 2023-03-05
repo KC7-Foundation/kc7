@@ -280,7 +280,6 @@ LEGIT_USER_COMMANDLINES = [
 LEGIT_PARENT_PROCESSES={
     "cmd.exe":"ff79d3c4a0b7eb191783c323ab8363ebd1fd10be58d8bcc96b07067743ca81d5",
     "explorer.exe":"0327b7630d585ad01f6ec2eb847622645b81df94a1370b5e466db9f09f933951",
-    "conhost.exe":"baf97b2a629723947539cff84e896cd29565ab4bb68b0cec515eb5c5d6637b69",
     "cmd.exe":"614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f",
     "sc.exe":"4fe6d9eb8109fb79ff645138de7cff37906867aade589bd68afa503a9ab3cfb2",
     "powershell.exe": "529ee9d30eef7e331b24e66d68205ab4554b6eb3487193d53ed3a840ca7dde5d"
