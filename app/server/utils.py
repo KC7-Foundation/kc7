@@ -5,7 +5,6 @@ from app.server.modules.actors.Actor import Actor
 from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.clock.Clock import Clock 
 from app.server.models import GameSession
-from app.server.modules.infrastructure.DNSRecord import DNSRecord
 
 # Import external modules
 from fileinput import filename
@@ -131,16 +130,6 @@ def get_employees(role=None) -> "list[Employee]":
     else:
         employees = [employee for employee in Employee.query.all()]
     return employees
-
-def get_actor_domains(actor_id: int) -> list:
-    """
-    Takes an actor ID and returns the domains for that actor
-    """
-    domains = [
-        record.domain for record in
-        DNSRecord.query.filter_by(actor_id=actor_id).all()
-    ]
-    return domains
 
 def get_random_employee() -> Employee:
     """
