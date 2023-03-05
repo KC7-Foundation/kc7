@@ -2,12 +2,30 @@
 from app.server.modules.actors.Actor import Actor
 from app.server.models import db
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
+from app.server.modules.infrastructure.Infrastructure import Domain, IP
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.utils import *
 
 # Import external modules
 from flask import current_app
 import random
+
+
+def difficulty_to_dns_threads(difficulty):
+    """
+    Takes difficulty as EASY, MEDIUM, or HARD
+    Return number of DNS "threads" to generate
+    """
+    mapping = {
+        "EASY": 2,
+        "MEDIUM": 5,
+        "HARD":10
+    }
+
+    try:
+        return mapping.get(difficulty.upper())
+    except:
+        raise Exception("Invalid difficulty assigned")
 
 
 def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
@@ -28,47 +46,77 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
     """
     # For all non-default actors, indicators should be pivotable
     # Result is that 3x number of specified records will be created
+    print(f"Generting {count_of_records} records for actor {actor}")
     new_records = []
 
-    if actor.name != "Default":
+    if not actor.is_default_actor and actor.generates_infrastructure:
         # This is a malicious actor
 
-        # TODO: if actor isn't default, IPs and Domains should be reused
-        # listify DB results
-        actor_records = [record for record in actor.dns_records]
+        # TODO: Check if this actor is actually supposed to generate infra
         for i in range(count_of_records):
-            if not actor_records:
-                # if no dns records exist, create one
-                # print("no actor records were found")
-                seed_record = DNSRecord(actor)
-                db.session.add(seed_record)
+            if actor.domains_list and actor.ips:            
+                if random.random() < .2:
+                    # half the time
+                    #choose an existing domain and give it a new ip
+                    new_ip =IP(actor=actor)
+                    time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
+
+                    new_record = DNSRecord(
+                        time=time,
+                        domain = random.choice(actor.domains_list), 
+                        ip = new_ip.address
+                    )
+                    db.session.add(new_ip)
+                else:
+                    # the other half the time
+                    # choose an existing ip and give it a new domain
+                    new_domain = Domain(actor=actor)
+                    time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
+
+                    new_record = DNSRecord(
+                        time=time,
+                        domain = new_domain.name, 
+                        ip=random.choice(actor.ips_list)
+                    )
+                    db.session.add(new_domain)
+
+                db.session.add(new_record)
             else:
-                # else choose a seed record to pivot on
-                seed_record = random.choice(actor_records)
+                ### ONLY WHEN DO DOMAINS EXISTS
+                ### CREATE THREE IP/DOMAIN PAIRS
+                num_threads = difficulty_to_dns_threads(actor.difficulty)
+                for i in range(num_threads):  # This shoudl be defined on the actor
+                    domain = Domain(actor=actor)
+                    ip = IP(actor=actor)
+                    time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
 
-            # IP is known and domain is new
-            record = DNSRecord(actor, ip=seed_record.ip)
-            # Domain is known and IP is new
-            pivot_record = DNSRecord(actor, domain=record.domain)
+                    new_record = DNSRecord(
+                        time=time,
+                        domain=domain.name, 
+                        ip=ip.address
+                    )
 
-            # pick one new DNS record based on the two pivot methods above
-            new_record = random.choice([record, pivot_record])
-
-            # write the new record
-            db.session.add(new_record)
+                    db.session.add(domain)
+                    db.session.add(ip)
+                    db.session.add(new_record)
+                    new_records.append(new_record.stringify())
+                db.session.commit()
+                
             new_records.append(new_record.stringify())
     else:
         # this is the default actor
         for i in range(count_of_records):
-            record = DNSRecord(actor)
+            record = DNSRecord(
+                time = Clock.delay_time_by(get_time(), factor="days", is_negative=True),
+                domain=Domain(actor=actor).name,
+                ip=IP(actor=actor).address
+            )
             new_records.append(record.stringify())
             db.session.add(record)
+            db.session.commit()
 
-    try:
-        upload_dns_records_to_azure(new_records)
-        db.session.commit()
-    except Exception as e:
-        print(f"Error adding passiveDNS record {e}")
+    upload_dns_records_to_azure(new_records)
+        
 
 
 def upload_dns_records_to_azure(dns_records):

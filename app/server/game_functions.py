@@ -149,11 +149,11 @@ def init_setup():
             gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
 
     
-    all_dns_records = DNSRecord.query.all()
+    # all_dns_records = DNSRecord.query.all()
     # shuffle the dns records so that pivot points are not all next to each other in azure
-    random.shuffle(all_dns_records)
-    all_dns_records = [d.stringify() for d in all_dns_records]
-    upload_dns_records_to_azure(all_dns_records)
+    # random.shuffle(all_dns_records)
+    # all_dns_records = [d.stringify() for d in all_dns_records]
+    # upload_dns_records_to_azure(all_dns_records)
 
     # for actor in actors:
     #     print(f"{actor.name}: {actor.get_attacks_by_type('email')}")

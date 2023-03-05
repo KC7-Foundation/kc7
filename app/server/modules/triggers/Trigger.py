@@ -173,10 +173,9 @@ class Trigger:
 
         # Upload the recon and C2 processes to Azure
         for process in processes:
-           
             # now turn the command into necessry process object
-            print("getting actor hands on keyboard")
-            print(process)
+            # print("getting actor hands on keyboard")
+            # print(process)
 
             # turn process from dict into object
             process_obj = Malware.get_process_obj({
@@ -208,7 +207,7 @@ class Trigger:
         time_delay = random.randint(5000, 99999)
         login_time = Clock.increment_time(time, time_delay)
         auth_results = ["Successful Login", "Failed Login"]
-        src_ip = email.actor.dns_records.first().ip
+        src_ip = email.actor.get_ips(count_of_ips=1)
         
         result = random.choice(auth_results)
         if result == "Successful Login":

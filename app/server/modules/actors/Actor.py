@@ -43,20 +43,23 @@ class Actor(Base):
     recon_search_terms          = db.Column(db.String(300))
     post_exploit_commands       = db.Column(db.String(1000))
     sender_emails               = db.Column(db.String(300))
-    spoof_email                 = db.Column(db.Boolean)
 
     count_init_passive_dns      = db.Column(db.Integer)
     count_init_email            = db.Column(db.Integer)
     count_init_browsing         = db.Column(db.Integer)   # >:D
     max_wave_size               = db.Column(db.Integer) 
+    difficulty                  = db.Column(db.String(50))
 
+    #options for what an actor can do
+    generates_infrastructure    = db.Column(db.Boolean)
+    spoofs_email                = db.Column(db.Boolean)
     
 
     def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
-                subjects:list=[],  tlds:list=[], spoof_email:bool=False, 
+                subjects:list=[],  tlds:list=[], spoofs_email:bool=False, generates_infrastructure:bool=True, 
                 count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
                 file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[],
-                post_exploit_commands:list=[]):
+                post_exploit_commands:list=[], difficulty="HARD"):
 
         print(f"Instantiating actor {name}....")
         self.name = name
@@ -73,12 +76,14 @@ class Actor(Base):
         self.malware                    = "~".join(malware)
         self.recon_search_terms         = "~".join(recon_search_terms)
         self.tlds                       = "~".join(tlds) or "~".join(['com','net','biz','org','us']) # TODO: Put this in a config or something
-        self.spoof_email                = spoof_email
+        self.spoofs_email               = spoofs_email
+        self.generates_infrastructure   = generates_infrastructure
         self.count_init_browsing        = int(count_init_browsing)
         self.count_init_email           = int(count_init_email)
         self.count_init_passive_dns     = int(count_init_passive_dns)
         self.max_wave_size              = int(max_wave_size)
         self.sender_emails              = "~".join(self.gen_sender_addresses())
+        self.difficulty                 = difficulty
 
         # post_exploit_commands come in as a list of dictionaries
         # turn the dicts into strings and join the list into a string
@@ -92,7 +97,23 @@ class Actor(Base):
             return True
         else:
             return False
+
+    @property
+    def tld_values(self):
+        return Actor.string_to_list(self.tlds)
+
+    @property
+    def domain_theme_values(self):
+        return Actor.string_to_list(self.domain_themes)
+
+    @property
+    def domains_list(self):
+        return [domain.name for domain in self.domains]
             
+    @property
+    def ips_list(self):
+        return [ip.address for ip in self.ips]
+
     def get_attacks(self) -> "list[str]":
         """
         Converts string representation of file names into list
@@ -168,8 +189,10 @@ class Actor(Base):
         """
         Get a list of IPs for the actor
         """
-        actor_ips = [record.ip for record in self.dns_records]
+        actor_ips = [ip.address for ip in self.ips]
         if actor_ips:
+            if count_of_ips == 1:
+                random.choice(actor_ips)
             return random.choices(actor_ips, k=count_of_ips)
         else:
             return []
