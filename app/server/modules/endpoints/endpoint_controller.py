@@ -46,7 +46,7 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
         )
         upload_file_creation_event_to_azure(file_creation_event)    
 
-def gen_system_processes_on_host(count_of_user_events:int=10) -> None:
+def gen_system_processes_on_host(count_of_user_events:int=20) -> None:
     """
     Generates ProcessEvents for users
     """
@@ -72,7 +72,7 @@ def gen_system_processes_on_host(count_of_user_events:int=10) -> None:
     """
     Generates ProcessEvents for system
     """
-    for _ in range(50):
+    for _ in range(100):
         employee = get_random_employee()
         process = get_legit_system_process(
             username=employee.username, 
@@ -81,13 +81,13 @@ def gen_system_processes_on_host(count_of_user_events:int=10) -> None:
         parent_name, parent_hash = random.choice(list(LEGIT_SYSTEM_PARENT_PROCESSES.items()))
 
         process_event=ProcessEvent(
-            timestamp=get_time(),
-            username="System",
+            timestamp=get_time(),            
             parent_process_name=parent_name,
             parent_process_hash=parent_hash,
             process_commandline=process.process_commandline,
             process_name=process.process_name,
-            hostname=employee.hostname
+            hostname=employee.hostname,
+            username="System"
         )
         upload_process_creation_event_to_azure(process_event)
 
