@@ -15,7 +15,7 @@ from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
 from app.server.utils import *
 from app.server.modules.constants.legit_files import *
-from app.server.modules.constants.constants import COMMON_USER_FILE_LOCATIONS, LEGIT_COMMANDLINES, LEGIT_PARENT_PROCESSES
+from app.server.modules.constants.constants import COMMON_USER_FILE_LOCATIONS, LEGIT_USER_COMMANDLINES, LEGIT_SYSTEM_COMMANDLINES, LEGIT_PARENT_PROCESSES, LEGIT_SYSTEM_PARENT_PROCESSES
 
 # instantiate faker
 fake = Faker()
@@ -46,13 +46,13 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
         )
         upload_file_creation_event_to_azure(file_creation_event)    
 
-def gen_system_processes_on_host(count_of_events:int=10) -> None:
+def gen_system_processes_on_host(count_of_user_events:int=10) -> None:
     """
-    Generates ProcessEvents for system files
+    Generates ProcessEvents for users
     """
-    for _ in range(count_of_events):
+    for _ in range(count_of_user_events):
         employee = get_random_employee()
-        process = get_legit_process(
+        process = get_legit_user_process(
             username=employee.username, 
             filename=fake.file_name(category='office')
         )
@@ -64,15 +64,58 @@ def gen_system_processes_on_host(count_of_events:int=10) -> None:
             parent_process_hash=parent_hash,
             process_commandline=process.process_commandline,
             process_name=process.process_name,
+            hostname=employee.hostname,
+            username=employee.username,
+        )
+        upload_process_creation_event_to_azure(process_event)
+    
+    """
+    Generates ProcessEvents for system
+    """
+    for _ in range(50):
+        employee = get_random_employee()
+        process = get_legit_system_process(
+            username=employee.username, 
+            filename=fake.file_name(category='office')
+        )
+        parent_name, parent_hash = random.choice(list(LEGIT_SYSTEM_PARENT_PROCESSES.items()))
+
+        process_event=ProcessEvent(
+            timestamp=get_time(),
+            username="System",
+            parent_process_name=parent_name,
+            parent_process_hash=parent_hash,
+            process_commandline=process.process_commandline,
+            process_name=process.process_name,
             hostname=employee.hostname
         )
         upload_process_creation_event_to_azure(process_event)
 
-def get_legit_process(username: str = None, filename: str = None) -> Process:
+def get_legit_system_process(username: str = None, filename: str = None) -> Process:
     """
     Build a legitimate process and return it
     """
-    process_commandline = random.choice(LEGIT_COMMANDLINES)
+    process_commandline = random.choice(LEGIT_SYSTEM_COMMANDLINES)
+    if username:
+        process_commandline = process_commandline.replace("{username}","System")
+    if filename:
+        process_commandline = process_commandline.replace("{filename}","System") # Need to add Network Service and other non-user accounts
+
+    try:
+        process_name = re.search('([^\\\\]+\\.exe)',process_commandline.lower()).group(1)
+    except:
+        process_name = "PARSE_ERROR.exe"
+
+    return Process(
+        process_name=process_name,
+        process_commandline=process_commandline
+    )
+
+def get_legit_user_process(username: str = None, filename: str = None) -> Process:
+    """
+    Build a legitimate process and return it
+    """
+    process_commandline = random.choice(LEGIT_USER_COMMANDLINES)
     if username:
         process_commandline = process_commandline.replace("{username}",username)
     if filename:
@@ -154,7 +197,7 @@ def write_file_to_host(hostname: str, timestamp: float, file: File) -> None:
         )
     )
 
-def create_process_on_host(hostname: str, timestamp: float, parent_process_name: str, parent_process_hash: str, process: Process):
+def create_process_on_host(hostname: str, timestamp: float, parent_process_name: str, parent_process_hash: str, process: Process, username:str):
     """
     Uploads a ProcessEvent for a given host, time, parent process, and process
     """
@@ -166,6 +209,7 @@ def create_process_on_host(hostname: str, timestamp: float, parent_process_name:
             parent_process_hash=parent_process_hash,
             process_name=process.process_name,
             process_commandline=process.process_commandline,
-            process_hash=process.process_hash
+            process_hash=process.process_hash,
+            username=username
         )
     )

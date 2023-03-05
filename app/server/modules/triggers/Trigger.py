@@ -149,7 +149,8 @@ class Trigger:
                 timestamp=time,
                 parent_process_name=payload.filename,
                 parent_process_hash=payload.sha256,
-                process=process
+                process=process,
+                username=recipient.username
             )
 
         # wait a couple hours before running post exploitation commands
@@ -190,7 +191,8 @@ class Trigger:
                 timestamp=time,
                 parent_process_name=process_obj.process_name,
                 parent_process_hash=process.get("hash", None) or "614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f",
-                process=process_obj
+                process=process_obj,
+                username=recipient.username
             )
 
 
