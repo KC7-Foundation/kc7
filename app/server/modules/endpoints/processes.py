@@ -36,12 +36,14 @@ class ProcessEvent(Process):
                 process_commandline: str,
                 process_name: str,
                 hostname: str,
+                username: str,
                 process_hash: str = None):
 
         self.timestamp = timestamp
         self.parent_process_name = parent_process_name
         self.parent_process_hash = parent_process_hash
         self.hostname = hostname
+        self.username = username
         super().__init__(process_name, process_commandline, process_hash)
 
     def stringify(self):
@@ -52,7 +54,8 @@ class ProcessEvent(Process):
             "process_commandline": self.process_commandline,
             "process_name": self.process_name,
             "process_hash": self.process_hash,
-            "hostname": self.hostname
+            "hostname": self.hostname,
+            "username": self.username
         }
 
     def get_kql_repr():
@@ -65,6 +68,7 @@ class ProcessEvent(Process):
                 "process_commandline":"string",
                 "process_name":"string",
                 "process_hash":"string",
-                "hostname":"string"
+                "hostname":"string",
+                "username":"string"
             }
         )
