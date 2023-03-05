@@ -209,6 +209,8 @@ class Actor(Base):
 
     def gen_sender_address(self) -> str:
         """Make a list of fake sender addresses"""
+        from app.server.utils import get_actor_domains
+
         sender_themes = Actor.string_to_list(self.sender_themes) 
 
          # TODO: Centralize this list of freemail providers somewhere else (probably contants?)
@@ -216,7 +218,8 @@ class Actor(Base):
 
         # just for fun: add and actor domain in the mix: so 1/8 chance senderd domain will be actor domain
         # TODO: make this selectable 
-        email_domains.append(self.get_domain_name())
+        actor_domain = random.choice(get_actor_domains(actor_id=self.id))
+        email_domains.append(actor_domain)
         # senders will come in one of two flavors
         # 1. themed_word@freemail.com
         # 2. themed_word@actordomain.com
