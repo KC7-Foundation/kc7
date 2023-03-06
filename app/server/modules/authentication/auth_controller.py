@@ -106,8 +106,10 @@ def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:
         
         if Clock.is_business_hours(time):
             auth_ip = user.ip_addr
+            user_agent = user.user_agent
         else:
             auth_ip = user.home_ip_addr
+            user_agent = user.home_ua
 
         auth_result = random.choice(AUTH_RESULTS)
         if auth_result == "Successful Login":
@@ -120,7 +122,7 @@ def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:
             timestamp=time,
             username=user.username,
             src_ip= auth_ip,
-            user_agent=user.user_agent,
+            user_agent=user_agent,
             result= random.choice(AUTH_RESULTS),
             password=password
         )
