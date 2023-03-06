@@ -88,7 +88,7 @@ def actor_stages_malware_on_watering_hole(actor:Actor, num_employees:int):
             )
         )
         
-        time = Clock.delay_time_by(start_time=time, factor="hours")
+        time = Clock.delay_time_by(start_time=get_time(), factor="hours")
 
         # first browse to the compromised website and get redirected
         browse_website(

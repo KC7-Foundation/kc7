@@ -60,8 +60,9 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
         # Browsing to static page on company website
         # browsing to dynamic uri on blog of website
         # downloading file from mailserver (this will serve to hide our exfil for now
-
+        user_agent = None
         browsing_type = random.choices(population = [t.value for t in BrowsingType], weights=weights, k=1)[0]
+        
         if browsing_type == BrowsingType.STATIC.value:
             uri_path = random.choice(WEBSITE_STATIC_PATHS)
         elif browsing_type == BrowsingType.BLOG.value:
@@ -82,6 +83,8 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
         else:
             uri_path = get_uri_path(uri_type="browsing")
         
+
+
         url = random.choice(["http://", "https://", ""]) + get_company().domain + "/" + uri_path
 
         # if actor is not default, then recon should happen retroactively
@@ -91,7 +94,7 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
             # recon will happen a couple days back
             time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
 
-        gen_inbound_request(time, src_ip, method, status_code, url, user_agent=(user_agent or None))
+        gen_inbound_request(time, src_ip, method, status_code, url, user_agent=user_agent)
 
 
 def gen_inbound_request(time:float, src_ip:str, method:str, status_code:str, url:str, user_agent:str=None) -> None:

@@ -91,8 +91,9 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
     # Overide default filenames if new ones provided in config
     if actor and actor.get_file_names():
         file_names = actor.get_file_names()
-    if actor and actor.get_file_extensions():
-        file_extensions = actor.get_file_extensions()
+    else:
+        # Randomly append filenames
+        file_names = [f"{file_name}.{random.choice(file_extensions)}" for file_name in file_names]
 
     # Generate the URL
     for i in range(random.randint(1,max_depth)):
@@ -110,8 +111,7 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
             uri_path += f"?{param_name}={param_value}"
     elif uri_type == "malware_delivery":
         file_name = random.choice(file_names)
-        file_extension = random.choice(file_extensions)
-        uri_path += f"/{file_name}.{file_extension}"
+        uri_path += f"/{file_name}"
     elif uri_type == "credential_phishing":
         # crude but will do for now
         uri_path += f"/{random.choice(login_paths)}"
