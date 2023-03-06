@@ -64,7 +64,7 @@ def actor_password_spray(actor: Actor, num_employees:int = 25, num_passwords:int
 
     # target user with a particular role
     # TODO: abstract this out to the actor
-    targeted_employees = random.choices(get_employees(role="IT associate"), k=num_employees)
+    targeted_employees = random.choices(get_employees(roles_list=["IT associate"]), k=num_employees)
 
     spray_passwords = [f"{uuid.uuid4()}" for _ in range(num_passwords)]
 
@@ -106,8 +106,10 @@ def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:
         
         if Clock.is_business_hours(time):
             auth_ip = user.ip_addr
+            user_agent = user.user_agent
         else:
             auth_ip = user.home_ip_addr
+            user_agent = user.home_ua
 
         auth_result = random.choice(AUTH_RESULTS)
         if auth_result == "Successful Login":
@@ -120,7 +122,7 @@ def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:
             timestamp=time,
             username=user.username,
             src_ip= auth_ip,
-            user_agent=user.user_agent,
+            user_agent=user_agent,
             result= random.choice(AUTH_RESULTS),
             password=password
         )

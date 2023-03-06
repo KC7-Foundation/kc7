@@ -43,6 +43,8 @@ class Actor(Base):
     recon_search_terms          = db.Column(db.String(300))
     post_exploit_commands       = db.Column(db.String(1000))
     sender_emails               = db.Column(db.String(300))
+    watering_hole_domains       = db.Column(db.String(300))
+    watering_hole_target_roles  = db.Column(db.String(300))
 
     count_init_passive_dns      = db.Column(db.Integer)
     count_init_email            = db.Column(db.Integer)
@@ -54,12 +56,13 @@ class Actor(Base):
     generates_infrastructure    = db.Column(db.Boolean)
     spoofs_email                = db.Column(db.Boolean)
     
+    
 
     def __init__(self, name:str, effectiveness:int=50, domain_themes:list=[], sender_themes:list=[], 
                 subjects:list=[],  tlds:list=[], spoofs_email:bool=False, generates_infrastructure:bool=True, 
                 count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
                 file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[],
-                post_exploit_commands:list=[], difficulty="HARD"):
+                post_exploit_commands:list=[], difficulty="HARD", watering_hole_domains:list=[], watering_hole_target_roles:list=[]):
 
         print(f"Instantiating actor {name}....")
         self.name = name
@@ -75,6 +78,8 @@ class Actor(Base):
         self.file_extensions            = "~".join(file_extensions)  # Will end up getting replaces by malware configs
         self.malware                    = "~".join(malware)
         self.recon_search_terms         = "~".join(recon_search_terms)
+        self.watering_hole_domains      = "~".join(watering_hole_domains)
+        self.watering_hole_target_roles  = "~".join(watering_hole_target_roles)
         self.tlds                       = "~".join(tlds) or "~".join(['com','net','biz','org','us']) # TODO: Put this in a config or something
         self.spoofs_email               = spoofs_email
         self.generates_infrastructure   = generates_infrastructure
@@ -114,6 +119,14 @@ class Actor(Base):
     def ips_list(self):
         return [ip.address for ip in self.ips]
 
+    @property
+    def water_hole_domains_list(self):
+        return Actor.string_to_list(self.watering_hole_domains)
+
+    @property
+    def watering_hole_target_roles_list(self):
+        return Actor.string_to_list(self.watering_hole_target_roles)
+
     def get_attacks(self) -> "list[str]":
         """
         Converts string representation of file names into list
@@ -152,6 +165,10 @@ class Actor(Base):
         attacks = [attack.split(":")[1] for attack in attacks if attack_type in attack]
         return attacks    
 
+    
+    def get_payload_name(self) -> str:
+        pass
+
     def get_file_names(self) -> "list[str]":
         """
         Converts string representation of file names into list
@@ -165,9 +182,10 @@ class Actor(Base):
         return Actor.string_to_list(self.file_extensions)
 
 
-    def get_domain_name(self) -> str:
+    def get_hacky_domain_name(self) -> str:
         """
         Assemble a domain name using the list of theme words from the Actor object
+        THIS IS A HACK given that these don't apprea in the passiveDNSls
         """
         separators = ["","-" ]
         tlds = Actor.string_to_list(self.tlds)  
@@ -183,6 +201,9 @@ class Actor(Base):
         domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
 
         return domain
+
+    def get_domain(self):
+        return random.choice(self.domains_list)
 
 
     def get_ips(self, count_of_ips:int=10) -> "list[str]":
@@ -220,6 +241,7 @@ class Actor(Base):
             # print(Actor.string_to_list(self.sender_emails))
             return random.choice(Actor.string_to_list(self.sender_emails))
 
+
     def gen_partner_address(self) -> str:
         """
         Returns a partner email address
@@ -230,16 +252,21 @@ class Actor(Base):
         partner_domain = random.choice(company.get_partners())
         return f"{email_prefix}@{partner_domain}"
 
+
     def gen_sender_address(self) -> str:
         """Make a list of fake sender addresses"""
         sender_themes = Actor.string_to_list(self.sender_themes) 
 
-         # TODO: Centralize this list of freemail providers somewhere else (probably contants?)
-        email_domains = ['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com']
+         # TODO: Centralize this list of freemail providers somewhere else (probably constants?)
+         # let's not use all of the domains for every actor. this minimized their legitimacy as a TTP
+        email_domains = random.choices(
+            ['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com'],
+            k=random.randint(1,3)
+        )
 
         # just for fun: add and actor domain in the mix: so 1/8 chance senderd domain will be actor domain
         # TODO: make this selectable 
-        email_domains.append(self.get_domain_name())
+        email_domains.append(self.get_hacky_domain_name())
         # senders will come in one of two flavors
         # 1. themed_word@freemail.com
         # 2. themed_word@actordomain.com

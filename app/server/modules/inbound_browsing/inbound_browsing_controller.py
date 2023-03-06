@@ -71,6 +71,7 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
             # We do not want random mail browsing for malicious actor
             employee = get_random_employee()
             src_ip = employee.home_ip_addr  #overide this value with the employee's home IP 
+            user_agent = employee.home_ua
             uri_path = make_email_exfil_url(employee.username, add_prefix=False)
         elif browsing_type == BrowsingType.SEARCH.value:
             if not actor.is_default_actor and actor.get_recon_search_terms():
@@ -90,7 +91,7 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
             # recon will happen a couple days back
             time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
 
-        gen_inbound_request(time, src_ip, method, status_code, url)
+        gen_inbound_request(time, src_ip, method, status_code, url, user_agent=(user_agent or None))
 
 
 def gen_inbound_request(time:float, src_ip:str, method:str, status_code:str, url:str, user_agent:str=None) -> None:

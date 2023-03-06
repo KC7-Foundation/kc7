@@ -6,6 +6,7 @@ attacks:
   - recon:browsing
   - delivery:supply_chain
   - email:malware_delivery
+  - watering_hole:malware_delivery
 domain_themes:
   - software
   - update
@@ -50,6 +51,11 @@ tlds:
   - com
   - io
   - info
-spoof_email: False
+spoofs_email: False
 malware:
   - unhelpfuldesk
+watering_hole_domains:
+  - compedsupplychainwebsite.com
+watering_hole_target_roles:
+  - Finance associate
+  - CEO

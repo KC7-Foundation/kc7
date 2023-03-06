@@ -32,11 +32,13 @@ class AttackTypes(Enum):
     """
     An enum to describe types of attacks that cna be conducted by an actor
     """
-    PHISHING_VIA_EMAIL              = "delivery:supply_chain"
+    PHISHING_VIA_EMAIL              = "email:phishing"
     MALWARE_VIA_EMAIL               = "email:malware_delivery"
     SUPPLY_CHAIN_VIA_EMAIL          = "delivery:supply_chain"
     PASSWORD_SPRAY                  = "identity:password_spray"
     RECONNAISSANCE_VIA_BROWSING     = "recon:browsing"
+    MALWARE_VIA_WATERING_HOLE       = "watering_hole:malware_delivery"
+    PHISHING_VIA_WATERING_HOLE      = "watering_hole:phishing"
 
 
 def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
@@ -116,20 +118,27 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
     return uri_path
 
 
-def get_employees(role=None) -> "list[Employee]":
+def get_employees(roles_list=None, count=None) -> "list[Employee]":
     """
     Get a list of employees and conditionally query by a role (other colums can be implemented later)
     """
-    if role:
+    if isinstance(roles_list, str):
+        roles_list = [roles_list]
+
+    if roles_list:
         # filter by this rle
-        pass
         employees = [
             employee for employee in
-            Employee.query.filter_by(role=role).all()
+            Employee.query.filter(Employee.role.in_(roles_list)).all()
         ]
     else:
         employees = [employee for employee in Employee.query.all()]
+
+    if count:
+        return random.choices(employees, k=count)
+
     return employees
+
 
 def get_random_employee() -> Employee:
     """
@@ -137,11 +146,14 @@ def get_random_employee() -> Employee:
     """
     return random.choice(get_employees())
 
+
 def get_company() -> Company:
     return Company.query.first()
 
+
 def get_actors() -> "list[Actor]":
     return Actor.query.all()
+
 
 def get_time() -> float:
     # time is returned as timestamp (float)

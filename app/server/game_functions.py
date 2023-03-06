@@ -185,7 +185,17 @@ def generate_activity(actor: Actor, employees: list,
 
     # Perform password spray attack
     if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
-        actor_password_spray(actor=actor, num_employees=random.randint(5,50), num_passwords=5)
+        actor_password_spray(
+            actor=actor, 
+            num_employees=random.randint(5,50),
+            num_passwords=5
+        )
+    if AttackTypes.MALWARE_VIA_WATERING_HOLE.value in actor.get_attacks():
+        actor_stages_malware_on_watering_hole(
+            actor=actor,
+            num_employees=random.randint(5, 10)
+        )
+
 
     # Generate browsing activity for random emplyoees for the default actor
     # browsing for other actors should only come through email clicks

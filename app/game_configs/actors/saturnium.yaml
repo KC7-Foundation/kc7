@@ -53,4 +53,4 @@ tlds:
   - med
   - bio
   - science
-spoof_email: True
+spoofs_email: True

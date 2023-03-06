@@ -5,6 +5,7 @@ import ipaddress
 from json import JSONEncoder
 from faker import Faker
 from faker.providers import internet, user_agent, person
+from user_agent import generate_user_agent, generate_navigator
 from sqlalchemy import func
 import names
 
@@ -73,7 +74,7 @@ class Company(Base):
         employee = Employee(
             timestamp=timestamp or account_creation_datetime or Clock.get_current_gametime(),
             name= name or  self.get_employee_name(),
-            user_agent=user_agent or fake.chrome(),
+            # user_agent=generate_user_agent(os=('win')),
             ip_addr=self.get_internal_ip(),
             company=self,
             role=self.get_role()
@@ -173,7 +174,8 @@ class Employee(Base):
     name                = db.Column(db.String(50))
     user_agent          = db.Column(db.String(50))
     ip_addr             = db.Column(db.String(50))
-    home_ip_addr        = db.Column(db.String(50))  # sometimes the user needs to login from home
+    home_ip_addr        = db.Column(db.String(50))  # sometimes the user needs to login from home - this is their home IP
+    home_ua             = db.Column(db.String(50))   # this is their home user agent
     awareness           = db.Column(db.Integer)
     email_addr          = db.Column(db.String(50))
     username            = db.Column(db.String(50))
@@ -187,13 +189,14 @@ class Employee(Base):
     company = db.relationship(
         'Company', backref=db.backref('employees', lazy='dynamic'))
 
-    def __init__(self, name: str, user_agent: str, ip_addr: str, company: Company, 
-                timestamp:float, role:str="") -> None:
+    def __init__(self, name: str, ip_addr: str, company: Company, 
+                timestamp:float, role:str="",  user_agent: str=None,) -> None:
         self.name = name
         
-        self.user_agent = user_agent
+        self.user_agent = generate_user_agent(os=('win'))
         self.ip_addr = ip_addr
         self.home_ip_addr = fake.ipv4_public()
+        self.home_ua = fake.user_agent()
         self.company = company
         # TODO: Make this global setting
         self.awareness = random.randint(30, 90)
