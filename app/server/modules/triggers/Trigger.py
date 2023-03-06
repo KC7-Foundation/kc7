@@ -58,38 +58,29 @@ class Trigger:
             # add time delay
             time = Clock.increment_time(email.time, click_delay)
 
-            browse_website(recipient, email.link, time)
-            Trigger.update_team_scores_for_browsing(email.domain)
+            Trigger.user_clicks_link(recipient=recipient, link=email.link, actor=email.actor, time=time)
 
-            if ("." in email.link.split("/")[-1]) and ("html" not in email.link): # could be cleaner
-                # This is a link to a file
-                #  #TODO make this more elegant
-                Trigger.user_downloads_file(recipient, email, time)
-            elif email.actor.name != "Default":
-                Trigger.actor_auths_into_user_email(recipient, email, time)
 
     @staticmethod
-    def update_team_scores_for_browsing(domain: str) -> None:
+    def user_clicks_link(recipient:Employee, link:str, actor:Actor, time:float):
         """
-        For each actor domain seen in email
-            - if a user clicks on the malicious domain in email
+        A user clicks a link
+        can be from an email or otherwise
         """
-        teams = Team.query.all()
+        if ("." in link.split("/")[-1]) and ("html" not in link): # could be cleaner
+            # This could be conditionals
+            Trigger.user_downloads_file(recipient=recipient, link=link, actor=actor, time=time)
+        elif actor.name != "Default":
+            Trigger.actor_auths_into_user_email(recipient=recipient, actor=actor, time=time)
 
-        for team in teams:
-            if domain not in team._mitigations:
-                team.score = team.score - 50
-                db.session.commit()
-                # TODO: Generate a logon attempt for the recipient (random success/fail rate??)
-                # print(f"The user {recipient.name} opened this email!")
 
     @staticmethod
-    def user_downloads_file(recipient: Employee, email: Email, time: float) -> None:
+    def user_downloads_file(recipient: Employee, link: str, actor:Actor, time: float) -> None:
         """
         When a user clicks a bad link, they download a malicioud file
         Write a file to the filesystem
         """
-        filename = email.link.split(
+        filename = link.split(
             "/")[-1]  # in the future, this should be parsed from the link
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
@@ -104,18 +95,18 @@ class Trigger:
 
         # if user runs the file then beacon from user machine
         # there should be a condition here
-        if email.actor.name != "Default":
-            if email.actor.malware:
+        if actor.name != "Default":
+            if actor.malware:
                 payload_time = Clock.delay_time_by(start_time=time, factor="seconds")
-                Trigger.email_attachment_drops_payload(recipient, payload_time, email)
+                Trigger.email_attachment_drops_payload(recipient, payload_time, actor)
 
     @staticmethod
-    def email_attachment_drops_payload(recipient: Employee, time: float, email: Email) -> None:
+    def email_attachment_drops_payload(recipient: Employee, time: float, actor: Actor) -> None:
         """
         When a file is downloaded from a URL sent by a malicious actor, an implant will be dropped
         This will also trigger a process
         """
-        malware_family_to_drop = email.actor.get_random_malware_name()
+        malware_family_to_drop = actor.get_random_malware_name()
         malware = get_malware_by_name(malware_family_to_drop)
         implant = malware.get_implant()
         write_file_to_host(
@@ -125,17 +116,17 @@ class Trigger:
         )
         
         process_creation_time = Clock.delay_time_by(start_time=time, factor="minutes")
-        Trigger.payload_creates_processes(recipient, process_creation_time, email, malware, payload=implant)
+        Trigger.payload_creates_processes(recipient, process_creation_time, actor, malware, payload=implant)
 
     @staticmethod
-    def payload_creates_processes(recipient: Employee, time: float, email: Email, malware: Malware, payload: File) -> None:
+    def payload_creates_processes(recipient: Employee, time: float, actor: Actor, malware: Malware, payload: File) -> None:
         """
         When a payload is dropped to a user's system, it should also spawn processes.
         The processes that are spawned are defined in the malware config
         """
         print("Got to KC6...")
         # Get a C2 IP from the Actor's infrastructure
-        c2_ip = email.actor.get_ips(count_of_ips=1)[0]
+        c2_ip = actor.get_ips(count_of_ips=1)[0]
         # Get random processes
         recon_process = malware.get_recon_process()
         c2_process = malware.get_c2_process(c2_ip)
@@ -154,8 +145,8 @@ class Trigger:
 
         # wait a couple hours before running post exploitation commands
         post_exploit_time = Clock.delay_time_by(start_time=time, factor="hours")
-        actor = email.actor
-        Trigger.actor_runs_post_exploitation_commands(recipient=recipient, time=post_exploit_time, actor=actor )
+        if actor.post_exploit_commands:
+            Trigger.actor_runs_post_exploitation_commands(recipient=recipient, time=post_exploit_time, actor=actor )
 
     @staticmethod
     def actor_runs_post_exploitation_commands(recipient: Employee, time: float, actor: Actor) -> None:
@@ -194,7 +185,7 @@ class Trigger:
 
 
     @staticmethod
-    def actor_auths_into_user_email(recipient:Employee, email: Email, time: float) -> None:
+    def actor_auths_into_user_email(recipient:Employee, actor: Actor, time: float) -> None:
         """
         After use clicks on a credential phishing link and enters their creds (we assume this for now)
         The threat actor will login to their account
@@ -207,7 +198,7 @@ class Trigger:
         time_delay = random.randint(5000, 99999)
         login_time = Clock.increment_time(time, time_delay)
         auth_results = ["Successful Login", "Failed Login"]
-        src_ip = email.actor.get_ips(count_of_ips=1)
+        src_ip = actor.get_ips(count_of_ips=1)
         
         result = random.choice(auth_results)
         if result == "Successful Login":

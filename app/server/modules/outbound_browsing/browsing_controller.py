@@ -56,3 +56,52 @@ def upload_event_to_azure(event):
     LOG_UPLOADER.send_request(
             data = [event.stringify()],
             table_name= "OutboundBrowsing")
+
+
+def actor_stages_malware_on_watering_hole(actor:Actor, num_employees:int):
+    """
+    Certain users click on a watering hole link, and download malware
+    """
+    from app.server.modules.triggers.Trigger import Trigger
+
+    if not actor.water_hole_domains_list:
+        raise Exception("You need to provide some watering_hole_domains in the actor config")
+
+    for employee in get_employees(roles_list=actor.watering_hole_target_roles_list, count=num_employees):
+        print(f"DOING WATERING STUFF for {employee.name} with role {employee.role}")
+        
+        water_hole_domain = random.choice(actor.water_hole_domains_list) 
+        actor_domain = actor.get_domain()
+
+        print(actor_domain)
+
+        redirect_url = f"https://{water_hole_domain}?redirect={actor_domain}"
+        malicious_url = (
+         "https://"
+         + actor_domain 
+         + "/"
+         + get_uri_path(
+                max_depth=2, 
+                max_params=2, 
+                uri_type="malware_delivery", 
+                actor=actor
+            )
+        )
+        
+        time = Clock.delay_time_by(start_time=time, factor="hours")
+
+        # first browse to the compromised website and get redirected
+        browse_website(
+            employee=employee,
+            link= redirect_url,
+            time=time,
+            method="GET"
+        )
+
+        # then browse to the malicious url
+        Trigger.user_clicks_link(
+            recipient=employee,
+            link=malicious_url,
+            actor=actor,
+            time=Clock.delay_time_by(start_time=time, factor="seconds")
+        )

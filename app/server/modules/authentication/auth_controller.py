@@ -64,7 +64,7 @@ def actor_password_spray(actor: Actor, num_employees:int = 25, num_passwords:int
 
     # target user with a particular role
     # TODO: abstract this out to the actor
-    targeted_employees = random.choices(get_employees(role="IT associate"), k=num_employees)
+    targeted_employees = random.choices(get_employees(roles_list=["IT associate"]), k=num_employees)
 
     spray_passwords = [f"{uuid.uuid4()}" for _ in range(num_passwords)]
 
