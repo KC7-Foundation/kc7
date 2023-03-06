@@ -37,7 +37,6 @@ class Actor(Base):
     sender_themes               = db.Column(db.String(300))
     subjects                    = db.Column(db.String(300))
     file_names                  = db.Column(db.String(300))
-    file_extensions             = db.Column(db.String(300))
     tlds                        = db.Column(db.String(300))
     malware                     = db.Column(db.String(300))
     recon_search_terms          = db.Column(db.String(300))
@@ -75,7 +74,6 @@ class Actor(Base):
         self.sender_themes              = "~".join(sender_themes)
         self.subjects                   = "~".join(subjects)
         self.file_names                 = "~".join(file_names)       # Will end up getting replaces by malware configs
-        self.file_extensions            = "~".join(file_extensions)  # Will end up getting replaces by malware configs
         self.malware                    = "~".join(malware)
         self.recon_search_terms         = "~".join(recon_search_terms)
         self.watering_hole_domains      = "~".join(watering_hole_domains)
@@ -174,13 +172,6 @@ class Actor(Base):
         Converts string representation of file names into list
         """
         return Actor.string_to_list(self.file_names)
-
-    def get_file_extensions(self) -> "list[str]":
-        """
-        Converts string representation of file extensions into list
-        """
-        return Actor.string_to_list(self.file_extensions)
-
 
     def get_hacky_domain_name(self) -> str:
         """

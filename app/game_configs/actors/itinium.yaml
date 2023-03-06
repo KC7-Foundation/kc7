@@ -41,12 +41,12 @@ recon_search_terms:
   - password expiration policy
   - default password EnvolveLabs
 file_names:
-  - Software_Update
-  - IT_PASSWORD_RESET_TOOL
-  - Critical_Security_Path
-  - Patch_instructions
-  - EnvolveLabs_Research_Tool
-  - IMPORTANT_INSTRUCTIONS
+  - Software_Update.docx
+  - IT_PASSWORD_RESET_TOOL.docx
+  - Critical_Security_Path.docx
+  - Patch_instructions.docx
+  - EnvolveLabs_Research_Tool.docx
+  - IMPORTANT_INSTRUCTIONS.docx
 tlds:
   - com
   - io
