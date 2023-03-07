@@ -38,7 +38,7 @@ class SentenceGenerator:
         if "http" in self.word_source:
             response = requests.get(self.word_source).text
         else:
-            with open(self.word_source) as f:
+            with open(self.word_source, encoding="utf-8") as f:
                 response = f.read()
 
         # remove unwanted characters

