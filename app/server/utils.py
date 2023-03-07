@@ -155,14 +155,6 @@ def get_actors() -> "list[Actor]":
     return Actor.query.all()
 
 
-def get_time() -> float:
-    # time is returned as timestamp (float)
-    current_session = db.session.query(GameSession).get(1)
-    time = Clock.get_current_gametime(start_time=current_session.start_time,
-                                    seed_date=current_session.seed_date)
-
-    return time
-
 def get_email_prefix() -> str:
     return "_".join(names.get_full_name().split(" ")).lower()
 
@@ -188,3 +180,12 @@ def timing(f):
         return result
     return wrap
 
+# @timing
+def get_time() -> float:
+    # time is returned as timestamp (float)
+    from app.server.game_functions  import GAME_START_TIME, GAME_SEED_DATE
+
+    time = Clock.get_current_gametime(start_time=str(GAME_START_TIME),
+                                    seed_date=GAME_SEED_DATE)
+
+    return time

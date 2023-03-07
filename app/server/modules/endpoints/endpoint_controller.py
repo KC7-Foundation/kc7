@@ -23,6 +23,7 @@ fake.add_provider(internet)
 fake.add_provider(lorem)
 fake.add_provider(file)
 
+@timing
 def gen_system_files_on_host(count_of_events:int=10) -> None:
     """
     Generates FileCreationEvents for system files generated on a host
@@ -36,6 +37,7 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
     }
     """
     hash_path_pairs = random.choices(list(LEGIT_WINDOWS_FILES.items()), k=count_of_events)
+    file_creation_events = []
     for hash, path in hash_path_pairs:
         file_creation_event = FileCreationEvent(
             hostname=get_random_employee().hostname, #Pick a random employee to generate system files
@@ -44,52 +46,59 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
             path="C:/"+path, # Add a drive letter
             sha256=hash
         )
-        upload_file_creation_event_to_azure(file_creation_event)    
+        file_creation_events.append(file_creation_event)
+        
+    upload_endpoint_event_to_azure(file_creation_events)    
 
-def gen_system_processes_on_host(count_of_user_events:int=20) -> None:
+
+def gen_system_processes_on_host(count_of_user_events:int=10) -> None:
     """
     Generates ProcessEvents for users
     """
-    for _ in range(count_of_user_events):
-        employee = get_random_employee()
-        process = get_legit_user_process(
-            username=employee.username, 
-            filename=fake.file_name(category='office')
-        )
-        parent_name, parent_hash = random.choice(list(LEGIT_PARENT_PROCESSES.items()))
+    employees = get_employees()
+    process_events = []
 
-        process_event=ProcessEvent(
-            timestamp=get_time(),
-            parent_process_name=parent_name,
-            parent_process_hash=parent_hash,
-            process_commandline=process.process_commandline,
-            process_name=process.process_name,
-            hostname=employee.hostname,
-            username=employee.username,
-        )
-        upload_process_creation_event_to_azure(process_event)
+    for employee in employees:
+        for _ in range(count_of_user_events):
+            process = get_legit_user_process(
+                username=employee.username, 
+                filename=fake.file_name(category='office')
+            )
+            parent_name, parent_hash = random.choice(list(LEGIT_PARENT_PROCESSES.items()))
+
+            process_event=ProcessEvent(
+                timestamp=get_time(),
+                parent_process_name=parent_name,
+                parent_process_hash=parent_hash,
+                process_commandline=process.process_commandline,
+                process_name=process.process_name,
+                hostname=employee.hostname,
+                username=employee.username,
+            )
+            process_events.append(process_event)
+
+        #Generates ProcessEvents for system
+        for _ in range(count_of_user_events * 2):
+            process = get_legit_system_process(
+                username=employee.username, 
+                filename=fake.file_name(category='office')
+            )
+            parent_name, parent_hash = random.choice(list(LEGIT_SYSTEM_PARENT_PROCESSES.items()))
+
+            process_event=ProcessEvent(
+                timestamp=get_time(),            
+                parent_process_name=parent_name,
+                parent_process_hash=parent_hash,
+                process_commandline=process.process_commandline,
+                process_name=process.process_name,
+                hostname=employee.hostname,
+                username="System"
+            )
+
+            process_events.append(process_event)
+
+    upload_endpoint_event_to_azure(process_events)
     
-    """
-    Generates ProcessEvents for system
-    """
-    for _ in range(100):
-        employee = get_random_employee()
-        process = get_legit_system_process(
-            username=employee.username, 
-            filename=fake.file_name(category='office')
-        )
-        parent_name, parent_hash = random.choice(list(LEGIT_SYSTEM_PARENT_PROCESSES.items()))
-
-        process_event=ProcessEvent(
-            timestamp=get_time(),            
-            parent_process_name=parent_name,
-            parent_process_hash=parent_hash,
-            process_commandline=process.process_commandline,
-            process_name=process.process_name,
-            hostname=employee.hostname,
-            username="System"
-        )
-        upload_process_creation_event_to_azure(process_event)
 
 def get_legit_system_process(username: str = None, filename: str = None) -> Process:
     """
@@ -131,6 +140,7 @@ def get_legit_user_process(username: str = None, filename: str = None) -> Proces
         process_commandline=process_commandline
     )
 
+@timing
 def gen_user_files_on_host(count_of_events:int=10) -> None:
     """
     Generates FileCreationEvents for user files generated on a host
@@ -158,35 +168,31 @@ def gen_user_files_on_host(count_of_events:int=10) -> None:
         )
 
 
-def upload_file_creation_event_to_azure(event: FileCreationEvent, table_name: str = "FileCreationEvents") -> None:
-
-    """
-    A function to upload a FileCreationEvent to ADX
-    References global LOG_UPLOADER to queue log rows for uploading
-    """
-
-    from app.server.game_functions import LOG_UPLOADER
-    LOG_UPLOADER.send_request(
-        data=[event.stringify()],
-        table_name=table_name)
-
-def upload_process_creation_event_to_azure(event: ProcessEvent, table_name: str = "ProcessEvents") -> None:
+def upload_endpoint_event_to_azure(events: ProcessEvent, table_name: str = "ProcessEvents") -> None:
 
     """
     A function to upload a ProcessCreationEvent to ADX
+    take either one event or a list of events 
     References global log_uploader to queue log rows for uploading
     """
-
     from app.server.game_functions import LOG_UPLOADER
+        
+    if isinstance(events, list):
+        data = [event.stringify() for event in events ]
+    else:
+        # it should just be an event obj
+        data = [events.stringify()]
+
     LOG_UPLOADER.send_request(
-        data=[event.stringify()],
+        data=data,
         table_name=table_name)
+
 
 def write_file_to_host(hostname: str, timestamp: float, file: File) -> None:
     """
     Uploads a FileCreationEvent for a given host, time, and File
     """
-    upload_file_creation_event_to_azure(
+    upload_endpoint_event_to_azure(
         FileCreationEvent(
             hostname=hostname,
             timestamp=timestamp,
@@ -201,7 +207,7 @@ def create_process_on_host(hostname: str, timestamp: float, parent_process_name:
     """
     Uploads a ProcessEvent for a given host, time, parent process, and process
     """
-    upload_process_creation_event_to_azure(
+    upload_endpoint_event_to_azure(
         ProcessEvent(
             timestamp=timestamp,
             hostname=hostname,

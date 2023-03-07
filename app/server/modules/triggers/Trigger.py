@@ -17,8 +17,7 @@ from app.server.modules.endpoints.file_creation_event import FileCreationEvent, 
 from app.server.modules.endpoints.processes import Process, ProcessEvent
 from app.server.modules.endpoints.endpoint_alerts import EndpointAlert
 from app.server.modules.endpoints.endpoint_controller import (
-    upload_file_creation_event_to_azure, 
-    upload_process_creation_event_to_azure,
+    upload_endpoint_event_to_azure, 
     write_file_to_host,
     create_process_on_host )
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
@@ -91,7 +90,7 @@ class Trigger:
         )
 
         # This will come from the filesystem controller
-        upload_file_creation_event_to_azure(file_creation_event)
+        upload_endpoint_event_to_azure(file_creation_event)
 
         # if user runs the file then beacon from user machine
         # there should be a condition here
@@ -124,7 +123,6 @@ class Trigger:
         When a payload is dropped to a user's system, it should also spawn processes.
         The processes that are spawned are defined in the malware config
         """
-        print("Got to KC6...")
         # Get a C2 IP from the Actor's infrastructure
         c2_ip = actor.get_ips(count_of_ips=1)[0]
         # Get random processes

@@ -46,25 +46,22 @@ def start_game() -> None:
     global MALWARE_OBJECTS
     MALWARE_OBJECTS = create_malware()
 
-    # instantiate a global mapping of hashes to malware families. 
-    # this is updated to make sure we and a 1-1 mapping of hashes <-> malware types
-    # global FILE_HASH_MALWARE_MAPPING 
-    # FILE_HASH_MALWARE_MAPPING = {}
-    # assign_hash_to_malware()
-
-    # The the current game session
+    # The is current game session
     # This data object tracks whether or not the game is currently running
     # It allows us to start/stop/restart the game from the views
     current_session = db.session.query(GameSession).get(1)
     current_session.state = True
 
-    # instantiate the clock
-    print(f"Game started at {current_session.start_time}")
-    game_start_time = get_time()
+    # get the time manually
+    # we are caching this value
+    global GAME_START_TIME
+    GAME_START_TIME = current_session.start_time
 
-    # TODO: allow users ot modify start time in the web UI
-    db.session.commit()
+    global GAME_SEED_DATE
+    GAME_SEED_DATE = current_session.seed_date
     
+    print(f"Game started at {current_session.start_time}")
+    # TODO: allow users ot modify start time in the web UI    
     # run startup functions 
     employees = Employee.query.all()
     actors = Actor.query.all()
@@ -72,7 +69,6 @@ def start_game() -> None:
         employees, actors  = init_setup()
     
     print("initialization complete...")
-
     # This is where the action is
     # While this infinite loop runs, the game continues to generate data
     # To implement games of finite size -> bound this loop (e.g. use a for loop instead)
@@ -103,6 +99,7 @@ def start_game() -> None:
     ##########################################
     # deg statements to help time tracking
     # on average, one cycle=one day in game
+    game_start_time = get_time()
     game_end_time =  get_time()
     days_elapse_in_game = (game_end_time - game_start_time) /(60*60*24)
     print(f"Game started at {Clock.from_timestamp_to_string(game_start_time)}")
