@@ -41,11 +41,22 @@ class AttackTypes(Enum):
     PHISHING_VIA_WATERING_HOLE      = "watering_hole:phishing"
 
 
+def timing(f):
+    @wraps(f)
+    def wrap(*args, **kw):
+        ts = time()
+        result = f(*args, **kw)
+        te = time()
+        print(f"function {f.__name__} took: {te-ts}")
+        # print 'func:%r args:[%r, %r] took: %2.4f sec' % (f.__name__, args, kw, te-ts)
+        return result
+    return wrap
+
+# @timing
 def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
     """Get a link containing actor's domain"""
 
     domain = random.choice(actor_domains)
-
 
     try:
         uri_type = random.choice(actor.get_attacks_by_type("email"))
@@ -169,16 +180,7 @@ def write_seed_files(max_num_files: int = 25):
         file.write(file_string)
 
 
-def timing(f):
-    @wraps(f)
-    def wrap(*args, **kw):
-        ts = time()
-        result = f(*args, **kw)
-        te = time()
-        print(f"function {f.__name__} took: {te-ts}")
-        # print 'func:%r args:[%r, %r] took: %2.4f sec' % (f.__name__, args, kw, te-ts)
-        return result
-    return wrap
+
 
 # @timing
 def get_time() -> float:
@@ -189,3 +191,11 @@ def get_time() -> float:
                                     seed_date=GAME_SEED_DATE)
 
     return time
+
+
+# Yield successive n-sized
+# chunks from l.
+def divide_chunks(l, n):
+    # looping till length l
+    for i in range(0, len(l), n):
+        yield l[i:i + n]

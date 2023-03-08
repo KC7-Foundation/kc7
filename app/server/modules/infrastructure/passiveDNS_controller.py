@@ -28,6 +28,7 @@ def difficulty_to_dns_threads(difficulty):
         raise Exception("Invalid difficulty assigned")
 
 
+@timing
 def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
     """
     Generate passive DNS entries 
@@ -46,7 +47,7 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
     """
     # For all non-default actors, indicators should be pivotable
     # Result is that 3x number of specified records will be created
-    print(f"Generting {count_of_records} records for actor {actor}")
+    # print(f"Generting {count_of_records} records for actor {actor}")
     new_records = []
 
     if not actor.is_default_actor and actor.generates_infrastructure:

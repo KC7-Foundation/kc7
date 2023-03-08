@@ -292,7 +292,7 @@ class Employee(Base):
         return (
             "Employees",  # table name
             {             # type dict
-                "timestamp":"string",
+                "timestamp":"datetime",
                 "name": "string",
                 "user_agent": "string",
                 "ip_addr": "string",

@@ -48,8 +48,7 @@ class FileCreationEvent(File):
             "hostname": self.hostname,
             "sha256": self.sha256,
             "path": self.path.replace("/","\\"),
-            "filename": self.filename,
-            "size": self.size
+            "filename": self.filename
         }
 
     @staticmethod
@@ -58,11 +57,10 @@ class FileCreationEvent(File):
         return (
             'FileCreationEvents',  # table name in KQL
             {                     # dict representation of column names:types
-                'timestamp': 'string',
+                'timestamp': 'datetime',
                 'hostname': 'string',
                 'sha256': 'string',
                 'path': 'string',
-                'filename': 'string',
-                'size': 'int'
+                'filename': 'string'
             }
         )

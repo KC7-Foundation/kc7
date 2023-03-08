@@ -126,7 +126,7 @@ def init_setup():
     # if they do not already exist
     if not employees:
         create_company()
-        print("making employeesq")
+        print("making employees")
         employees = Employee.query.all()
         print(f"made {len(employees)} employees")
     if not actors:
@@ -162,7 +162,8 @@ def generate_activity(actor: Actor, employees: list,
                         num_passive_dns:int=500, num_email:int=1000, 
                         num_random_browsing:int=500, 
                         num_auth_events:int=400,
-                        count_of_endpoint_events=300) -> None:
+                        count_of_user_endpoint_events=5,
+                        count_of_system_endpoint_events=100) -> None:
     """
     Given an actor, generates one cycle of activity for users in the orgs
     Current:
@@ -200,9 +201,9 @@ def generate_activity(actor: Actor, employees: list,
         browse_random_website(employees, actor, num_random_browsing)
         auth_random_user_to_mail_server(employees, num_auth_events)
         gen_inbound_browsing_activity(actor, num_random_browsing)
-        gen_system_files_on_host(count_of_endpoint_events)
-        gen_user_files_on_host(count_of_endpoint_events)
-        gen_system_processes_on_host(count_of_endpoint_events)
+        gen_system_files_on_host(count_of_system_endpoint_events)
+        gen_user_files_on_host(count_of_user_endpoint_events)
+        gen_system_processes_on_host(count_of_system_endpoint_events)
 
 def create_actors() -> None:
     """
