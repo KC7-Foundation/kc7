@@ -43,6 +43,7 @@ def get_random_actor():
     """Return a random actor from the database"""
     pass
 
+@timing
 def gen_email(employees: "list[Employee]", partners: "list[str]", actor: Actor, count_emails:int) -> None:
     """
     Make a call to the Azure email function

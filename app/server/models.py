@@ -178,7 +178,7 @@ class GameSession(Base):
     seed_date       = db.Column(db.String(50))  
     time_multiplier = db.Column(db.Integer())
 
-    def __init__(self, state, start_time, seed_date="2022-01-01", time_multiplier=1000):
+    def __init__(self, state, start_time, seed_date="2023-02-01", time_multiplier=1000):
         self.state = False
         self.seed_date = seed_date    # starting date for the game
         self.start_time = start_time  # real life start time of game

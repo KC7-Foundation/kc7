@@ -27,7 +27,7 @@ class DNSRecord(Base):
         return (
             "PassiveDns",
             {
-                "timestamp": "string",
+                "timestamp": "datetime",
                 "ip":"string",
                 "domain":"string"
             }

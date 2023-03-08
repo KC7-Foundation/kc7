@@ -18,6 +18,7 @@ AUTH_RESULTS = ["Successful Login", "Failed Login"]
 fake = Faker()
 fake.add_provider(user_agent)
 
+@timing
 def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events:int) -> None:
     """
     Get a random company user and have them login to the mail server
@@ -54,6 +55,7 @@ def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events:
             password=password
         )
 
+@timing
 def actor_password_spray(actor: Actor, num_employees:int = 25, num_passwords:int = 5) -> None:
     """
     Launches a password spray attack from a given actor given a specific actor

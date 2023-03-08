@@ -31,6 +31,7 @@ class BrowsingType(Enum):
     SEARCH = 4
     OTHER = 5
 
+@timing
 def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=10) -> None:
     """
     Generate browsing to the company's website by random users

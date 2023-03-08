@@ -34,7 +34,7 @@ class AuthenticationEvent:
         return (
             'AuthenticationEvents',  # table name in KQL
             {                     # dict representation of column names:types
-                'timestamp': 'string',
+                'timestamp': 'datetime',
                 'hostname': 'string',
                 'src_ip': 'string',
                 'user_agent': 'string',

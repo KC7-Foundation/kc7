@@ -205,8 +205,9 @@ class LogUploader():
                 try:
                     # if possible sort value using the "timestamp" column
                     data_table_df = data_table_df.sort_values("timestamp", ascending=True)
-                except:
-                    pass
+                except Exception as e:
+                    print(f"failed to sort rows: {e}")
+
 
                 print(f"uploading data for type {table_name}")
                 print(data_table_df.shape)
@@ -216,13 +217,16 @@ class LogUploader():
                     # Then, return early to prevent queueing and uploading to ADX
                     print(f"Uploading to table {table_name}...")
 
-                    print(data_table_df.to_markdown())
+                    # print(data_table_df.to_markdown())
                 else:
                     # submit logs to Kusto
-                    result = self.ingest.ingest_from_dataframe(
+                    result =  self.ingest.ingest_from_dataframe(
                         data_table_df, ingestion_properties=self.ingestion_props)
                     print(result)
-                    print(f"....adding data to azure for {table_name} table")
+                    print(f"....adding {data_table_df.shape} to azure for {table_name} table")
 
             # reset the quee
             self.queue = {}
+        else:
+            pass
+            # print(f"======> Submission queue @ {self.get_queue_length()}")

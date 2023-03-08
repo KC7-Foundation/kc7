@@ -44,7 +44,7 @@ class InboundBrowsingEvent:
         return (
             "InboundBrowsing",         # table name
             {                           # type dict
-                  "timestamp": "string",
+                  "timestamp": "datetime",
                   "method": "string",
                   "src_ip": "string",
                   "user_agent":"string",

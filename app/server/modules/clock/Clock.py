@@ -2,6 +2,7 @@ from code import interact
 from datetime import datetime
 from pickletools import floatnl
 from random import randint
+import random
 
 class Clock():
     """
@@ -104,20 +105,24 @@ class Clock():
         return start_time + increment
 
     @staticmethod
-    def delay_time_by(start_time: float, factor: str, is_negative=False) -> float:
+    def delay_time_by(start_time: float, factor: str, is_negative=False, is_random=False) -> float:
         """
-        Increment time by hours, minutes, seconds
+        Increment time by month, days, hours, minutes, seconds
         """
-        if factor not in ["days","hours","minutes","seconds"]:
+        if factor not in ["month","days","hours","minutes","seconds"]:
             raise Exception('"factor" must be one of the following values: ["days","hours","minutes","seconds"]')
         
         days, hours, minutes, seconds = 0, 0, 0, 0
 
-        if is_negative:
+        if is_random:
+            direction = random.choice([1, -1])
+        elif is_negative:
             direction = -1
         else:
             direction = 1
 
+        if factor == "month":
+            days = randint(1, 31) * direction
         if factor == "days":
             days = randint(1, 7) * direction
         elif factor == "hours":

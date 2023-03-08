@@ -62,7 +62,7 @@ class ProcessEvent(Process):
         return (
             "ProcessEvents",
             {
-                "timestamp":"string",
+                "timestamp":"datetime",
                 "parent_process_name":"string",
                 "parent_process_hash":"string",
                 "process_commandline":"string",

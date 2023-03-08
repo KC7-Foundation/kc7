@@ -66,9 +66,17 @@ class Trigger:
         A user clicks a link
         can be from an email or otherwise
         """
+        browse_website(
+            employee=recipient,
+            link= link,
+            time=time,
+            method="GET"
+        )
+
         if ("." in link.split("/")[-1]) and ("html" not in link): # could be cleaner
-            # This could be conditionals
-            Trigger.user_downloads_file(recipient=recipient, link=link, actor=actor, time=time)
+            # This should be conditionals
+            if random.random() > (recipient.awareness * .01):
+                Trigger.user_downloads_file(recipient=recipient, link=link, actor=actor, time=time)
         elif actor.name != "Default":
             Trigger.actor_auths_into_user_email(recipient=recipient, actor=actor, time=time)
 
@@ -90,7 +98,7 @@ class Trigger:
         )
 
         # This will come from the filesystem controller
-        upload_endpoint_event_to_azure(file_creation_event)
+        upload_endpoint_event_to_azure(file_creation_event, table_name="FileCreationEvents")
 
         # if user runs the file then beacon from user machine
         # there should be a condition here
@@ -158,11 +166,14 @@ class Trigger:
 
         # Get a C2 IP from the Actor's infrastructure
         c2_ip = actor.get_ips(count_of_ips=1)[0]
+        c2_domain = actor.get_domain()
         # Get random processes
         processes = actor.get_exploit_processes()
 
         # Upload the recon and C2 processes to Azure
         for process in processes:
+            if random.random() > .9:
+                break
             # now turn the command into necessry process object
             # print("getting actor hands on keyboard")
             # print(process)
@@ -170,7 +181,7 @@ class Trigger:
             # turn process from dict into object
             process_obj = Malware.get_process_obj({
                 "name": process.get("name", None),
-                "process": process.get("process", None)
+                "process": process.get("process", None).replace("{actor_ip}", c2_ip).replace("{actor_domain}", c2_domain)
             })
 
             time = Clock.delay_time_by(start_time=time, factor="seconds")

@@ -79,7 +79,7 @@ class Email:
     def get_kql_repr() -> "tuple[str, dict[str,str]]":
         return (
             "Email", {
-                "event_time": "string",
+                "timestamp": "datetime",
                 "sender": "string",
                 "reply_to": "string",
                 "recipient": "string",

@@ -21,7 +21,7 @@ fake = Faker()
 fake.add_provider(internet)
 fake.add_provider(user_agent)
 
-
+@timing
 def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsing:int):
     """
     Generate n web requests to random websites on the internet    
@@ -58,6 +58,7 @@ def upload_event_to_azure(event):
             table_name= "OutboundBrowsing")
 
 
+@timing
 def actor_stages_malware_on_watering_hole(actor:Actor, num_employees:int):
     """
     Certain users click on a watering hole link, and download malware
@@ -67,13 +68,9 @@ def actor_stages_malware_on_watering_hole(actor:Actor, num_employees:int):
     if not actor.water_hole_domains_list:
         raise Exception("You need to provide some watering_hole_domains in the actor config")
 
-    for employee in get_employees(roles_list=actor.watering_hole_target_roles_list, count=num_employees):
-        print(f"DOING WATERING STUFF for {employee.name} with role {employee.role}")
-        
+    for employee in get_employees(roles_list=actor.watering_hole_target_roles_list, count=num_employees):        
         water_hole_domain = random.choice(actor.water_hole_domains_list) 
         actor_domain = actor.get_domain()
-
-        print(actor_domain)
 
         redirect_url = f"https://{water_hole_domain}?redirect={actor_domain}"
         malicious_url = (
