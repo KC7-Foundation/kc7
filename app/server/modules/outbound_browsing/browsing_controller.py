@@ -24,11 +24,20 @@ fake.add_provider(user_agent)
 @timing
 def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsing:int):
     """
-    Generate n web requests to random websites on the internet    
+    Generate n web requests to random websites on the internet  
+    # this should typically be for the default actor  
     """
 
     for _ in range(count_browsing):
-        link = get_link(actor=actor, actor_domains=actor.domains_list)
+        
+        # for default actor, browse partner domains 5% of the time
+        if actor.is_default_actor:
+            if random.random() < .05:
+                domains_to_browse = get_company().get_partners()
+            else:
+                domains_to_browse=actor.domains_list
+
+        link = get_link(actor=actor, actor_domains=domains_to_browse)
         employee = random.choice(employees)
 
         #Get the current game session from the database

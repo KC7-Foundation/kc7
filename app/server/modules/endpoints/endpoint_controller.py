@@ -24,7 +24,7 @@ fake.add_provider(lorem)
 fake.add_provider(file)
 
 @timing
-def gen_system_files_on_host(count_of_events:int=10) -> None:
+def gen_system_files_on_host(count_of_events:int=2) -> None:
     """
     Generates FileCreationEvents for system files generated on a host
     {
@@ -37,10 +37,11 @@ def gen_system_files_on_host(count_of_events:int=10) -> None:
     }
     """
     employees = get_employees(count=100)
+    file_creation_events = []
 
     for employee in employees:
         hash_path_pairs = random.choices(list(LEGIT_WINDOWS_FILES.items()), k=count_of_events)
-        file_creation_events = []
+        
         for hash, path in hash_path_pairs:
             file_creation_event = FileCreationEvent(
                 hostname=employee.hostname, #Pick a random employee to generate system files
