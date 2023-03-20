@@ -29,15 +29,15 @@ from app.server.game_functions import *
 main = Blueprint('main', __name__)
 
 
+# @main.route("/")
+# def home():
+#     print("initialization complete...")
+#     return redirect("/admin/manage_game")
+
+
+
 @main.route("/")
 def home():
-    print("initialization complete...")
-    return redirect(url_for('main.manage_game'))
-
-
-
-@main.route("/scoreboard")
-def scoreboard():
     return render_template("main/score.html")
 
 
