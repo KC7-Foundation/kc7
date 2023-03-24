@@ -47,7 +47,8 @@ class Domain(Base):
             # Splitting string representation of list from db into actual list
             domain_themes = self.actor.domain_theme_values
 
-        words = random.choices(domain_themes, k=random.randint(1,2))
+        domain_depth = self.actor.domain_depth or random.randint(1,2)
+        words = random.choices(domain_themes, k=domain_depth)
         domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
 
         return domain

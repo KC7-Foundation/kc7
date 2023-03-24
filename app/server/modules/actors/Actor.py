@@ -48,6 +48,7 @@ class Actor(Base):
     count_init_passive_dns      = db.Column(db.Integer)
     count_init_email            = db.Column(db.Integer)
     count_init_browsing         = db.Column(db.Integer)   # >:D
+    domain_depth                 = db.Column(db.Integer)
     max_wave_size               = db.Column(db.Integer) 
     difficulty                  = db.Column(db.String(50))
 
@@ -61,7 +62,8 @@ class Actor(Base):
                 subjects:list=[],  tlds:list=[], spoofs_email:bool=False, generates_infrastructure:bool=True, 
                 count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
                 file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[],
-                post_exploit_commands:list=[], difficulty="HARD", watering_hole_domains:list=[], watering_hole_target_roles:list=[]):
+                post_exploit_commands:list=[], difficulty="HARD", watering_hole_domains:list=[], watering_hole_target_roles:list=[],
+                domain_depth=None):
 
         print(f"Instantiating actor {name}....")
         self.name = name
@@ -70,7 +72,7 @@ class Actor(Base):
         # we can't have lists in a database, hence the funny business here
         # take in the list as a space delimited string - then split
         self.attacks                    = "~".join(attacks)
-        self.domain_themes              = "~".join(domain_themes + wordGenerator.get_words(10))  # adding random words for entropy
+        self.domain_themes              = "~".join(domain_themes)  # adding random words for entropy
         self.sender_themes              = "~".join(sender_themes)
         self.subjects                   = "~".join(subjects)
         self.file_names                 = "~".join(file_names)       # Will end up getting replaces by malware configs
@@ -87,6 +89,7 @@ class Actor(Base):
         self.max_wave_size              = int(max_wave_size)
         self.sender_emails              = "~".join(self.gen_sender_addresses())
         self.difficulty                 = difficulty
+        self.domain_depth               = domain_depth
 
         # post_exploit_commands come in as a list of dictionaries
         # turn the dicts into strings and join the list into a string
