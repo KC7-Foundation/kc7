@@ -159,7 +159,7 @@ def init_setup():
 
     
 def generate_activity(actor: Actor, employees: list, 
-                        num_passive_dns:int=500, num_email:int=1000, 
+                        num_passive_dns:int=300, num_email:int=1000, 
                         num_random_browsing:int=500, 
                         num_auth_events:int=400,
                         count_of_user_endpoint_events=5,
@@ -170,7 +170,7 @@ def generate_activity(actor: Actor, employees: list,
 
     The Default actor is used to represent normal company activities
     """
-    # print(f" activity for actor {actor.name}")
+    print(f" activity for actor {actor.name}")
     # Generate passive DNS for specified actor
     gen_passive_dns(actor, num_passive_dns)
 
@@ -230,7 +230,7 @@ def create_actors() -> None:
     default_actor = Actor(
         name = "Default",  # Dont change the name!
         effectiveness = 99,
-        count_init_passive_dns=5000, 
+        count_init_passive_dns=500, 
         count_init_email= 5000, 
         count_init_browsing=5000,
         domain_themes = wordGenerator.get_words(1000),
