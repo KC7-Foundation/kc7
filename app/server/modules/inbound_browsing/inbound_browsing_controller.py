@@ -49,7 +49,7 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
         method = "GET"
 
         # Generate a random sentence to be used for blog or search term
-        random_sentence =  sentenceGenerator.gen_sentence_nopunc()
+        random_sentence =  sentenceGenerator.genSentence()
 
         #weights determine likelyhood of each browsing type
         if actor.is_default_actor:
