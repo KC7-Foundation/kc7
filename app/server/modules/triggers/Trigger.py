@@ -25,6 +25,8 @@ from app.server.modules.authentication.auth_controller import auth_to_mail_serve
 from app.server.modules.file.malware_controller import get_malware_by_name
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_request, make_email_exfil_url
 from app.server.modules.file.malware import Malware
+from app.server.modules.constants.constants import FILE_CREATING_PROCESSES
+
 
 from app.server.utils import *
 
@@ -87,14 +89,17 @@ class Trigger:
         When a user clicks a bad link, they download a malicioud file
         Write a file to the filesystem
         """
+
         filename = link.split(
             "/")[-1]  # in the future, this should be parsed from the link
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
+            username=recipient.username,
             timestamp=time,
             filename=filename,
             # TODO: generate in filesystem instead
             path=f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
+            process_name=random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe'])
         )
 
         # This will come from the filesystem controller
@@ -105,21 +110,36 @@ class Trigger:
         if actor.name != "Default":
             if actor.malware:
                 payload_time = Clock.delay_time_by(start_time=time, factor="seconds")
-                Trigger.email_attachment_drops_payload(recipient, payload_time, actor)
+                Trigger.email_attachment_drops_payload(filename, recipient, payload_time, actor)
 
     @staticmethod
-    def email_attachment_drops_payload(recipient: Employee, time: float, actor: Actor) -> None:
+    def email_attachment_drops_payload(attachment_name:str, recipient: Employee, time: float, actor: Actor) -> None:
         """
         When a file is downloaded from a URL sent by a malicious actor, an implant will be dropped
         This will also trigger a process
         """
+        if ".doc" in attachment_name:
+            process_name = "winword.exe"
+        elif ".ppt" in attachment_name:
+            process_name = "ppt.exe"
+        elif ".xls" in attachment_name:
+            process_name = "excel.exe"
+        elif ".zip" in attachment_name:
+            process_name = "7zip.exe"
+        elif ".rar" in attachment_name:
+            process_name = "winrar.exe"
+        else:
+            process_name = "explorer.exe"
+
         malware_family_to_drop = actor.get_random_malware_name()
         malware = get_malware_by_name(malware_family_to_drop)
         implant = malware.get_implant()
         write_file_to_host(
             hostname=recipient.hostname,
+            username=recipient.username,
             timestamp=time,
-            file=implant
+            file=implant,
+            process_name=process_name
         )
         
         process_creation_time = Clock.delay_time_by(start_time=time, factor="minutes")
