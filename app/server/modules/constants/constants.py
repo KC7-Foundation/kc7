@@ -1,3 +1,4 @@
+from app.server.modules.endpoints.file_creation_event import File
 
 # Constants related to email exfil
 EMAIL_EXFIL_MAILBOX_FOLDER_NAMES = [
@@ -60,6 +61,78 @@ FILE_CREATING_PROCESSES = [
     "explorer.exe",
     "OneDrive.exe",
     "dropbox.exe"
+]
+
+# Legit files users may install
+LEGIT_EXECUTABLES_TO_INSTALL = [
+    File(
+        filename="chrome.exe",
+        path="C:\\Program Files (x86)\\Google\\Chrome\\",
+    ),
+    File(
+        filename="firefox.exe",
+        path="C:\\Program Files\\Mozilla Firefox\\",
+    ),
+
+    File(
+        filename="vlc.exe",
+        path="C:\\Program Files\\VideoLAN\\VLC\\",
+    ),
+
+    File(
+        filename="spotify.exe",
+        path="C:\\Users\\{username}\\AppData\\Roaming\\Spotify\\",
+    ),
+
+    File(
+        filename="discord.exe",
+        path="C:\\Users\\{username}\\AppData\\Local\\Discord\\",
+    ),
+
+    File(
+        filename="skype.exe",
+        path="C:\\Program Files (x86)\\Microsoft\\Skype for Desktop\\",
+    ),
+
+    File(
+        filename="zoom.exe",
+        path="C:\\Users\\{username}\\AppData\\Roaming\\Zoom\\bin\\",
+    ),
+
+    File(
+        filename="steam.exe",
+        path="C:\\Program Files (x86)\\Steam\\",
+    ),
+
+    File(
+        filename="winrar.exe",
+        path="C:\\Program Files\\WinRAR\\",
+    ),
+
+    File(
+        filename="notepad++.exe",
+        path="C:\\Program Files\\Notepad++\\",
+    ),
+
+    File(
+        filename="audacity.exe",
+        path="C:\\Program Files (x86)\\Audacity\\",
+    ),
+
+    File(
+        filename="pythonw.exe",
+        path="C:\\Users\\{username}\\AppData\\Local\\Programs\\Python\\Python39\\",
+    ),
+
+    File(
+        filename="java.exe",
+        path="C:\\Program Files\\Java\\jdk-11.0.10\\bin\\",
+    ),
+
+    File(
+        filename="gimp-2.10.exe",
+        path="C:\\Program Files\\GIMP 2\\bin\\",
+    )
 ]
 
 # Legit system processes

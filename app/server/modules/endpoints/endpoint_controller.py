@@ -15,7 +15,7 @@ from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
 from app.server.utils import *
 from app.server.modules.constants.legit_files import *
-from app.server.modules.constants.constants import COMMON_USER_FILE_LOCATIONS, LEGIT_USER_COMMANDLINES, LEGIT_SYSTEM_COMMANDLINES, LEGIT_PARENT_PROCESSES, LEGIT_SYSTEM_PARENT_PROCESSES
+from app.server.modules.constants.constants import COMMON_USER_FILE_LOCATIONS, LEGIT_USER_COMMANDLINES, LEGIT_SYSTEM_COMMANDLINES, LEGIT_PARENT_PROCESSES, LEGIT_SYSTEM_PARENT_PROCESSES, FILE_CREATING_PROCESSES, LEGIT_EXECUTABLES_TO_INSTALL
 
 # instantiate faker
 fake = Faker()
@@ -30,10 +30,12 @@ def gen_system_files_on_host(count_of_events:int=2) -> None:
     {
             "timestamp": 2022-10-03 12:30:00
             "hostname": GXDR-4310,
+            "username": grschloe,
             "sha256": 269eb0728413654856f4b2ee1fa7838cd69672ebc11baed4caa63f58c2df5823,
             "path": C:/Windows/System32/xcopy.exe,
             "filename": xcopy.exe,
-            "size": 4510
+            "size": 4510,
+            "process_name": "svchost.exe"
     }
     """
     employees = get_employees(count=100)
@@ -45,10 +47,12 @@ def gen_system_files_on_host(count_of_events:int=2) -> None:
         for hash, path in hash_path_pairs:
             file_creation_event = FileCreationEvent(
                 hostname=employee.hostname, #Pick a random employee to generate system files
+                username=employee.username, # Get this from the random employee
                 timestamp=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True),
                 filename=path.split("/")[-1], # Get the filename from the path 
                 path="C:/"+path, # Add a drive letter
-                sha256=hash
+                sha256=hash,
+                process_name="svchost.exe"
             )
             file_creation_events.append(file_creation_event)
         
@@ -157,6 +161,7 @@ def gen_user_files_on_host(count_of_events:int=5) -> None:
     """
     employees = get_employees()
 
+    # This will make files related to normal productivity stuff
     for employee in employees:
         for _ in range(count_of_events):
             path = random.choice(COMMON_USER_FILE_LOCATIONS).replace("{username}",employee.username)
@@ -171,14 +176,24 @@ def gen_user_files_on_host(count_of_events:int=5) -> None:
                 
             write_file_to_host(
                 hostname=employee.hostname,
+                username=employee.username,
+                process_name=random.choice(FILE_CREATING_PROCESSES),
                 timestamp=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True),
                 file=File(
                     filename=fake.file_name(category=category),
                     path=path
                 )
             )
-
-
+    # This will create legit executables/applications
+    for employee in random.choices(employees, k=10): #FIX THIS LATER
+        write_file_to_host(
+            hostname=employee.hostname,
+            username=employee.username,
+            process_name=random.choice(FILE_CREATING_PROCESSES),
+            timestamp=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True),
+            file=random.choice(LEGIT_EXECUTABLES_TO_INSTALL)
+        )
+    
 def upload_endpoint_event_to_azure(events, table_name: str) -> None:
 
     """
@@ -203,18 +218,25 @@ def upload_endpoint_event_to_azure(events, table_name: str) -> None:
             table_name=table_name)
 
 
-def write_file_to_host(hostname: str, timestamp: float, file: File) -> None:
+def write_file_to_host(hostname: str, username: str, process_name: str, timestamp: float, file: File) -> None:
     """
     Uploads a FileCreationEvent for a given host, time, and File
     """
+    if "{username}" in file.path:
+        modified_path = file.path.replace("{username}", username)
+    else:
+        modified_path = file.path
+
     upload_endpoint_event_to_azure(
         FileCreationEvent(
             hostname=hostname,
+            username=username,
             timestamp=timestamp,
             filename=file.filename,
-            path=file.path,
+            path=modified_path,
             sha256=file.sha256,
-            size=file.size
+            size=file.size,
+            process_name=process_name
         ),
         table_name="FileCreationEvents"
     )

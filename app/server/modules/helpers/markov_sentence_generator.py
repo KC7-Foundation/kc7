@@ -7,7 +7,6 @@ class SentenceGenerator:
     based on https://github.com/hrs/markov-sentence-generator 
     """
 
-
     def __init__(self, word_source="app/game_configs/gameplay/seed_text.txt"):
         self.word_source = word_source
         self.load_text()

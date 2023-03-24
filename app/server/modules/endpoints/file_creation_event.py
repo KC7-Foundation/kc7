@@ -36,19 +36,23 @@ class File:
 
 class FileCreationEvent(File):
 
-    def __init__(self, hostname: str, timestamp: float, filename: str, path: str, sha256: str=None, size:int=None):
+    def __init__(self, hostname: str, timestamp: float, filename: str, path: str, process_name: str, username: str, sha256: str=None, size:int=None):
 
         self.hostname = hostname
         self.timestamp = timestamp
+        self.process_name = process_name
+        self.username = username
         super().__init__(filename, path, sha256, size)
 
     def stringify(self) -> dict:
         return {
             "timestamp": Clock.from_timestamp_to_string(self.timestamp),
             "hostname": self.hostname,
+            "username": self.username,
             "sha256": self.sha256,
             "path": self.path.replace("/","\\"),
-            "filename": self.filename
+            "filename": self.filename,
+            "process_name": self.process_name
         }
 
     @staticmethod
@@ -59,8 +63,10 @@ class FileCreationEvent(File):
             {                     # dict representation of column names:types
                 'timestamp': 'datetime',
                 'hostname': 'string',
+                'username':'string',
                 'sha256': 'string',
                 'path': 'string',
-                'filename': 'string'
+                'filename': 'string',
+                "process_name": 'string'
             }
         )
