@@ -2,17 +2,11 @@ import requests
 import random
 import re
 
-#    def __init__(self, 
-                # word_source="app/game_configs/gameplay/seed_text.txt"):
-
 class SentenceGenerator:
     """
-    based on https://github.com/hrs/markov-sentence-generator
+    based on https://github.com/hrs/markov-sentence-generator 
     """
 
-import random
-
-class SentenceGenerator:
 
     def __init__(self, word_source="app/game_configs/gameplay/seed_text.txt"):
         self.word_source = word_source
