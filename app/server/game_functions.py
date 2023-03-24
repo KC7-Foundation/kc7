@@ -165,21 +165,23 @@ def generate_activity(actor: Actor, employees: list,
                         count_of_user_endpoint_events=5,
                         count_of_system_endpoint_events=100) -> None:
     """
-    Given an actor, generates one cycle of activity for users in the orgs
-    Current:
-        - Generate Email
-        - Generate Web Browsing
-        - Generate passiev DNS traffic
+    Given an actor, generates one cycle of activity for users in the orgs 
+    based on the attack types that they have defined
 
-    The Default actor is user to represent normal company activities
+    The Default actor is used to represent normal company activities
     """
     # print(f" activity for actor {actor.name}")
     # Generate passive DNS for specified actor
     gen_passive_dns(actor, num_passive_dns)
 
     # Generate emails for random employees for specified actor
+    # only if either the actor is supposed to send email 
+    # OR they are the default actor (generate email noise)
     # TODO: handle number of emails generated in the function
-    gen_email(employees, get_company().get_partners(), actor, num_email)
+    if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
+        or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks()\
+        or actor.is_default_actor:
+        gen_email(employees, get_company().get_partners(), actor, num_email)
 
     # Perform password spray attack
     if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
@@ -188,12 +190,22 @@ def generate_activity(actor: Actor, employees: list,
             num_employees=random.randint(5,50),
             num_passwords=5
         )
+
+    # generate watering hole activity
     if AttackTypes.MALWARE_VIA_WATERING_HOLE.value in actor.get_attacks():
-        actor_stages_malware_on_watering_hole(
+        actor_stages_watering_hole(
             actor=actor,
-            num_employees=random.randint(5, 10)
+            num_employees=random.randint(5, 10),
+            link_type="malware_delivery"
         )
 
+    #TODO Implement cred phishing via watering holde
+    if AttackTypes.PHISHING_VIA_WATERING_HOLE.value in actor.get_attacks():
+        actor_stages_watering_hole(
+            actor=actor,
+            num_employees=random.randint(5, 10),
+            link_type="credential_phishing"
+        )
 
     # Generate browsing activity for random emplyoees for the default actor
     # browsing for other actors should only come through email clicks

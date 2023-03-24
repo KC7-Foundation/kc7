@@ -129,7 +129,7 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
     return uri_path
 
 
-def get_employees(roles_list=None, count=None) -> "list[Employee]":
+def get_employees(roles_list=None, count=0) -> "list[Employee]":
     """
     Get a list of employees and conditionally query by a role (other colums can be implemented later)
     """
@@ -142,6 +142,10 @@ def get_employees(roles_list=None, count=None) -> "list[Employee]":
             employee for employee in
             Employee.query.filter(Employee.role.in_(roles_list)).all()
         ]
+
+        if len(employees) == 0:
+            # no employees were found after filtering
+            employees = [employee for employee in Employee.query.all()]
     else:
         employees = [employee for employee in Employee.query.all()]
 
@@ -155,7 +159,7 @@ def get_random_employee() -> Employee:
     """
     Return a random employee object
     """
-    return random.choice(get_employees())
+    return random.choice(get_employees(count=1))
 
 
 def get_company() -> Company:

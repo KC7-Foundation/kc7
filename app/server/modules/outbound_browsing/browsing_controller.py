@@ -67,8 +67,9 @@ def upload_event_to_azure(event):
             table_name= "OutboundBrowsing")
 
 
+
 @timing
-def actor_stages_malware_on_watering_hole(actor:Actor, num_employees:int):
+def actor_stages_watering_hole(actor:Actor, num_employees:int, link_type="malware_delivery"):
     """
     Certain users click on a watering hole link, and download malware
     """
@@ -89,7 +90,7 @@ def actor_stages_malware_on_watering_hole(actor:Actor, num_employees:int):
          + get_uri_path(
                 max_depth=2, 
                 max_params=2, 
-                uri_type="malware_delivery", 
+                uri_type=link_type, 
                 actor=actor
             )
         )
