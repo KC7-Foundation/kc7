@@ -269,7 +269,7 @@ class Actor(Base):
         words = random.choices(sender_themes, k=random.randint(1,2))
         
         splitter = random.choice(["", "_", "."])
-        sender_addr = splitter.join(words) + "@" + random.choice(email_domain)
+        sender_addr = splitter.join(words) + "@" + email_domain
         
         return sender_addr
 
