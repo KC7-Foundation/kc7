@@ -83,7 +83,7 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
 
                 db.session.add(new_record)
             else:
-                ### ONLY WHEN DO DOMAINS EXISTS
+                ### ONLY WHEN NO DOMAINS EXISTS
                 ### CREATE THREE IP/DOMAIN PAIRS
                 num_threads = difficulty_to_dns_threads(actor.difficulty)
                 for i in range(num_threads):  # This shoudl be defined on the actor
@@ -106,9 +106,10 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
             new_records.append(new_record.stringify())
     else:
         # this is the default actor
+        time = get_time()
         for i in range(count_of_records):
             record = DNSRecord(
-                time = Clock.delay_time_by(get_time(), factor="days", is_negative=True),
+                time = Clock.delay_time_by(time, factor="days", is_negative=True),
                 domain=Domain(actor=actor).name,
                 ip=IP(actor=actor).address
             )

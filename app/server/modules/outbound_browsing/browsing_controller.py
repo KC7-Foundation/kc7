@@ -27,16 +27,14 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     Generate n web requests to random websites on the internet  
     # this should typically be for the default actor  
     """
+    # for default actor, browse partner domains 5% of the time
+    if actor.is_default_actor:
+        if random.random() < .05:
+            domains_to_browse = get_company().get_partners()
+        else:
+            domains_to_browse=actor.domains_list
 
     for _ in range(count_browsing):
-        
-        # for default actor, browse partner domains 5% of the time
-        if actor.is_default_actor:
-            if random.random() < .05:
-                domains_to_browse = get_company().get_partners()
-            else:
-                domains_to_browse=actor.domains_list
-
         link = get_link(actor=actor, actor_domains=domains_to_browse)
         employee = random.choice(employees)
 
