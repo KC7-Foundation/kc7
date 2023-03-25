@@ -54,13 +54,14 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
         # This is a malicious actor
 
         # TODO: Check if this actor is actually supposed to generate infra
+        base_time = get_time()
         for i in range(count_of_records):
             if actor.domains_list and actor.ips:            
                 if random.random() < .2:
                     # half the time
                     #choose an existing domain and give it a new ip
                     new_ip =IP(actor=actor)
-                    time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
+                    time = Clock.delay_time_by(base_time, factor="days", is_negative=True)
 
                     new_record = DNSRecord(
                         time=time,
@@ -72,7 +73,7 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
                     # the other half the time
                     # choose an existing ip and give it a new domain
                     new_domain = Domain(actor=actor)
-                    time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
+                    time = Clock.delay_time_by(base_time, factor="days", is_negative=True)
 
                     new_record = DNSRecord(
                         time=time,
@@ -80,8 +81,6 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
                         ip=random.choice(actor.ips_list)
                     )
                     db.session.add(new_domain)
-
-                db.session.add(new_record)
             else:
                 ### ONLY WHEN NO DOMAINS EXISTS
                 ### CREATE THREE IP/DOMAIN PAIRS
@@ -89,7 +88,7 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
                 for i in range(num_threads):  # This shoudl be defined on the actor
                     domain = Domain(actor=actor)
                     ip = IP(actor=actor)
-                    time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
+                    time = Clock.delay_time_by(base_time, factor="days", is_negative=True)
 
                     new_record = DNSRecord(
                         time=time,
@@ -99,10 +98,10 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
 
                     db.session.add(domain)
                     db.session.add(ip)
-                    db.session.add(new_record)
                     new_records.append(new_record.stringify())
                 db.session.commit()
-                
+
+            db.session.add(new_record) 
             new_records.append(new_record.stringify())
     else:
         # this is the default actor
@@ -115,7 +114,7 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
             )
             new_records.append(record.stringify())
             db.session.add(record)
-            db.session.commit()
+        db.session.commit()
 
     upload_dns_records_to_azure(new_records)
         
