@@ -46,13 +46,16 @@ class Domain(Base):
         else:
             # Splitting string representation of list from db into actual list
             domain_themes = self.actor.domain_theme_values
-
         domain_depth = self.actor.domain_depth or random.randint(1,2)
         words = random.choices(domain_themes, k=domain_depth)
-        domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
+        # THIS IS A HACK! You can optionally provide a list of domains (rather than theme words) in the actor config under 'domain_themes"
+        if domain_depth == 1 and "." in words[0]:
+            domain = random.choice(separators).join(list(set(words)))
+        # This is the normal behavior (ie theme_word.tld)
+        else:
+            domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
 
         return domain
-
 
 class IP(Base):
     """ 

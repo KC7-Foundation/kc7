@@ -33,7 +33,7 @@ class Actor(Base):
     # Lists cannot be represented in the flask db
     # This representation converts lists into a space-delimited string
     attacks                     = db.Column(db.String(300))
-    domain_themes               = db.Column(db.String(300))
+    domain_themes               = db.Column(db.String(1000)) # Making this larger to account for lists of domains passed in via config
     sender_themes               = db.Column(db.String(300))
     subjects                    = db.Column(db.String(300))
     file_names                  = db.Column(db.String(300))
@@ -44,6 +44,7 @@ class Actor(Base):
     sender_emails               = db.Column(db.String(300))
     watering_hole_domains       = db.Column(db.String(300))
     watering_hole_target_roles  = db.Column(db.String(300))
+    sender_domains              = db.Column(db.String(300))
 
     count_init_passive_dns      = db.Column(db.Integer)
     count_init_email            = db.Column(db.Integer)
@@ -63,7 +64,7 @@ class Actor(Base):
                 count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
                 file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[],
                 post_exploit_commands:list=[], difficulty="HARD", watering_hole_domains:list=[], watering_hole_target_roles:list=[],
-                domain_depth=None):
+                sender_domains:list=[],domain_depth=None):
 
         print(f"Instantiating actor {name}....")
         self.name = name
@@ -80,6 +81,7 @@ class Actor(Base):
         self.recon_search_terms         = "~".join(recon_search_terms)
         self.watering_hole_domains      = "~".join(watering_hole_domains)
         self.watering_hole_target_roles  = "~".join(watering_hole_target_roles)
+        self.sender_domains             = "~".join(sender_domains)
         self.tlds                       = "~".join(tlds) or "~".join(['com','net','biz','org','us']) # TODO: Put this in a config or something
         self.spoofs_email               = spoofs_email
         self.generates_infrastructure   = generates_infrastructure
@@ -127,6 +129,10 @@ class Actor(Base):
     @property
     def watering_hole_target_roles_list(self):
         return Actor.string_to_list(self.watering_hole_target_roles)
+    
+    @property
+    def sender_domains_list(self):
+        return Actor.string_to_list(self.sender_domains)
 
     def get_attacks(self) -> "list[str]":
         """
@@ -249,28 +255,21 @@ class Actor(Base):
 
     def gen_sender_address(self) -> str:
         """Make a list of fake sender addresses"""
-        sender_themes = Actor.string_to_list(self.sender_themes) 
+        sender_themes = Actor.string_to_list(self.sender_themes)
 
-         # TODO: Centralize this list of freemail providers somewhere else (probably constants?)
-         # let's not use all of the domains for every actor. this minimized their legitimacy as a TTP
-        email_domains = random.choices(
-            ['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com'],
-            k=random.randint(1,3)
-        )
+        # Read actor domains from config
+        # If nothing available in the config, choose a freemail provider
+        
+        if self.sender_domains_list:
+            email_domain = random.choice(self.sender_domains_list)
+        else:
+            email_domain = random.choice(['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com'])
 
-        # just for fun: add and actor domain in the mix: so 1/8 chance senderd domain will be actor domain
-        # TODO: make this selectable 
-        email_domains.append(self.get_hacky_domain_name())
-        # senders will come in one of two flavors
-        # 1. themed_word@freemail.com
-        # 2. themed_word@actordomain.com
-       
         # get one or two words from our sender themes
         words = random.choices(sender_themes, k=random.randint(1,2))
         
-
         splitter = random.choice(["", "_", "."])
-        sender_addr = splitter.join(words) + "@" + random.choice(email_domains)
+        sender_addr = splitter.join(words) + "@" + email_domain
         
         return sender_addr
 
