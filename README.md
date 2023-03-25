@@ -31,8 +31,11 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 
 ## 🚨 🤾🏽‍♀️ Getting started with the data (No code required)!
 
-* http://kc7cyber.com/modules.html
+* http://kc7cyber.com/modules
 
+Go and select one of our modules. We'll give you all the resources you need to get started.
+
+<img width="1510" alt="image" src="https://user-images.githubusercontent.com/9474932/227723286-3afaebc4-13b0-41aa-8e0c-df114f044fd1.png">
 
 ## 🏁 Contribute to the code!
 ### Requirements
