@@ -80,7 +80,7 @@ def start_game() -> None:
         print(f"## Running cycle {i+1} of the game...")
         print("##########################################")
         for actor in actors: 
-            if actor.name == "Default":
+            if actor.is_default_actor:
                 # Default actor is used to create noise
                 generate_activity(actor, employees) 
             else:
