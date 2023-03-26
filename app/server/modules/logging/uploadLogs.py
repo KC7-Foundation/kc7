@@ -20,6 +20,7 @@ from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.organization.Company import Employee
 from app.server.modules.authentication.authenticationEvent import AuthenticationEvent
 from app.server.modules.inbound_browsing.inboundEvent import InboundBrowsingEvent
+from app.server.modules.alerts.alerts import SecurityAlert
 
 
 class LogUploader():
@@ -40,7 +41,8 @@ class LogUploader():
         self.CUSTOM_TYPES = [
                                 DNSRecord, Employee,
                                 OutboundEvent, FileCreationEvent, 
-                                Email, AuthenticationEvent, InboundBrowsingEvent, ProcessEvent]
+                                Email, AuthenticationEvent, InboundBrowsingEvent, 
+                                ProcessEvent, SecurityAlert]
 
         # Aauthenticate with AAD application.
         self.client_id = current_app.config["CLIENT_ID"]
@@ -217,7 +219,8 @@ class LogUploader():
                     # Then, return early to prevent queueing and uploading to ADX
                     print(f"Uploading to table {table_name}...")
 
-                    # print(data_table_df.to_markdown())
+                    # if table_name == "SecurityAlert":
+                    #     print(data_table_df.to_markdown())
                 else:
                     # submit logs to Kusto
                     result =  self.ingest.ingest_from_dataframe(

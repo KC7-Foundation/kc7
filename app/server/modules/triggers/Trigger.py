@@ -53,13 +53,31 @@ class Trigger:
 
         TODO: add some variability later?
         """
-        if email.authenticity >= recipient.awareness and email.accepted:
-            # users click on email after 30 - 600 seconds after it was sent to them
-            click_delay = random.randint(30, 600)
-            # add time delay
-            time = Clock.increment_time(email.time, click_delay)
+        from app.server.modules.alerts.alerts_controller import generate_email_alert
 
+        # users click on email after 30 - 600 seconds after it was sent to them
+        delay = random.randint(30, 600)
+        # add time delay
+        time = Clock.increment_time(email.time, delay)
+
+        if email.authenticity >= recipient.awareness and email.accepted:
             Trigger.user_clicks_link(recipient=recipient, link=email.link, actor=email.actor, time=time)
+        else:
+            # user didn't click the link they might report it instead
+            if email.actor.is_default_actor:
+                if random.random() < .01:
+                    generate_email_alert(
+                        time=time,
+                        username=recipient.username,
+                        subject=email.subject
+                    )
+            elif random.random() < .2:
+                generate_email_alert(
+                    time=time,
+                    username=recipient.username,
+                    subject=email.subject
+                )
+                
 
 
     @staticmethod
@@ -118,6 +136,8 @@ class Trigger:
         When a file is downloaded from a URL sent by a malicious actor, an implant will be dropped
         This will also trigger a process
         """
+        from app.server.modules.alerts.alerts_controller import generate_host_alert
+
         if ".doc" in attachment_name:
             process_name = "winword.exe"
         elif ".ppt" in attachment_name:
@@ -142,8 +162,19 @@ class Trigger:
             process_name=process_name
         )
         
+        if random.random() < .1:
+            generate_host_alert(
+                time=Clock.delay_time_by(start_time=time, factor="minutes"),
+                hostname=recipient.hostname,
+                filename=implant.filename,
+                sha256=implant.sha256
+            )
+
         process_creation_time = Clock.delay_time_by(start_time=time, factor="minutes")
         Trigger.payload_creates_processes(recipient, process_creation_time, actor, malware, payload=implant)
+
+
+        
 
     @staticmethod
     def payload_creates_processes(recipient: Employee, time: float, actor: Actor, malware: Malware, payload: File) -> None:
@@ -156,7 +187,6 @@ class Trigger:
         # Get random processes
         recon_process = malware.get_recon_process()
         c2_process = malware.get_c2_process(c2_ip)
-
 
         # Upload the recon and C2 processes to Azure
         for process in [recon_process, c2_process]:
@@ -175,15 +205,13 @@ class Trigger:
         if actor.post_exploit_commands:
             Trigger.actor_runs_post_exploitation_commands(recipient=recipient, time=post_exploit_time, actor=actor )
 
+
     @staticmethod
     def actor_runs_post_exploitation_commands(recipient: Employee, time: float, actor: Actor) -> None:
         """
         After the malware runs automated commands and establishes C2 channel,
         Run custom hands-on-keyboard commands defined on the actor
         """
-        pass
-
-
         # Get a C2 IP from the Actor's infrastructure
         c2_ip = actor.get_ips(count_of_ips=1)[0]
         c2_domain = actor.get_domain()
