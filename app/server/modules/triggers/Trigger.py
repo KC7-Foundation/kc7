@@ -55,25 +55,29 @@ class Trigger:
         """
         from app.server.modules.alerts.alerts_controller import generate_email_alert
 
-        # users click on email after 30 - 600 seconds after it was sent to them
-        delay = random.randint(30, 600)
-        # add time delay
-        time = Clock.increment_time(email.time, delay)
+        action_time = Clock.delay_time_in_working_hours(
+                start_time=email.time, factor="minutes", 
+                workday_start_hour=email.actor.activity_start_hour,
+                workday_length_hours=email.actor.workday_length_hours, 
+                working_days_of_week=email.actor.working_days_list
+            )
 
         if email.authenticity >= recipient.awareness and email.accepted:
-            Trigger.user_clicks_link(recipient=recipient, link=email.link, actor=email.actor, time=time)
+            # users click on email minutes (within working hours) after it was sent to them
+            # add time delay
+            Trigger.user_clicks_link(recipient=recipient, link=email.link, actor=email.actor, time=action_time)
         else:
             # user didn't click the link they might report it instead
             if email.actor.is_default_actor:
-                if random.random() < .01:
+                if random.random() < .01: # FP, user reports legit email
                     generate_email_alert(
-                        time=time,
+                        time=action_time,
                         username=recipient.username,
                         subject=email.subject
                     )
-            elif random.random() < .2:
+            elif random.random() < .2: # TP, user reports malicious email
                 generate_email_alert(
-                    time=time,
+                    time=action_time,
                     username=recipient.username,
                     subject=email.subject
                 )
@@ -98,7 +102,10 @@ class Trigger:
             if random.random() > (recipient.awareness * .01):
                 Trigger.user_downloads_file(recipient=recipient, link=link, actor=actor, time=time)
         elif actor.name != "Default":
-            Trigger.actor_auths_into_user_email(recipient=recipient, actor=actor, time=time)
+            # Use working time delay because this is an actor hands-on-keyboard activity
+            login_time = Clock.delay_time_in_working_hours(start_time=time, factor="hours", workday_start_hour=actor.activity_start_hour,
+                                                           workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
+            Trigger.actor_auths_into_user_email(recipient=recipient, actor=actor, time=login_time)
 
 
     @staticmethod
@@ -201,8 +208,9 @@ class Trigger:
             )
 
         # wait a couple hours before running post exploitation commands
-        post_exploit_time = Clock.delay_time_by(start_time=time, factor="hours")
         if actor.post_exploit_commands:
+            post_exploit_time = Clock.delay_time_in_working_hours(start_time=time, factor="hours", workday_start_hour=actor.activity_start_hour,
+                                                           workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
             Trigger.actor_runs_post_exploitation_commands(recipient=recipient, time=post_exploit_time, actor=actor )
 
 
@@ -253,9 +261,7 @@ class Trigger:
             src_up = actor's ip
         """
         print("Got to KC7...")
-        # wait several hours before login
-        time_delay = random.randint(5000, 99999)
-        login_time = Clock.increment_time(time, time_delay)
+        login_time = time
         auth_results = ["Successful Login", "Failed Login"]
         src_ip = actor.get_ips(count_of_ips=1)
         
@@ -276,7 +282,9 @@ class Trigger:
         )
 
         if result == "Successful Login":
-            Trigger.actor_downloads_files_from_email(recipient=recipient.username, src_ip=src_ip, time=login_time)
+            download_time = Clock.delay_time_in_working_hours(start_time=time, factor="minutes", workday_start_hour=actor.activity_start_hour,
+                                                           workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
+            Trigger.actor_downloads_files_from_email(recipient=recipient.username, src_ip=src_ip, time=download_time)
 
     @staticmethod
     def actor_downloads_files_from_email(recipient:Employee, src_ip:str, time: float) -> None:

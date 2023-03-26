@@ -45,7 +45,6 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
 
 def browse_website(employee:Employee, link:str, time:float, method: str = None):
     """Browse a website on the web - given a link"""
-
     event = OutboundEvent(
         time = time, #TODO: Fix eventually
         src_ip = employee.ip_addr,

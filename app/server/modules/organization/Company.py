@@ -8,6 +8,7 @@ from faker.providers import internet, user_agent, person
 from user_agent import generate_user_agent, generate_navigator
 from sqlalchemy import func
 import names
+from datetime import date
 
 from app.server.models import Base
 from app.server.modules.clock.Clock import Clock
@@ -32,12 +33,24 @@ class Company(Base):
     name                    = db.Column(db.String(50), nullable=False)
     domain                  = db.Column(db.String(50), nullable=False)
     partners                = db.Column(db.String(300))
+    activity_start_date     = db.Column(db.String(50))
+    activity_end_date       = db.Column(db.String(50))
+    activity_start_hour     = db.Column(db.Integer())
+    workday_length_hours    = db.Column(db.Integer())
+    working_days            = db.Column(db.String(300))
 
-    def __init__(self, name: str, domain: str, count_employees:int=100, roles:dict={}, partners:list=[]) -> None:
+    def __init__(self, name: str, domain: str, activity_start_date: str, activity_end_date: str, activity_start_hour: int, 
+                 workday_length_hours: int, working_days: list=[], count_employees:int=100, roles:dict={}, partners:list=[]) -> None:
         self.name = name
         self.count_employees = count_employees or 100
         self.roles = roles
         self.partners = "~".join(partners)
+        # Timing stuff
+        self.activity_start_date = activity_start_date
+        self.activity_end_date = activity_end_date
+        self.activity_start_hour = activity_start_hour
+        self.workday_length_hours = workday_length_hours
+        self.working_days = "~".join(working_days or ['Monday','Tuesday', 'Wednesday','Thursday','Friday'])
         if domain:
             self.domain = domain
         else:
@@ -169,6 +182,10 @@ class Company(Base):
 
     def get_partners(self) -> str:
         return Company.string_to_list(self.partners)
+    
+    @property
+    def working_days_list(self) -> list:
+        return Company.string_to_list(self.working_days)
 
     def __repr__(self) -> str:
         return '<Company %r>' % self.name

@@ -5,9 +5,11 @@ from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.infrastructure.Infrastructure import Domain, IP
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.utils import *
+from app.server.modules.clock.Clock import Clock
 
 # Import external modules
 from flask import current_app
+from datetime import datetime, date, time
 import random
 
 
@@ -29,7 +31,7 @@ def difficulty_to_dns_threads(difficulty):
 
 
 @timing
-def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
+def gen_passive_dns(actor: Actor, current_date: date, count_of_records: int = 1000) -> None:
     """
     Generate passive DNS entries 
     This should happen in bulk and the start 
@@ -54,17 +56,17 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
         # This is a malicious actor
 
         # TODO: Check if this actor is actually supposed to generate infra
-        base_time = get_time()
+        base_time = datetime.timestamp(Clock.generate_bimodal_timestamp(start_date=current_date, start_hour=actor.activity_start_hour, day_length=actor.workday_length_hours))
         for i in range(count_of_records):
             if actor.domains_list and actor.ips:            
                 if random.random() < .2:
                     # half the time
                     #choose an existing domain and give it a new ip
                     new_ip =IP(actor=actor)
-                    time = Clock.delay_time_by(base_time, factor="days", is_negative=True)
+                    timestamp = Clock.delay_time_by(base_time, factor="days", is_negative=True)
 
                     new_record = DNSRecord(
-                        time=time,
+                        time=timestamp,
                         domain = random.choice(actor.domains_list), 
                         ip = new_ip.address
                     )
@@ -73,10 +75,10 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
                     # the other half the time
                     # choose an existing ip and give it a new domain
                     new_domain = Domain(actor=actor)
-                    time = Clock.delay_time_by(base_time, factor="days", is_negative=True)
+                    timestamp = Clock.delay_time_by(base_time, factor="days", is_negative=True)
 
                     new_record = DNSRecord(
-                        time=time,
+                        time=timestamp,
                         domain = new_domain.name, 
                         ip=random.choice(actor.ips_list)
                     )
@@ -88,10 +90,10 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
                 for i in range(num_threads):  # This shoudl be defined on the actor
                     domain = Domain(actor=actor)
                     ip = IP(actor=actor)
-                    time = Clock.delay_time_by(base_time, factor="days", is_negative=True)
+                    timestamp = Clock.delay_time_by(base_time, factor="days", is_negative=True)
 
                     new_record = DNSRecord(
-                        time=time,
+                        time=timestamp,
                         domain=domain.name, 
                         ip=ip.address
                     )
@@ -105,10 +107,16 @@ def gen_passive_dns(actor: Actor, count_of_records: int = 1000) -> None:
             new_records.append(new_record.stringify())
     else:
         # this is the default actor
-        time = get_time()
+        # Time of day doesn't matter for default PDNS
+        rand_time = time(
+                hour=random.randint(0,23),
+                minute=random.randint(0,59),
+                second=random.randint(0,59)
+            )
+        default_datetime = datetime.timestamp(datetime.combine(current_date,rand_time))
         for i in range(count_of_records):
             record = DNSRecord(
-                time = Clock.delay_time_by(time, factor="days", is_negative=True),
+                time = Clock.delay_time_by(default_datetime, factor="days", is_negative=True),
                 domain=Domain(actor=actor).name,
                 ip=IP(actor=actor).address
             )

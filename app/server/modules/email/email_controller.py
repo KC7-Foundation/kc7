@@ -4,6 +4,7 @@ import random
 from faker import Faker
 from faker.providers import internet, lorem
 import names
+from datetime import date, datetime
 
 
 # Import internal modules
@@ -44,7 +45,7 @@ def get_random_actor():
     pass
 
 @timing
-def gen_email(employees: "list[Employee]", partners: "list[str]", actor: Actor, count_emails:int) -> None:
+def gen_email(employees: "list[Employee]", partners: "list[str]", actor: Actor, count_emails:int, start_date: date) -> None:
     """
     Make a call to the Azure email function
     to create an email, post to log analytics
@@ -55,7 +56,7 @@ def gen_email(employees: "list[Employee]", partners: "list[str]", actor: Actor, 
 
     for _ in range(count_emails):
         # time is returned as timestamp (float)
-        time = get_time()
+        time = Clock.generate_bimodal_timestamp(start_date=start_date, start_hour=actor.activity_start_hour, day_length=actor.workday_length_hours).timestamp()
 
         # If the actor is default, we'll randomly pick an email type
         if actor.is_default_actor:

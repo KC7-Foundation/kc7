@@ -5,6 +5,7 @@ from flask import Blueprint, request, render_template, \
                   flash, g, session, redirect, url_for, abort, current_app, jsonify
 from sqlalchemy import asc
 from  sqlalchemy.sql.expression import func, select
+from datetime import datetime, date, time, timedelta
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
 from app.server.models import db, GameSession
@@ -73,40 +74,71 @@ def start_game() -> None:
     # While this infinite loop runs, the game continues to generate data
     # To implement games of finite size -> bound this loop (e.g. use a for loop instead)
     # while current_session.state == True:
-    count_cycles = 10
-    for i in range(count_cycles):
-        # generate the activity
+    company = Company.query.get(1)
+
+    # Iterate through each day in the loop
+    current_date = date.fromisoformat(company.activity_start_date)
+    print(f"TYPE OF DATE {type(current_date)}")
+    while current_date <= date.fromisoformat(company.activity_end_date):
+        # Check to ensure the current date is within the range of the actor's active dates AND
+        # the current day is one of the weekdays when the actor works
         print("##########################################")
-        print(f"## Running cycle {i+1} of the game...")
+        print(f"## Running for day {current_date}...")
         print("##########################################")
+        
         for actor in actors: 
             if actor.is_default_actor:
                 # Default actor is used to create noise
-                generate_activity(actor, employees) 
+                generate_activity_new(actor, current_date, employees) 
             else:
                 # generate activity of actors defined in actor config
                 # num_email is actually number of emails waves sent
                 # waves contain multiple emails
                 # TODO: abstract this out to the actor / make this more elegant
-                generate_activity(actor, 
+                generate_activity_new(actor, 
+                                  current_date,
                                   employees, 
                                   num_passive_dns=random.randint(5, 10), 
-                                  num_email=random.randint(0, 3), 
-                                ) 
+                                  num_email=random.randint(0, 3)
+                )
+
+        current_date += timedelta(days=1)
+    print("Done running!")
+    
+    # count_cycles = 10
+    # for i in range(count_cycles):
+    #     # generate the activity
+    #     print("##########################################")
+    #     print(f"## Running cycle {i+1} of the game...")
+    #     print("##########################################")
+    #     for actor in actors: 
+    #         if actor.name == "Default":
+    #             # Default actor is used to create noise
+    #             generate_activity(actor, employees) 
+    #         else:
+    #             # generate activity of actors defined in actor config
+    #             # num_email is actually number of emails waves sent
+    #             # waves contain multiple emails
+    #             # TODO: abstract this out to the actor / make this more elegant
+    #             generate_activity(actor, 
+    #                               employees, 
+    #                               num_passive_dns=random.randint(5, 10), 
+    #                               num_email=random.randint(0, 3), 
+    #                             ) 
 
 
 
-    ##########################################
-    # deg statements to help time tracking
-    # on average, one cycle=one day in game
-    game_start_time = get_time()
-    game_end_time =  get_time()
-    days_elapse_in_game = (game_end_time - game_start_time) /(60*60*24)
-    print(f"Game started at {Clock.from_timestamp_to_string(game_start_time)}")
-    print(f"Game ended at {Clock.from_timestamp_to_string(game_end_time)}")
-    print(f"{days_elapse_in_game} days elapsed in the game")
-    print(f"Ran {count_cycles} cycles...")
-    ##########################################
+    # ##########################################
+    # # deg statements to help time tracking
+    # # on average, one cycle=one day in game
+    # game_start_time = get_time()
+    # game_end_time =  get_time()
+    # days_elapse_in_game = (game_end_time - game_start_time) /(60*60*24)
+    # print(f"Game started at {Clock.from_timestamp_to_string(game_start_time)}")
+    # print(f"Game ended at {Clock.from_timestamp_to_string(game_end_time)}")
+    # print(f"{days_elapse_in_game} days elapsed in the game")
+    # # print(f"Ran {count_cycles} cycles...")
+    # ##########################################
 
 
 def init_setup():
@@ -135,15 +167,17 @@ def init_setup():
 
     # generate some initial activity for the actors
     for actor in actors:
-        generate_activity(
+        print(f"START DATE TYPE: {type(actor.activity_start_date)}")
+        generate_activity_new(
                             actor, 
+                            date.fromisoformat(actor.activity_start_date),
                             employees, 
                             num_passive_dns=actor.count_init_passive_dns, 
                             num_email=actor.count_init_email
                         ) 
 
-        if AttackTypes.RECONNAISSANCE_VIA_BROWSING.value in actor.get_attacks():
-            gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
+        # if AttackTypes.RECONNAISSANCE_VIA_BROWSING.value in actor.get_attacks():
+        #     gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
 
     
     # all_dns_records = DNSRecord.query.all()
@@ -157,7 +191,43 @@ def init_setup():
 
     return employees, actors
 
+
+def generate_activity_new(actor: Actor, current_date: date, employees: list, 
+                        num_passive_dns:int=300, num_email:int=1000, 
+                        num_random_browsing:int=500, 
+                        num_auth_events:int=400,
+                        count_of_user_endpoint_events=5,
+                        count_of_system_endpoint_events=100) -> None:
+    """
+    Given an actor, generates one cycle of activity for users in the orgs 
+    based on the attack types that they have defined
+
+    The Default actor is used to represent normal company activities
+    """
+
+    if date.fromisoformat(actor.activity_start_date) <= current_date <= date.fromisoformat(actor.activity_end_date) and\
+        Clock.weekday_to_string(current_date.weekday()) in actor.working_days_list:
+        # Generate activity for the default actor
+        gen_passive_dns(actor, current_date, num_passive_dns)
+        print(f"GENERATING ACTIVITY TODAY for {actor.name}! {current_date}")
+
+        if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
+        or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks()\
+        or actor.is_default_actor:
+            gen_email(employees, 
+                      get_company().get_partners(), 
+                      actor, 
+                      num_email, 
+                      start_date=current_date
+            )
+
+    else:
+        if Clock.weekday_to_string(current_date.weekday()) not in actor.working_days_list:
+            print(f"Skipping because a day of week mismatch for actor {actor.name}!")
+        elif not(date.fromisoformat(actor.activity_start_date) <= current_date <= date.fromisoformat(actor.activity_end_date)):
+            print(f"Skipping because of active date range mismatch for actor {actor.name}!")
     
+
 def generate_activity(actor: Actor, employees: list, 
                         num_passive_dns:int=300, num_email:int=1000, 
                         num_random_browsing:int=500, 
@@ -224,6 +294,7 @@ def create_actors() -> None:
 
     TODO: there should be some validation of actor configs prior to creation
     """
+    company = Company.query.get(1) # TODO: This works because we only have one company
 
     # instantial a default actor - this actor should always exist
     # the default actor is used to generate background noise in the game
@@ -234,7 +305,12 @@ def create_actors() -> None:
         count_init_email= 5000, 
         count_init_browsing=5000,
         domain_themes = wordGenerator.get_words(1000),
-        sender_themes = wordGenerator.get_words(1000)
+        sender_themes = wordGenerator.get_words(1000),
+        activity_start_date=company.activity_start_date,
+        activity_end_date=company.activity_end_date,
+        activity_start_hour=company.activity_start_hour,
+        workday_length_hours=company.workday_length_hours,
+        working_days=company.working_days_list
     )
 
     # load add default_actor
