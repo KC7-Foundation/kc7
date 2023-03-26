@@ -5,6 +5,7 @@ import random
 from faker import Faker
 from faker.providers import internet, lorem
 import re
+from datetime import date
 
 # Import internal modules
 from flask import current_app
@@ -24,7 +25,7 @@ fake.add_provider(lorem)
 fake.add_provider(file)
 
 @timing
-def gen_system_files_on_host(count_of_events:int=2) -> None:
+def gen_system_files_on_host(start_date: date, start_hour: int, workday_length_hours: int, count_of_events:int=2) -> None:
     """
     Generates FileCreationEvents for system files generated on a host
     {
@@ -54,11 +55,11 @@ def gen_system_files_on_host(count_of_events:int=2) -> None:
             file_creation_event = FileCreationEvent(
                 hostname=employee.hostname, #Pick a random employee to generate system files
                 username=employee.username, # Get this from the random employee
-                timestamp=time,
+                timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
                 filename=filename, # Get the filename from the path 
                 path="C:/"+path, # Add a drive letter
                 sha256=hash,
-                process_name="svchost.exe"
+                process_name=random.choice(['svchost.exe','wuauclt.exe']) #TODO: Add more of these!
             )
             file_creation_events.append(file_creation_event)
 
@@ -75,12 +76,11 @@ def gen_system_files_on_host(count_of_events:int=2) -> None:
 
 
 @timing
-def gen_system_processes_on_host(count_of_user_events:int=2) -> None:
+def gen_system_processes_on_host(start_date: date, start_hour: int, workday_length_hours: int, count_of_user_events:int=2) -> None:
     """
     Generates ProcessEvents for users
     """
     employees = get_employees(count=100)
-    time = get_time()
     
     for employee in employees:
         process_events = []
@@ -93,7 +93,7 @@ def gen_system_processes_on_host(count_of_user_events:int=2) -> None:
             parent_name, parent_hash = random.choice(list(LEGIT_PARENT_PROCESSES.items()))
 
             process_event=ProcessEvent(
-                timestamp=Clock.delay_time_by(start_time=time, factor="month", is_random=True),
+                timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
                 parent_process_name=parent_name,
                 parent_process_hash=parent_hash,
                 process_commandline=process.process_commandline,
@@ -112,7 +112,7 @@ def gen_system_processes_on_host(count_of_user_events:int=2) -> None:
             parent_name, parent_hash = random.choice(list(LEGIT_SYSTEM_PARENT_PROCESSES.items()))
 
             process_event=ProcessEvent(
-                timestamp=Clock.delay_time_by(start_time=time, factor="month", is_random=True),            
+                timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),         
                 parent_process_name=parent_name,
                 parent_process_hash=parent_hash,
                 process_commandline=process.process_commandline,
@@ -169,7 +169,7 @@ def get_legit_user_process(username: str = None, filename: str = None) -> Proces
     )
 
 @timing
-def gen_user_files_on_host(count_of_events:int=5) -> None:
+def gen_user_files_on_host(start_date: date, start_hour: int, workday_length_hours: int, count_of_events:int=5) -> None:
     """
     Generates FileCreationEvents for user files generated on a host
     TODO: Example here
@@ -193,7 +193,7 @@ def gen_user_files_on_host(count_of_events:int=5) -> None:
                 hostname=employee.hostname,
                 username=employee.username,
                 process_name=random.choice(FILE_CREATING_PROCESSES),
-                timestamp=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True),
+                timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
                 file=File(
                     filename=fake.file_name(category=category),
                     path=path
@@ -208,8 +208,8 @@ def gen_user_files_on_host(count_of_events:int=5) -> None:
             hostname=employee.hostname,
             username=employee.username,
             process_name=random.choice(FILE_CREATING_PROCESSES),
-            timestamp=time,
-            file=file,
+            timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
+            file=file
         )
     
 def upload_endpoint_event_to_azure(events, table_name: str) -> None:

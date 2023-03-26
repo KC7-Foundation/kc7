@@ -1,8 +1,7 @@
 import os
 import random, json
 import urllib.parse
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta, date
  
 from faker import Faker
 from faker.providers import internet
@@ -22,7 +21,7 @@ fake.add_provider(internet)
 fake.add_provider(user_agent)
 
 @timing
-def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsing:int):
+def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsing:int, start_date: date):
     """
     Generate n web requests to random websites on the internet  
     # this should typically be for the default actor  
@@ -37,9 +36,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     for _ in range(count_browsing):
         link = get_link(actor=actor, actor_domains=domains_to_browse)
         employee = random.choice(employees)
-
-        #Get the current game session from the database
-        time = get_time()
+        time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
         browse_website(employee, link, time)
 
 
@@ -66,7 +63,7 @@ def upload_event_to_azure(event):
 
 
 @timing
-def actor_stages_watering_hole(actor:Actor, num_employees:int, link_type="malware_delivery"):
+def actor_stages_watering_hole(actor:Actor, start_date: date, num_employees:int, link_type="malware_delivery"):
     """
     Certain users click on a watering hole link, and download malware
     """
@@ -92,7 +89,9 @@ def actor_stages_watering_hole(actor:Actor, num_employees:int, link_type="malwar
             )
         )
         
-        time = Clock.delay_time_by(start_time=get_time(), factor="hours")
+        time = Clock.generate_bimodal_timestamp(start_date=start_date, 
+                                                start_hour=actor.activity_start_hour,
+                                                day_length=actor.workday_length_hours).timestamp()
 
         # first browse to the compromised website and get redirected
         browse_website(

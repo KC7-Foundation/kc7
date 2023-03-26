@@ -165,16 +165,16 @@ def init_setup():
         create_actors()
         actors = Actor.query.all()
 
-    # generate some initial activity for the actors
-    for actor in actors:
-        print(f"START DATE TYPE: {type(actor.activity_start_date)}")
-        generate_activity_new(
-                            actor, 
-                            date.fromisoformat(actor.activity_start_date),
-                            employees, 
-                            num_passive_dns=actor.count_init_passive_dns, 
-                            num_email=actor.count_init_email
-                        ) 
+    # # generate some initial activity for the actors
+    # for actor in actors:
+    #     print(f"START DATE TYPE: {type(actor.activity_start_date)}")
+    #     generate_activity_new(
+    #                         actor, 
+    #                         date.fromisoformat(actor.activity_start_date),
+    #                         employees, 
+    #                         num_passive_dns=actor.count_init_passive_dns, 
+    #                         num_email=actor.count_init_email
+    #                     ) 
 
         # if AttackTypes.RECONNAISSANCE_VIA_BROWSING.value in actor.get_attacks():
         #     gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
@@ -192,12 +192,15 @@ def init_setup():
     return employees, actors
 
 
-def generate_activity_new(actor: Actor, current_date: date, employees: list, 
-                        num_passive_dns:int=300, num_email:int=1000, 
-                        num_random_browsing:int=500, 
-                        num_auth_events:int=400,
+def generate_activity_new(actor: Actor, 
+                        current_date: date, 
+                        employees: list, 
+                        num_passive_dns:int=30, 
+                        num_email:int=100, 
+                        num_random_browsing:int=75, 
+                        num_auth_events:int=75,
                         count_of_user_endpoint_events=5,
-                        count_of_system_endpoint_events=100) -> None:
+                        count_of_system_endpoint_events=30) -> None:
     """
     Given an actor, generates one cycle of activity for users in the orgs 
     based on the attack types that they have defined
@@ -208,9 +211,10 @@ def generate_activity_new(actor: Actor, current_date: date, employees: list,
     if date.fromisoformat(actor.activity_start_date) <= current_date <= date.fromisoformat(actor.activity_end_date) and\
         Clock.weekday_to_string(current_date.weekday()) in actor.working_days_list:
         # Generate activity for the default actor
+        # Note... this is too noisy
         gen_passive_dns(actor, current_date, num_passive_dns)
-        print(f"GENERATING ACTIVITY TODAY for {actor.name}! {current_date}")
 
+        # Send emails
         if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
         or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks()\
         or actor.is_default_actor:
@@ -221,71 +225,98 @@ def generate_activity_new(actor: Actor, current_date: date, employees: list,
                       start_date=current_date
             )
 
-    else:
-        if Clock.weekday_to_string(current_date.weekday()) not in actor.working_days_list:
-            print(f"Skipping because a day of week mismatch for actor {actor.name}!")
-        elif not(date.fromisoformat(actor.activity_start_date) <= current_date <= date.fromisoformat(actor.activity_end_date)):
-            print(f"Skipping because of active date range mismatch for actor {actor.name}!")
+        # Malicious Activity; Conduct Password Spray Attack
+        if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
+            actor_password_spray(
+                actor=actor, 
+                start_date=current_date,
+                num_employees=random.randint(5,50),
+                num_passwords=5
+            )
+
+        # Watering hole attack
+        if AttackTypes.MALWARE_VIA_WATERING_HOLE.value in actor.get_attacks():
+            actor_stages_watering_hole(
+                actor=actor,
+                start_date=current_date, 
+                num_employees=random.randint(5, 10),
+                link_type="malware_delivery"
+            )
+        
+        # Recon activity
+        if AttackTypes.RECONNAISSANCE_VIA_BROWSING.value in actor.get_attacks():
+            gen_inbound_browsing_activity(actor=actor, 
+                                          start_date=current_date, 
+                                          num_inbound_browsing_events=random.randint(0,10))
+
+        # Generate legit activity for default actor
+        if actor.is_default_actor:
+            browse_random_website(employees, actor, num_random_browsing, current_date)
+            auth_random_user_to_mail_server(employees, num_auth_events, current_date, actor.activity_start_hour, actor.workday_length_hours)
+            gen_inbound_browsing_activity(actor, current_date, num_random_browsing)
+            gen_system_files_on_host(current_date, actor.activity_start_hour, actor.workday_length_hours, count_of_system_endpoint_events)
+            gen_user_files_on_host(current_date, actor.activity_start_hour, actor.workday_length_hours, count_of_user_endpoint_events)
+            gen_system_processes_on_host(current_date, actor.activity_start_hour, actor.workday_length_hours, count_of_system_endpoint_events)
     
 
-def generate_activity(actor: Actor, employees: list, 
-                        num_passive_dns:int=300, num_email:int=1000, 
-                        num_random_browsing:int=500, 
-                        num_auth_events:int=400,
-                        count_of_user_endpoint_events=5,
-                        count_of_system_endpoint_events=100) -> None:
-    """
-    Given an actor, generates one cycle of activity for users in the orgs 
-    based on the attack types that they have defined
+# def generate_activity(actor: Actor, employees: list, 
+#                         num_passive_dns:int=300, num_email:int=1000, 
+#                         num_random_browsing:int=500, 
+#                         num_auth_events:int=400,
+#                         count_of_user_endpoint_events=5,
+#                         count_of_system_endpoint_events=100) -> None:
+#     """
+#     Given an actor, generates one cycle of activity for users in the orgs 
+#     based on the attack types that they have defined
 
-    The Default actor is used to represent normal company activities
-    """
-    print(f" activity for actor {actor.name}")
-    # Generate passive DNS for specified actor
-    gen_passive_dns(actor, num_passive_dns)
+#     The Default actor is used to represent normal company activities
+#     """
+#     print(f" activity for actor {actor.name}")
+#     # Generate passive DNS for specified actor
+#     gen_passive_dns(actor, num_passive_dns)
 
-    # Generate emails for random employees for specified actor
-    # only if either the actor is supposed to send email 
-    # OR they are the default actor (generate email noise)
-    # TODO: handle number of emails generated in the function
-    if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
-        or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks()\
-        or actor.is_default_actor:
-        gen_email(employees, get_company().get_partners(), actor, num_email)
+#     # Generate emails for random employees for specified actor
+#     # only if either the actor is supposed to send email 
+#     # OR they are the default actor (generate email noise)
+#     # TODO: handle number of emails generated in the function
+#     if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
+#         or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks()\
+#         or actor.is_default_actor:
+#         gen_email(employees, get_company().get_partners(), actor, num_email)
 
-    # Perform password spray attack
-    if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
-        actor_password_spray(
-            actor=actor, 
-            num_employees=random.randint(5,50),
-            num_passwords=5
-        )
+#     # Perform password spray attack
+#     if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
+#         actor_password_spray(
+#             actor=actor, 
+#             num_employees=random.randint(5,50),
+#             num_passwords=5
+#         )
 
-    # generate watering hole activity
-    if AttackTypes.MALWARE_VIA_WATERING_HOLE.value in actor.get_attacks():
-        actor_stages_watering_hole(
-            actor=actor,
-            num_employees=random.randint(5, 10),
-            link_type="malware_delivery"
-        )
+#     # generate watering hole activity
+#     if AttackTypes.MALWARE_VIA_WATERING_HOLE.value in actor.get_attacks():
+#         actor_stages_watering_hole(
+#             actor=actor,
+#             num_employees=random.randint(5, 10),
+#             link_type="malware_delivery"
+#         )
 
-    #TODO Implement cred phishing via watering holde
-    if AttackTypes.PHISHING_VIA_WATERING_HOLE.value in actor.get_attacks():
-        actor_stages_watering_hole(
-            actor=actor,
-            num_employees=random.randint(5, 10),
-            link_type="credential_phishing"
-        )
+#     #TODO Implement cred phishing via watering holde
+#     if AttackTypes.PHISHING_VIA_WATERING_HOLE.value in actor.get_attacks():
+#         actor_stages_watering_hole(
+#             actor=actor,
+#             num_employees=random.randint(5, 10),
+#             link_type="credential_phishing"
+#         )
 
-    # Generate browsing activity for random emplyoees for the default actor
-    # browsing for other actors should only come through email clicks
-    if actor.is_default_actor:
-        browse_random_website(employees, actor, num_random_browsing)
-        auth_random_user_to_mail_server(employees, num_auth_events)
-        gen_inbound_browsing_activity(actor, num_random_browsing)
-        gen_system_files_on_host(count_of_system_endpoint_events)
-        gen_user_files_on_host(count_of_user_endpoint_events)
-        gen_system_processes_on_host(count_of_system_endpoint_events)
+#     # Generate browsing activity for random emplyoees for the default actor
+#     # browsing for other actors should only come through email clicks
+#     if actor.is_default_actor:
+#         browse_random_website(employees, actor, num_random_browsing)
+#         auth_random_user_to_mail_server(employees, num_auth_events)
+#         gen_inbound_browsing_activity(actor, num_random_browsing)
+#         gen_system_files_on_host(count_of_system_endpoint_events)
+#         gen_user_files_on_host(count_of_user_endpoint_events)
+#         gen_system_processes_on_host(count_of_system_endpoint_events)
 
 def create_actors() -> None:
     """

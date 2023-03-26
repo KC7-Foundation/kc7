@@ -4,6 +4,7 @@ import random
 from faker import Faker
 import urllib.parse
 from enum import Enum
+from datetime import date
 
 
 from faker.providers import user_agent, internet
@@ -32,7 +33,7 @@ class BrowsingType(Enum):
     OTHER = 5
 
 @timing
-def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=10) -> None:
+def gen_inbound_browsing_activity(actor: Actor, start_date: date, num_inbound_browsing_events:int=10) -> None:
     """
     Generate browsing to the company's website by random users
     This is background noise
@@ -90,10 +91,11 @@ def gen_inbound_browsing_activity(actor: Actor, num_inbound_browsing_events:int=
 
         # if actor is not default, then recon should happen retroactively
         if actor.is_default_actor:
-            time = get_time()
+            time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
         else:
             # recon will happen a couple days back
-            time = Clock.delay_time_by(get_time(), factor="days", is_negative=True)
+            time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
+            time = Clock.delay_time_by(time, factor="days", is_negative=True)
 
         gen_inbound_request(time, src_ip, method, status_code, url, user_agent=user_agent)
 

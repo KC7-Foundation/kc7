@@ -159,11 +159,9 @@ class Clock():
             while (Clock.weekday_to_string(new_date.weekday()) not in working_days_of_week):
                 # If it's not, increment the day again
                 new_date += timedelta(days=1)
+            return datetime.timestamp(Clock.generate_bimodal_timestamp(start_date=new_date, start_hour=workday_start_hour, day_length=workday_length_hours))
         else:
-            new_date = date.fromtimestamp(incremented_time_not_corrected)
-
-        # Once we have a good working day, get a time using the bimodal distribution
-        return datetime.timestamp(Clock.generate_bimodal_timestamp(start_date=new_date, start_hour=workday_start_hour, day_length=workday_length_hours))
+            return incremented_time_not_corrected
         
 
 
