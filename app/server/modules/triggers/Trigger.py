@@ -229,7 +229,7 @@ class Trigger:
             # turn process from dict into object
             process_obj = Malware.get_process_obj({
                 "name": process.get("name", None),
-                "process": process.get("process", None).replace("{actor_ip}", c2_ip).replace("{actor_domain}", c2_domain)
+                "process": process.get("process", None).replace("{ip_address}", c2_ip).replace("{domain_name}", c2_domain)
             })
 
             time = Clock.delay_time_by(start_time=time, factor="seconds")
