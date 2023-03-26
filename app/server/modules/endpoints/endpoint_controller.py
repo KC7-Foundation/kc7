@@ -38,23 +38,38 @@ def gen_system_files_on_host(count_of_events:int=2) -> None:
             "process_name": "svchost.exe"
     }
     """
+    from app.server.modules.alerts.alerts_controller import generate_host_alert
+
     employees = get_employees(count=100)
     file_creation_events = []
 
     for employee in employees:
         hash_path_pairs = random.choices(list(LEGIT_WINDOWS_FILES.items()), k=count_of_events)
+        base_time = get_time()
         
         for hash, path in hash_path_pairs:
+            filename = path.split("/")[-1]
+            time = Clock.delay_time_by(start_time=base_time, factor="month", is_random=True)
+            
             file_creation_event = FileCreationEvent(
                 hostname=employee.hostname, #Pick a random employee to generate system files
                 username=employee.username, # Get this from the random employee
-                timestamp=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True),
-                filename=path.split("/")[-1], # Get the filename from the path 
+                timestamp=time,
+                filename=filename, # Get the filename from the path 
                 path="C:/"+path, # Add a drive letter
                 sha256=hash,
                 process_name="svchost.exe"
             )
             file_creation_events.append(file_creation_event)
+
+            if random.random() < .0001 and ".exe" in filename:
+                generate_host_alert(
+                    time=time,
+                    hostname=employee.hostname,
+                    filename=filename,
+                    sha256=hash
+                )
+                
         
     upload_endpoint_event_to_azure(file_creation_events, table_name="FileCreationEvents")    
 
@@ -186,12 +201,15 @@ def gen_user_files_on_host(count_of_events:int=5) -> None:
             )
     # This will create legit executables/applications
     for employee in random.choices(employees, k=10): #FIX THIS LATER
+
+        file = random.choice(LEGIT_EXECUTABLES_TO_INSTALL)
+        time=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True)
         write_file_to_host(
             hostname=employee.hostname,
             username=employee.username,
             process_name=random.choice(FILE_CREATING_PROCESSES),
-            timestamp=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True),
-            file=random.choice(LEGIT_EXECUTABLES_TO_INSTALL)
+            timestamp=time,
+            file=file,
         )
     
 def upload_endpoint_event_to_azure(events, table_name: str) -> None:
