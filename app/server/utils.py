@@ -186,15 +186,15 @@ def write_seed_files(max_num_files: int = 25):
 
 
 
-# @timing
-def get_time() -> float:
-    # time is returned as timestamp (float)
-    from app.server.game_functions  import GAME_START_TIME, GAME_SEED_DATE
+# # @timing
+# def get_time() -> float:
+#     # time is returned as timestamp (float)
+#     from app.server.game_functions  import GAME_START_TIME, GAME_SEED_DATE
 
-    time = Clock.get_current_gametime(start_time=str(GAME_START_TIME),
-                                    seed_date=GAME_SEED_DATE)
+#     time = Clock.get_current_gametime(start_time=str(GAME_START_TIME),
+#                                     seed_date=GAME_SEED_DATE)
 
-    return time
+#     return time
 
 
 # Yield successive n-sized

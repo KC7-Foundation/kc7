@@ -52,14 +52,6 @@ def start_game() -> None:
     # It allows us to start/stop/restart the game from the views
     current_session = db.session.query(GameSession).get(1)
     current_session.state = True
-
-    # get the time manually
-    # we are caching this value
-    global GAME_START_TIME
-    GAME_START_TIME = current_session.start_time
-
-    global GAME_SEED_DATE
-    GAME_SEED_DATE = current_session.seed_date
     
     print(f"Game started at {current_session.start_time}")
     # TODO: allow users ot modify start time in the web UI    
@@ -70,18 +62,14 @@ def start_game() -> None:
         employees, actors  = init_setup()
     
     print("initialization complete...")
-    # This is where the action is
-    # While this infinite loop runs, the game continues to generate data
-    # To implement games of finite size -> bound this loop (e.g. use a for loop instead)
-    # while current_session.state == True:
-    company = Company.query.get(1)
 
+    # This is where the action happens
     # Iterate through each day in the loop
+    # You can customize the length of the game in the company.yaml config file
+    company = Company.query.get(1)
     current_date = date.fromisoformat(company.activity_start_date)
     print(f"TYPE OF DATE {type(current_date)}")
     while current_date <= date.fromisoformat(company.activity_end_date):
-        # Check to ensure the current date is within the range of the actor's active dates AND
-        # the current day is one of the weekdays when the actor works
         print("##########################################")
         print(f"## Running for day {current_date}...")
         print("##########################################")
