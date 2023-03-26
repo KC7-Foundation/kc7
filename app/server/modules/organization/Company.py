@@ -8,7 +8,7 @@ from faker.providers import internet, user_agent, person
 from user_agent import generate_user_agent, generate_navigator
 from sqlalchemy import func
 import names
-from datetime import date
+from datetime import date, timedelta, datetime
 
 from app.server.models import Base
 from app.server.modules.clock.Clock import Clock
@@ -69,7 +69,7 @@ class Company(Base):
         self.employee_emails = [employee.email_addr for employee in self.employees]
         
 
-    def get_new_employee(self, timestamp:float=None, user_agent:str="", name:str="", days_since_hire:int=0):
+    def get_new_employee(self, user_agent:str="", name:str="", days_since_hire:int=0):
         """
         Constructs a single employee instance and returns it.
         This function can take a specific creation time
@@ -78,15 +78,14 @@ class Company(Base):
         # time is returned as timestamp (float)
         # Get the current game session from the database
         current_session = db.session.query(GameSession).get(1)
-        time = Clock.get_current_gametime(start_time=current_session.start_time,
-                                                    seed_date=current_session.seed_date)
-                                                    
-        time_since_account_creation = days_since_hire * 24 * 60 * 60 # days to seconds
-        account_creation_datetime = Clock.increment_time(time, time_since_account_creation * -1 )
+        company_start_date = date.fromisoformat(self.activity_start_date)
+        account_creation_date = company_start_date + timedelta(days=-days_since_hire)
+        account_creation_timestamp = datetime.combine(date=account_creation_date, time=Clock.get_random_time()).timestamp()
+
         title, name = self.get_role()
 
         employee = Employee(
-            timestamp=timestamp or account_creation_datetime or Clock.get_current_gametime(),
+            timestamp=account_creation_timestamp,
             name= name or  self.get_employee_name(),
             # user_agent=generate_user_agent(os=('win')),
             ip_addr=self.get_internal_ip(),
