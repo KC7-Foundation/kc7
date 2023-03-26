@@ -124,7 +124,7 @@ class Trigger:
             filename=filename,
             # TODO: generate in filesystem instead
             path=f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
-            process_name=random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe'])
+            process_name=random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe']) #TODO: Make this correlate to employee UA
         )
 
         # This will come from the filesystem controller
@@ -263,7 +263,7 @@ class Trigger:
         print("Got to KC7...")
         login_time = time
         auth_results = ["Successful Login", "Failed Login"]
-        src_ip = actor.get_ips(count_of_ips=1)
+        src_ip = actor.get_ips(count_of_ips=1)[0]
         
         result = random.choice(auth_results)
         if result == "Successful Login":
