@@ -55,11 +55,18 @@ class Trigger:
         """
         from app.server.modules.alerts.alerts_controller import generate_email_alert
 
-        action_time = Clock.delay_time_in_working_hours(
+        if email.authenticity >= recipient.awareness and email.accepted:
+            # users click on email after 30 - 600 seconds after it was sent to them
+            # add time delay
+
+            # This is a user hands-on-keyboard action, so we need company working hours
+            company = get_company()
+
+            action_time = Clock.delay_time_in_working_hours(
                 start_time=email.time, factor="minutes", 
-                workday_start_hour=email.actor.activity_start_hour,
-                workday_length_hours=email.actor.workday_length_hours, 
-                working_days_of_week=email.actor.working_days_list
+                workday_start_hour=company.activity_start_hour,
+                workday_length_hours=company.workday_length_hours, 
+                working_days_of_week=company.working_days_list
             )
 
         if email.authenticity >= recipient.awareness and email.accepted:
@@ -99,8 +106,8 @@ class Trigger:
 
         if ("." in link.split("/")[-1]) and ("html" not in link): # could be cleaner
             # This should be conditionals
-            if random.random() > (recipient.awareness * .01):
-                Trigger.user_downloads_file(recipient=recipient, link=link, actor=actor, time=time)
+            download_time = Clock.delay_time_by(time, "seconds")
+            Trigger.user_downloads_file(recipient=recipient, link=link, actor=actor, time=download_time)
         elif actor.name != "Default":
             # Use working time delay because this is an actor hands-on-keyboard activity
             login_time = Clock.delay_time_in_working_hours(start_time=time, factor="hours", workday_start_hour=actor.activity_start_hour,
