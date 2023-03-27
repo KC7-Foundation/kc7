@@ -43,7 +43,7 @@ def base64_encode_string(input_string:str) -> str:
     # Convert the encoded bytes back to a string
     encoded_string = encoded_bytes.decode('utf-8')
     
-    return "C:\Windows\System32\powershell.exe -Nop -ExecutionPolicy bypass -enc {encoded_string}"
+    return f"C:\Windows\System32\powershell.exe -Nop -ExecutionPolicy bypass -enc {encoded_string}"
 
 
 
