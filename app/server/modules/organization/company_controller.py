@@ -74,11 +74,4 @@ def create_company():
     # add the employees to Azure
     db.session.add(company)
     db.session.commit()
-        
-
-        
-
-
-    print("Added a new company", 'success')
-
     
