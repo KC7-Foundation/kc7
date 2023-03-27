@@ -64,12 +64,11 @@ class Trigger:
             )
 
         if email.accepted:
-            if email.authenticity >= recipient.awareness and email.accepted:
+            if email.authenticity >= recipient.awareness:
                 # users click on email minutes (within working hours) after it was sent to them
                 # add time delay
                 Trigger.user_clicks_link(recipient=recipient, link=email.link, actor=email.actor, time=action_time)
-            else:
-                # user didn't click the link they might report it instead
+
                 if email.actor.is_default_actor:
                     if random.random() < current_app.config['FP_RATE_EMAIL_ALERTS']: # FP, user reports legit email
                         generate_email_alert(
@@ -77,7 +76,9 @@ class Trigger:
                             username=recipient.username,
                             subject=email.subject
                         )
-                elif random.random() < current_app.config['TP_RATE_EMAIL_ALERTS']: # TP, user reports malicious email
+            else:
+                # user didn't click the link they might report it instead
+                if random.random() < current_app.config['TP_RATE_EMAIL_ALERTS']: # TP, user reports malicious email
                     generate_email_alert(
                         time=action_time,
                         username=recipient.username,
