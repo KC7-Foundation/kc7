@@ -15,6 +15,14 @@ def read_config_from_yaml(path) -> dict:
             return None
             print(exc)
 
+def read_list_from_file(path) -> list:
+    """
+    Reads data from a .txt file and returns it as a list
+    """
+    with open(path, "r") as file:
+        lines = file.readlines()
+    return [line.strip() for line in lines]
+
 def load_malware_obj_from_yaml(malware_name) -> Malware:
     """
     Given a malware name, look for a malware config yaml file with that corresponding name

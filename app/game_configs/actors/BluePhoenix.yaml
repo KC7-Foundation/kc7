@@ -1,0 +1,71 @@
+name: BluePhoenix
+effectiveness: 85
+count_init_passive_dns: 10
+max_wave_size: 3
+activity_start_date: "2023-03-05"
+activity_end_date: "2023-04-01"
+activity_start_hour: 3
+workday_length_hours: 8
+working_days:
+  - Sunday
+  - Monday
+  - Tuesday
+  - Wednesday
+  - Thursday
+attacks:
+  - recon:browsing
+  - email:malware_delivery
+spoofs_email: True
+malware:
+  - phoenixmal
+post_exploit_commands:
+  - name: cmd.exe
+    process: cmd.exe /c net user > {output_dir}/user_accounts.txt
+  - name: cmd.exe
+    process: cmd.exe /c netstat -ano > {output_dir}/netstat.txt
+  - name: cmd.exe
+    process: cmd.exe /c tasklist /v > {output_dir}/running_processes.txt
+  - name: cmd.exe
+    process: cmd.exe /c dir /s > {output_dir}/file_system.txt
+recon_search_terms:
+  - "contoso it solutions"
+  - "contoso vpn access"
+  - "contoso employee login"
+  - "contoso network architecture"
+  - "contoso active directory"
+  - "contoso server security"
+file_names:
+  - "Contoso-Inventory.zip"
+  - "Contoso-Budget.zip"
+  - "Contoso-Plans.zip"
+  - "VPN-Install-Instructions.zip"
+  - "Remote-Work-Tools.zip"
+  - "Contoso-VPN-Installer.zip"
+sender_themes:
+  - support
+  - IT
+  - helpdesk
+  - administrator
+  - remote
+  - vpn
+domain_themes:
+  - security
+  - network
+  - infrastructure
+  - technology
+  - software
+  - hardware
+  - system
+  - database
+subjects:
+  - "Contoso Account Verification"
+  - "Important: Password Update Required"
+  - "Your Access to Contoso Network has been Suspended"
+  - "IT Security Alert: Suspicious Activity Detected"
+  - "Important Update: Contoso Remote Work Guidelines"
+  - "Security Breach Notification: Change Your Contoso Password Immediately"
+  - "Contoso Account Reactivation Required: Please Verify Your Information"
+tlds:
+  - com
+  - net
+  - tk

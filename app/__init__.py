@@ -27,6 +27,7 @@ app = application
 #export APPLICATION_SETTINGS='config.DevelopmentConfig' to set config
 #app.config.from_object(os.environ['APPLICATION_SETTINGS'])
 app.config.from_object('config.DevelopmentConfig')
+app.config.from_object('config.ActivityVolumeSettings')
 #app_settings = "app.server.config.DevelopmentConfig"
 
 # Define the database object which is imported

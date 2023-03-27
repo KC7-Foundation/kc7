@@ -61,3 +61,18 @@ class TestingConfig(BaseConfig):
 class ProductionConfig(BaseConfig):
     DEBUG = False
     #SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL_HERE']
+
+class ActivityVolumeSettings(BaseConfig):
+    ACTOR_SKIPS_DAY_RATE = 0.1
+    RATE_USER_AUTHS_FROM_WORK = 0.7
+
+    RATE_DOMAIN_RESOLVES_TO_NEW_IP = 0.2
+    RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM = 0.05
+
+    FP_RATE_EMAIL_ALERTS = 0.1
+    TP_RATE_EMAIL_ALERTS = 0.2
+
+    TP_RATE_HOST_ALERTS = 0.1
+    FP_RATE_HOST_ALERTS = 0.001
+
+    RATE_ACTOR_SKIPS_HANDS_ON_KEYBOARD = 0.1

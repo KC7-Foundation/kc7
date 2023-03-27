@@ -49,4 +49,4 @@ def send_alert_to_azure(alert):
 
     LOG_UPLOADER.send_request(
         data=[alert.stringify()],
-        table_name="SecurityAlert")
+        table_name="SecurityAlerts")

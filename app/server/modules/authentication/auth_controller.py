@@ -4,6 +4,7 @@ import random
 import uuid
 from faker import Faker
 from faker.providers import user_agent
+from datetime import date
 
 from app.server.modules.authentication.authenticationEvent import AuthenticationEvent
 from app.server.modules.organization.Company import Employee
@@ -11,6 +12,7 @@ from app.server.models import GameSession
 from app.server.modules.clock.Clock import Clock 
 from app.server.models import db
 from app.server.utils import *
+from flask import current_app
 
 AUTH_RESULTS = ["Successful Login", "Failed Login"]
 
@@ -19,50 +21,50 @@ fake = Faker()
 fake.add_provider(user_agent)
 
 @timing
-def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events:int) -> None:
+def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events_per_user:int, percent_employees_to_generate:float, start_date:date, start_hour: int, day_length_hours:int) -> None:
     """
     Get a random company user and have them login to the mail server
     """
-    users = random.choices(employees, k=num_auth_events)
+    users = random.choices(employees, k=int(len(employees)*percent_employees_to_generate))
     #Get the current game session from the database
     # this should be centralized somewhere as well
     
-
+    # TODO: This is not very performant
     for user in users:
-        # time is returned as timestamp (float)
-        # can we abstract this as well?
-        time = get_time()
-        # during business hours, users login using internal IPs.
-        #  During off-hourse, they login using home IPs
-        if Clock.is_business_hours(time):
-            auth_ip = user.ip_addr
-        else:
-            auth_ip = user.home_ip_addr
+        for _ in range(num_auth_events_per_user):
+            # TODO: This should be more accurate prob
+            if random.random() <= current_app.config['RATE_USER_AUTHS_FROM_WORK']:
+                auth_ip = user.ip_addr
+            else:
+                auth_ip = user.home_ip_addr
 
-        auth_result = random.choice(AUTH_RESULTS)
-        if auth_result == "Successful Login":
-            password = f"{user.username}2023"
-        else:
-            # Get a random password (that is incorrect) if we have an unsuccessful login
-            password = f"{uuid.uuid4()}"
+            auth_result = random.choice(AUTH_RESULTS)
+            if auth_result == "Successful Login":
+                password = f"{user.username}2023"
+            else:
+                # Get a random password (that is incorrect) if we have an unsuccessful login
+                password = f"{uuid.uuid4()}"
 
-        auth_to_mail_server(
-            timestamp=time,
-            username=user.username,
-            src_ip= auth_ip,
-            user_agent=user.user_agent,
-            result= random.choice(AUTH_RESULTS),
-            password=password
-        )
+            auth_to_mail_server(
+                timestamp=Clock.generate_bimodal_timestamp(start_date=start_date, start_hour=start_hour, day_length=day_length_hours).timestamp(),
+                username=user.username,
+                src_ip= auth_ip,
+                user_agent=user.user_agent,
+                result= random.choice(AUTH_RESULTS),
+                password=password
+            )
 
 @timing
-def actor_password_spray(actor: Actor, num_employees:int = 25, num_passwords:int = 5) -> None:
+def actor_password_spray(actor: Actor, start_date: date, num_employees:int = 25, num_passwords:int = 5) -> None:
     """
     Launches a password spray attack from a given actor given a specific actor
     """
     from app.server.modules.triggers.Trigger import Trigger
 
-    spray_time = get_time()
+    spray_time = Clock.generate_bimodal_timestamp(start_date=start_date, 
+                                                  start_hour=actor.activity_start_hour,
+                                                  day_length=actor.workday_length_hours
+                                                  ).timestamp()
 
     # target user with a particular role
     # TODO: abstract this out to the actor
@@ -91,43 +93,47 @@ def actor_password_spray(actor: Actor, num_employees:int = 25, num_passwords:int
             spray_time = Clock.delay_time_by(spray_time, "seconds")
 
             if "Success" in result:
-                login_time = Clock.delay_time_by(spray_time, factor="hours")
+                login_time = Clock.delay_time_in_working_hours(start_time=spray_time, 
+                                                               factor="hours",
+                                                               workday_start_hour=actor.activity_start_hour,
+                                                               workday_length_hours=actor.workday_length_hours,
+                                                               working_days_of_week=actor.working_days_list)
                 Trigger.actor_downloads_files_from_email(recipient=employee.username, src_ip=actor_ip, time=login_time)
             
 
-def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:
-    """
-    Tske a given user and have them login ot the mail server
-    """
-    # TODO: Possible deprecation? This isn't getting used anywhere.
-    for _ in range(num_auth_events):
-        time = get_time()
-        # auths happen anywhere from one hour to one week ago
-        time_since_auth = random.randint(3600, 604800) * -1
-        time = Clock.increment_time(time, time_since_auth)
+# def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:
+#     """
+#     Tske a given user and have them login ot the mail server
+#     """
+#     # TODO: Possible deprecation? This isn't getting used anywhere.
+#     for _ in range(num_auth_events):
+#         time = get_time()
+#         # auths happen anywhere from one hour to one week ago
+#         time_since_auth = random.randint(3600, 604800) * -1
+#         time = Clock.increment_time(time, time_since_auth)
         
-        if Clock.is_business_hours(time):
-            auth_ip = user.ip_addr
-            user_agent = user.user_agent
-        else:
-            auth_ip = user.home_ip_addr
-            user_agent = user.home_ua
+#         if Clock.is_business_hours(time):
+#             auth_ip = user.ip_addr
+#             user_agent = user.user_agent
+#         else:
+#             auth_ip = user.home_ip_addr
+#             user_agent = user.home_ua
 
-        auth_result = random.choice(AUTH_RESULTS)
-        if auth_result == "Successful Login":
-            password = f"{user.username}2023"
-        else:
-            # Get a random password (that is incorrect) if we have an unsuccessful login
-            password = f"{uuid.uuid4()}"
+#         auth_result = random.choice(AUTH_RESULTS)
+#         if auth_result == "Successful Login":
+#             password = f"{user.username}2023"
+#         else:
+#             # Get a random password (that is incorrect) if we have an unsuccessful login
+#             password = f"{uuid.uuid4()}"
 
-        auth_to_mail_server(
-            timestamp=time,
-            username=user.username,
-            src_ip= auth_ip,
-            user_agent=user_agent,
-            result= random.choice(AUTH_RESULTS),
-            password=password
-        )
+#         auth_to_mail_server(
+#             timestamp=time,
+#             username=user.username,
+#             src_ip= auth_ip,
+#             user_agent=user_agent,
+#             result= random.choice(AUTH_RESULTS),
+#             password=password
+#         )
     
 
 

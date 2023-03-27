@@ -8,6 +8,7 @@ from faker.providers import internet, user_agent, person
 from user_agent import generate_user_agent, generate_navigator
 from sqlalchemy import func
 import names
+from datetime import date, timedelta, datetime
 
 from app.server.models import Base
 from app.server.modules.clock.Clock import Clock
@@ -32,12 +33,25 @@ class Company(Base):
     name                    = db.Column(db.String(50), nullable=False)
     domain                  = db.Column(db.String(50), nullable=False)
     partners                = db.Column(db.String(300))
+    activity_start_date     = db.Column(db.String(50))
+    activity_end_date       = db.Column(db.String(50))
+    activity_start_hour     = db.Column(db.Integer())
+    workday_length_hours    = db.Column(db.Integer())
+    count_employees         = db.Column(db.Integer())
+    working_days            = db.Column(db.String(300))
 
-    def __init__(self, name: str, domain: str, count_employees:int=100, roles:dict={}, partners:list=[]) -> None:
+    def __init__(self, name: str, domain: str, activity_start_date: str, activity_end_date: str, activity_start_hour: int, 
+                 workday_length_hours: int, working_days: list=[], count_employees:int=100, roles:dict={}, partners:list=[]) -> None:
         self.name = name
         self.count_employees = count_employees or 100
         self.roles = roles
         self.partners = "~".join(partners)
+        # Timing stuff
+        self.activity_start_date = activity_start_date
+        self.activity_end_date = activity_end_date
+        self.activity_start_hour = activity_start_hour
+        self.workday_length_hours = workday_length_hours
+        self.working_days = "~".join(working_days or ['Monday','Tuesday', 'Wednesday','Thursday','Friday'])
         if domain:
             self.domain = domain
         else:
@@ -56,7 +70,7 @@ class Company(Base):
         self.employee_emails = [employee.email_addr for employee in self.employees]
         
 
-    def get_new_employee(self, timestamp:float=None, user_agent:str="", name:str="", days_since_hire:int=0):
+    def get_new_employee(self, user_agent:str="", name:str="", days_since_hire:int=0):
         """
         Constructs a single employee instance and returns it.
         This function can take a specific creation time
@@ -65,15 +79,14 @@ class Company(Base):
         # time is returned as timestamp (float)
         # Get the current game session from the database
         current_session = db.session.query(GameSession).get(1)
-        time = Clock.get_current_gametime(start_time=current_session.start_time,
-                                                    seed_date=current_session.seed_date)
-                                                    
-        time_since_account_creation = days_since_hire * 24 * 60 * 60 # days to seconds
-        account_creation_datetime = Clock.increment_time(time, time_since_account_creation * -1 )
+        company_start_date = date.fromisoformat(self.activity_start_date)
+        account_creation_date = company_start_date + timedelta(days=-days_since_hire)
+        account_creation_timestamp = datetime.combine(date=account_creation_date, time=Clock.get_random_time()).timestamp()
+
         title, name = self.get_role()
 
         employee = Employee(
-            timestamp=timestamp or account_creation_datetime or Clock.get_current_gametime(),
+            timestamp=account_creation_timestamp,
             name= name or  self.get_employee_name(),
             # user_agent=generate_user_agent(os=('win')),
             ip_addr=self.get_internal_ip(),
@@ -169,6 +182,10 @@ class Company(Base):
 
     def get_partners(self) -> str:
         return Company.string_to_list(self.partners)
+    
+    @property
+    def working_days_list(self) -> list:
+        return Company.string_to_list(self.working_days)
 
     def __repr__(self) -> str:
         return '<Company %r>' % self.name

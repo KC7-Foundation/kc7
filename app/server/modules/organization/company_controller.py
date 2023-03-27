@@ -47,6 +47,7 @@ def create_company():
     # loads json file as diction
     company_config = read_config_from_yaml('app/game_configs/company.yaml')
     # instantiate a company object using config info
+    print(company_config)
     company = Company(
             **company_config
     )

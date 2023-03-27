@@ -17,6 +17,7 @@ import string
 from functools import wraps
 from time import time
 import names
+import numpy as np
 
 # instantiate faker
 fake = Faker()
@@ -52,7 +53,6 @@ def timing(f):
         return result
     return wrap
 
-# @timing
 def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
     """Get a link containing actor's domain"""
 
@@ -61,10 +61,10 @@ def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -
     try:
         uri_type = random.choice(actor.get_attacks_by_type("email"))
     except IndexError:
-        all_uri_types = ["browsing", "credential_phishing", "malware"]
+        all_uri_types = ["browsing", "phishing", "malware_delivery"]
         uri_type = random.choice(all_uri_types)
 
-    link = random.choice(["http://", "https://", ""]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
+    link = random.choice(["http://", "https://"]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
     
     # return both the links and the domain - 
     # so that we can access the domain without having to do a weird regex
@@ -72,9 +72,7 @@ def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -
         return link, domain
     return link
 
-
-
-def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", actor:Actor=None) -> str:
+def get_uri_path(max_depth:int=4, max_params:int=6, uri_type:str="browsing", actor:Actor=None) -> str:
     """
     Generate a uri_path: either browsing uri or path uri (for file downloads)
     browsing uri example: 
@@ -83,6 +81,8 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
         - https://decisiondecision.biz/online/published/published/files/public/runner.xls
     auth uri example
         - google.com/login
+
+    NOTE: This function is poorly optimized due to repeated iterations for URL generation. Can we make this more efficient?
     """
     uri_path = ""
 
@@ -90,21 +90,13 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
 
     # Define constants for browsing-type
     param_names = ['query','source','id','keyword', 'search', 'user','uid','aid','tracking','type']
-    param_values = wordGenerator.get_words(100)
+    param_values = wordGenerator.get_words(10)
 
     login_paths = ['login', 'login.html', 'signin', 'sign_in', 'enter','login?language=en', 'auth']
 
    
     # Generate these using faker
-    file_names = param_values
     file_extensions = ['zip','rar','docx','7z','pptx', 'xls','exe']
-    
-    # Overide default filenames if new ones provided in config
-    if actor and actor.get_file_names():
-        file_names = actor.get_file_names()
-    else:
-        # Randomly append filenames
-        file_names = [f"{file_name}.{random.choice(file_extensions)}" for file_name in file_names]
 
     # Generate the URL
     for i in range(random.randint(1,max_depth)):
@@ -121,9 +113,14 @@ def get_uri_path(max_depth:int=6, max_params:int=14, uri_type:str="browsing", ac
             param_value = random.choice(param_values)
             uri_path += f"?{param_name}={param_value}"
     elif uri_type == "malware_delivery":
-        file_name = random.choice(file_names)
+        # Overide default filenames if new ones provided in config
+        if actor and actor.get_file_names():
+            file_name = random.choice(actor.get_file_names())
+        else:
+            # Randomly append filenames
+            file_name = f"{random.choice(param_values)}.{random.choice(file_extensions)}"
         uri_path += f"/{file_name}"
-    elif uri_type == "credential_phishing":
+    elif uri_type == "phishing":
         # crude but will do for now
         uri_path += f"/{random.choice(login_paths)}"
     return uri_path
@@ -182,20 +179,6 @@ def write_seed_files(max_num_files: int = 25):
 
         file = open("output/"+file_name,"w")
         file.write(file_string)
-
-
-
-
-# @timing
-def get_time() -> float:
-    # time is returned as timestamp (float)
-    from app.server.game_functions  import GAME_START_TIME, GAME_SEED_DATE
-
-    time = Clock.get_current_gametime(start_time=str(GAME_START_TIME),
-                                    seed_date=GAME_SEED_DATE)
-
-    return time
-
 
 # Yield successive n-sized
 # chunks from l.

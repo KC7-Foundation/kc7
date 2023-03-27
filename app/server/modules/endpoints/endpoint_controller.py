@@ -5,6 +5,7 @@ import random
 from faker import Faker
 from faker.providers import internet, lorem
 import re
+from datetime import date
 
 # Import internal modules
 from flask import current_app
@@ -24,7 +25,7 @@ fake.add_provider(lorem)
 fake.add_provider(file)
 
 @timing
-def gen_system_files_on_host(count_of_events:int=2) -> None:
+def gen_system_files_on_host(start_date: date, start_hour: int, workday_length_hours: int, percent_employees_to_generate: float, count_of_events_per_user:int=2) -> None:
     """
     Generates FileCreationEvents for system files generated on a host
     {
@@ -40,16 +41,15 @@ def gen_system_files_on_host(count_of_events:int=2) -> None:
     """
     from app.server.modules.alerts.alerts_controller import generate_host_alert
 
-    employees = get_employees(count=100)
-    file_creation_events = []
+    total_num_employees = get_company().count_employees
+    employees = get_employees(count=int(total_num_employees*percent_employees_to_generate))
 
     for employee in employees:
-        hash_path_pairs = random.choices(list(LEGIT_WINDOWS_FILES.items()), k=count_of_events)
-        base_time = get_time()
+        hash_path_pairs = random.choices(list(LEGIT_WINDOWS_FILES.items()), k=count_of_events_per_user)
         
         for hash, path in hash_path_pairs:
             filename = path.split("/")[-1]
-            time = Clock.delay_time_by(start_time=base_time, factor="month", is_random=True)
+            time = Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp()
             
             file_creation_event = FileCreationEvent(
                 hostname=employee.hostname, #Pick a random employee to generate system files
@@ -58,73 +58,73 @@ def gen_system_files_on_host(count_of_events:int=2) -> None:
                 filename=filename, # Get the filename from the path 
                 path="C:/"+path, # Add a drive letter
                 sha256=hash,
-                process_name="svchost.exe"
+                process_name=random.choice(['svchost.exe','wuauclt.exe']) #TODO: Add more of these!
             )
-            file_creation_events.append(file_creation_event)
 
-            if random.random() < .0001 and ".exe" in filename:
+            if random.random() < current_app.config['FP_RATE_HOST_ALERTS'] and ".exe" in filename: #FP: Use reports legit system file
                 generate_host_alert(
-                    time=time,
+                    time=Clock.delay_time_by(time, factor="minutes"),
                     hostname=employee.hostname,
                     filename=filename,
                     sha256=hash
                 )
-                
-        
-    upload_endpoint_event_to_azure(file_creation_events, table_name="FileCreationEvents")    
+
+            upload_endpoint_event_to_azure(file_creation_event, table_name="FileCreationEvents")      
 
 
 @timing
-def gen_system_processes_on_host(count_of_user_events:int=2) -> None:
+def gen_system_processes_on_host(start_date: date, start_hour: int, workday_length_hours: int, percent_employees_to_generate: float, count_of_events_per_user:int=2) -> None:
     """
     Generates ProcessEvents for users
     """
-    employees = get_employees(count=100)
-    time = get_time()
+    total_num_employees = get_company().count_employees
+    employees = get_employees(count=int(total_num_employees*percent_employees_to_generate))
     
     for employee in employees:
-        process_events = []
-        for _ in range(count_of_user_events):
+        for i in range(count_of_events_per_user):
+            # Half the time, make a user event too
+            # This is an attempted performance improvement (instead of 2 loops)
+            if (i%2 == 0):
+                process = get_legit_user_process(
+                    username=employee.username, 
+                    filename=fake.file_name(category='office')
+                )
+                parent_name, parent_hash = random.choice(list(LEGIT_PARENT_PROCESSES.items()))
+
+                process_event=ProcessEvent(
+                    timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
+                    parent_process_name=parent_name,
+                    parent_process_hash=parent_hash,
+                    process_commandline=process.process_commandline,
+                    process_name=process.process_name,
+                    hostname=employee.hostname,
+                    username=employee.username,
+                )
+                upload_endpoint_event_to_azure(process_event, table_name="ProcessEvents")
+                #process_events.append(process_event)
             
-            process = get_legit_user_process(
-                username=employee.username, 
-                filename=fake.file_name(category='office')
-            )
-            parent_name, parent_hash = random.choice(list(LEGIT_PARENT_PROCESSES.items()))
+            # Generates ProcessEvents for system
+            # Always generate a system event
+                process = get_legit_system_process(
+                    username=employee.username, 
+                    filename=fake.file_name(category='office')
+                )
+                parent_name, parent_hash = random.choice(list(LEGIT_SYSTEM_PARENT_PROCESSES.items()))
 
-            process_event=ProcessEvent(
-                timestamp=Clock.delay_time_by(start_time=time, factor="month", is_random=True),
-                parent_process_name=parent_name,
-                parent_process_hash=parent_hash,
-                process_commandline=process.process_commandline,
-                process_name=process.process_name,
-                hostname=employee.hostname,
-                username=employee.username,
-            )
-            process_events.append(process_event)
-            
-        #Generates ProcessEvents for system
-        for _ in range(count_of_user_events * 2):
-            process = get_legit_system_process(
-                username=employee.username, 
-                filename=fake.file_name(category='office')
-            )
-            parent_name, parent_hash = random.choice(list(LEGIT_SYSTEM_PARENT_PROCESSES.items()))
+                process_event=ProcessEvent(
+                    timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),         
+                    parent_process_name=parent_name,
+                    parent_process_hash=parent_hash,
+                    process_commandline=process.process_commandline,
+                    process_name=process.process_name,
+                    hostname=employee.hostname,
+                    username="System"
+                )
+                upload_endpoint_event_to_azure(process_event, table_name="ProcessEvents")
+                #process_events.append(process_event)
 
-            process_event=ProcessEvent(
-                timestamp=Clock.delay_time_by(start_time=time, factor="month", is_random=True),            
-                parent_process_name=parent_name,
-                parent_process_hash=parent_hash,
-                process_commandline=process.process_commandline,
-                process_name=process.process_name,
-                hostname=employee.hostname,
-                username="System"
-            )
-
-            process_events.append(process_event)
-
-        # print(f"uploading {len(process_events)}  events to ADX")
-        upload_endpoint_event_to_azure(process_events, table_name="ProcessEvents")
+    # print(f"uploading {len(process_events)}  events to ADX")
+    #upload_endpoint_event_to_azure(process_events, table_name="ProcessEvents")
     
     
 
@@ -169,7 +169,7 @@ def get_legit_user_process(username: str = None, filename: str = None) -> Proces
     )
 
 @timing
-def gen_user_files_on_host(count_of_events:int=5) -> None:
+def gen_user_files_on_host(start_date: date, start_hour: int, workday_length_hours: int, percent_employees_to_generate:float, count_of_events_per_user:int=5) -> None:
     """
     Generates FileCreationEvents for user files generated on a host
     TODO: Example here
@@ -177,8 +177,8 @@ def gen_user_files_on_host(count_of_events:int=5) -> None:
     employees = get_employees()
 
     # This will make files related to normal productivity stuff
-    for employee in employees:
-        for _ in range(count_of_events):
+    for employee in random.choices(employees, k=int(len(employees)*percent_employees_to_generate)):
+        for _ in range(count_of_events_per_user):
             path = random.choice(COMMON_USER_FILE_LOCATIONS).replace("{username}",employee.username)
             if "Pictures" in path:
                 category='image'
@@ -193,7 +193,7 @@ def gen_user_files_on_host(count_of_events:int=5) -> None:
                 hostname=employee.hostname,
                 username=employee.username,
                 process_name=random.choice(FILE_CREATING_PROCESSES),
-                timestamp=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True),
+                timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
                 file=File(
                     filename=fake.file_name(category=category),
                     path=path
@@ -201,15 +201,12 @@ def gen_user_files_on_host(count_of_events:int=5) -> None:
             )
     # This will create legit executables/applications
     for employee in random.choices(employees, k=10): #FIX THIS LATER
-
-        file = random.choice(LEGIT_EXECUTABLES_TO_INSTALL)
-        time=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True)
         write_file_to_host(
             hostname=employee.hostname,
             username=employee.username,
             process_name=random.choice(FILE_CREATING_PROCESSES),
-            timestamp=time,
-            file=file,
+            timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
+            file=random.choice(LEGIT_EXECUTABLES_TO_INSTALL)
         )
     
 def upload_endpoint_event_to_azure(events, table_name: str) -> None:

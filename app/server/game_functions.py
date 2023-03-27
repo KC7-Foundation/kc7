@@ -5,13 +5,14 @@ from flask import Blueprint, request, render_template, \
                   flash, g, session, redirect, url_for, abort, current_app, jsonify
 from sqlalchemy import asc
 from  sqlalchemy.sql.expression import func, select
+from datetime import datetime, date, time, timedelta
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
 from app.server.models import db, GameSession
 from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.logging.uploadLogs import LogUploader
-from app.server.modules.email.email_controller import gen_email
+from app.server.modules.email.email_controller import gen_email, gen_actor_email
 from app.server.modules.outbound_browsing.browsing_controller import *
 from app.server.modules.infrastructure.passiveDNS_controller import *
 from app.server.modules.organization.company_controller import create_company
@@ -21,7 +22,7 @@ from app.server.modules.authentication.auth_controller import auth_random_user_t
 from app.server.modules.helpers.config_helper import read_config_from_yaml
 from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host, gen_system_processes_on_host
 from app.server.modules.file.malware import Malware
-from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file
+from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file, read_list_from_file
 
 from app.server.utils import *
 from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
@@ -46,19 +47,14 @@ def start_game() -> None:
     global MALWARE_OBJECTS
     MALWARE_OBJECTS = create_malware()
 
+    global LEGIT_DOMAINS # Legit omains from Alex top 1M
+    LEGIT_DOMAINS = read_list_from_file('app/server/modules/helpers/alexa_top100k.txt')
+
     # The is current game session
     # This data object tracks whether or not the game is currently running
     # It allows us to start/stop/restart the game from the views
     current_session = db.session.query(GameSession).get(1)
     current_session.state = True
-
-    # get the time manually
-    # we are caching this value
-    global GAME_START_TIME
-    GAME_START_TIME = current_session.start_time
-
-    global GAME_SEED_DATE
-    GAME_SEED_DATE = current_session.seed_date
     
     print(f"Game started at {current_session.start_time}")
     # TODO: allow users ot modify start time in the web UI    
@@ -69,44 +65,70 @@ def start_game() -> None:
         employees, actors  = init_setup()
     
     print("initialization complete...")
-    # This is where the action is
-    # While this infinite loop runs, the game continues to generate data
-    # To implement games of finite size -> bound this loop (e.g. use a for loop instead)
-    # while current_session.state == True:
-    count_cycles = 10
-    for i in range(count_cycles):
-        # generate the activity
+
+    # This is where the action happens
+    # Iterate through each day in the loop
+    # You can customize the length of the game in the company.yaml config file
+    company = Company.query.get(1)
+    current_date = date.fromisoformat(company.activity_start_date)
+    while current_date <= date.fromisoformat(company.activity_end_date):
         print("##########################################")
-        print(f"## Running cycle {i+1} of the game...")
+        print(f"## Running for day {current_date}...")
         print("##########################################")
+        
         for actor in actors: 
             if actor.is_default_actor:
                 # Default actor is used to create noise
-                generate_activity(actor, employees) 
+                generate_activity_new(actor, current_date, employees, num_passive_dns=200) 
             else:
                 # generate activity of actors defined in actor config
                 # num_email is actually number of emails waves sent
                 # waves contain multiple emails
                 # TODO: abstract this out to the actor / make this more elegant
-                generate_activity(actor, 
+                generate_activity_new(actor, 
+                                  current_date,
                                   employees, 
                                   num_passive_dns=random.randint(5, 10), 
-                                  num_email=random.randint(0, 3), 
-                                ) 
+                                  num_email=random.randint(0, 3)
+                )
+
+        current_date += timedelta(days=1)
+    print("Done running!")
+
+    # count_cycles = 10
+    # for i in range(count_cycles):
+    #     # generate the activity
+    #     print("##########################################")
+    #     print(f"## Running cycle {i+1} of the game...")
+    #     print("##########################################")
+    #     for actor in actors: 
+    #         if actor.name == "Default":
+    #             # Default actor is used to create noise
+    #             generate_activity(actor, employees) 
+    #         else:
+    #             # generate activity of actors defined in actor config
+    #             # num_email is actually number of emails waves sent
+    #             # waves contain multiple emails
+    #             # TODO: abstract this out to the actor / make this more elegant
+    #             generate_activity(actor, 
+    #                               employees, 
+    #                               num_passive_dns=random.randint(5, 10), 
+    #                               num_email=random.randint(0, 3), 
+    #                             ) 
 
 
 
-    ##########################################
-    # deg statements to help time tracking
-    # on average, one cycle=one day in game
-    game_start_time = get_time()
-    game_end_time =  get_time()
-    days_elapse_in_game = (game_end_time - game_start_time) /(60*60*24)
-    print(f"Game started at {Clock.from_timestamp_to_string(game_start_time)}")
-    print(f"Game ended at {Clock.from_timestamp_to_string(game_end_time)}")
-    print(f"{days_elapse_in_game} days elapsed in the game")
-    print(f"Ran {count_cycles} cycles...")
-    ##########################################
+    # ##########################################
+    # # deg statements to help time tracking
+    # # on average, one cycle=one day in game
+    # game_start_time = get_time()
+    # game_end_time =  get_time()
+    # days_elapse_in_game = (game_end_time - game_start_time) /(60*60*24)
+    # print(f"Game started at {Clock.from_timestamp_to_string(game_start_time)}")
+    # print(f"Game ended at {Clock.from_timestamp_to_string(game_end_time)}")
+    # print(f"{days_elapse_in_game} days elapsed in the game")
+    # # print(f"Ran {count_cycles} cycles...")
+    # ##########################################
 
 
 def init_setup():
@@ -133,90 +155,120 @@ def init_setup():
         create_actors()
         actors = Actor.query.all()
 
-    # generate some initial activity for the actors
-    for actor in actors:
-        generate_activity(
-                            actor, 
-                            employees, 
-                            num_passive_dns=actor.count_init_passive_dns, 
-                            num_email=actor.count_init_email
-                        ) 
-
-        if AttackTypes.RECONNAISSANCE_VIA_BROWSING.value in actor.get_attacks():
-            gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
-
-    
-    # all_dns_records = DNSRecord.query.all()
-    # shuffle the dns records so that pivot points are not all next to each other in azure
-    # random.shuffle(all_dns_records)
-    # all_dns_records = [d.stringify() for d in all_dns_records]
-    # upload_dns_records_to_azure(all_dns_records)
-
-    # for actor in actors:
-    #     print(f"{actor.name}: {actor.get_attacks_by_type('email')}")
-
     return employees, actors
 
-    
-def generate_activity(actor: Actor, employees: list, 
-                        num_passive_dns:int=300, num_email:int=1000, 
-                        num_random_browsing:int=500, 
-                        num_auth_events:int=400,
+
+def generate_activity_new(actor: Actor, 
+                        current_date: date, 
+                        employees: list, 
+                        num_passive_dns:int=30, 
+                        num_email:int=10, 
+                        num_random_browsing_per_employee:int=20, 
+                        num_auth_events_per_employee:int=10,
+                        num_random_inbound_browsing:int=100,
                         count_of_user_endpoint_events=5,
-                        count_of_system_endpoint_events=100) -> None:
+                        count_of_system_endpoint_events=10) -> None:
     """
     Given an actor, generates one cycle of activity for users in the orgs 
     based on the attack types that they have defined
 
     The Default actor is used to represent normal company activities
     """
-    print(f" activity for actor {actor.name}")
-    # Generate passive DNS for specified actor
-    gen_passive_dns(actor, num_passive_dns)
 
-    # Generate emails for random employees for specified actor
-    # only if either the actor is supposed to send email 
-    # OR they are the default actor (generate email noise)
-    # TODO: handle number of emails generated in the function
-    if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
-        or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks()\
-        or actor.is_default_actor:
-        gen_email(employees, get_company().get_partners(), actor, num_email)
+    # Activity will be generated for 20% of employees each day
+    percent_employees_to_generate_activity_daily = 0.10 #percent
 
-    # Perform password spray attack
-    if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
-        actor_password_spray(
-            actor=actor, 
-            num_employees=random.randint(5,50),
-            num_passwords=5
-        )
-
-    # generate watering hole activity
-    if AttackTypes.MALWARE_VIA_WATERING_HOLE.value in actor.get_attacks():
-        actor_stages_watering_hole(
-            actor=actor,
-            num_employees=random.randint(5, 10),
-            link_type="malware_delivery"
-        )
-
-    #TODO Implement cred phishing via watering holde
-    if AttackTypes.PHISHING_VIA_WATERING_HOLE.value in actor.get_attacks():
-        actor_stages_watering_hole(
-            actor=actor,
-            num_employees=random.randint(5, 10),
-            link_type="credential_phishing"
-        )
-
-    # Generate browsing activity for random emplyoees for the default actor
-    # browsing for other actors should only come through email clicks
+    # Generate legit activity for default actor
     if actor.is_default_actor:
-        browse_random_website(employees, actor, num_random_browsing)
-        auth_random_user_to_mail_server(employees, num_auth_events)
-        gen_inbound_browsing_activity(actor, num_random_browsing)
-        gen_system_files_on_host(count_of_system_endpoint_events)
-        gen_user_files_on_host(count_of_user_endpoint_events)
-        gen_system_processes_on_host(count_of_system_endpoint_events)
+            gen_passive_dns                     (actor, current_date, num_passive_dns)
 
+            gen_email                           (employees=employees,
+                                                partners=get_company().get_partners(),
+                                                actor=actor,
+                                                count_emails_per_user=num_email,
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily,
+                                                start_date=current_date)
+            
+            browse_random_website               (employees=employees, 
+                                                actor=actor, 
+                                                count_browsing=num_random_browsing_per_employee, 
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily, 
+                                                start_date=current_date)
+            
+            auth_random_user_to_mail_server     (employees=employees, 
+                                                num_auth_events_per_user=num_auth_events_per_employee, 
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily,
+                                                start_date=current_date, 
+                                                start_hour=actor.activity_start_hour, 
+                                                day_length_hours=actor.workday_length_hours)
+            
+            gen_inbound_browsing_activity       (actor=actor, 
+                                                start_date=current_date, 
+                                                num_inbound_browsing_events=num_random_inbound_browsing)
+            
+            gen_system_files_on_host            (start_date=current_date, 
+                                                start_hour=actor.activity_start_hour, 
+                                                workday_length_hours=actor.workday_length_hours,
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily, 
+                                                count_of_events_per_user=count_of_system_endpoint_events)
+            
+            gen_user_files_on_host              (start_date=current_date, 
+                                                start_hour=actor.activity_start_hour, 
+                                                workday_length_hours=actor.workday_length_hours, 
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily,
+                                                count_of_events_per_user=count_of_user_endpoint_events)
+            
+            gen_system_processes_on_host        (start_date=current_date, 
+                                                start_hour=actor.activity_start_hour, 
+                                                workday_length_hours=actor.workday_length_hours, 
+                                                percent_employees_to_generate=count_of_system_endpoint_events)
+            
+            return
+    
+    # Generate activity for malicious actors
+
+    if date.fromisoformat(actor.activity_start_date) <= current_date <= date.fromisoformat(actor.activity_end_date) and\
+        Clock.weekday_to_string(current_date.weekday()) in actor.working_days_list:
+        # There's a 10% chance the actor will take the day off
+        if random.random() <= current_app.config['ACTOR_SKIPS_DAY_RATE']:
+            print(f"Actor {actor} is randomly taking a day off today: {current_date}!")
+            return
+        print(f"Generating activity for actor {actor.name}")
+        # Generate passive dns
+        gen_passive_dns(actor, current_date, num_passive_dns)
+
+        # Send emails
+        if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
+        or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks():
+            gen_actor_email(employees,
+                      actor, 
+                      start_date=current_date
+            )
+
+        # Malicious Activity; Conduct Password Spray Attack
+        if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
+            actor_password_spray(
+                actor=actor, 
+                start_date=current_date,
+                num_employees=random.randint(5, 50),
+                num_passwords=5
+            )
+
+        # Watering hole attack
+        if AttackTypes.MALWARE_VIA_WATERING_HOLE.value in actor.get_attacks():
+            actor_stages_watering_hole(
+                actor=actor,
+                start_date=current_date, 
+                num_employees=random.randint(5, 10),
+                link_type="malware_delivery"
+            )
+        
+        # Recon activity
+        if AttackTypes.RECONNAISSANCE_VIA_BROWSING.value in actor.get_attacks():
+            gen_inbound_browsing_activity(actor=actor, 
+                                          start_date=current_date, 
+                                          num_inbound_browsing_events=random.randint(0,10))
+    
 def create_actors() -> None:
     """
     Create a malicious actor in the game and adds them to the database
@@ -224,8 +276,9 @@ def create_actors() -> None:
 
     TODO: there should be some validation of actor configs prior to creation
     """
+    company = Company.query.get(1) # TODO: This works because we only have one company
 
-    # instantial a default actor - this actor should always exist
+    # Instantiate a default actor - this actor should always exist
     # the default actor is used to generate background noise in the game
     default_actor = Actor(
         name = "Default",  # Dont change the name!
@@ -234,7 +287,12 @@ def create_actors() -> None:
         count_init_email= 5000, 
         count_init_browsing=5000,
         domain_themes = wordGenerator.get_words(1000),
-        sender_themes = wordGenerator.get_words(1000)
+        sender_themes = wordGenerator.get_words(1000),
+        activity_start_date=company.activity_start_date,
+        activity_end_date=company.activity_end_date,
+        activity_start_hour=company.activity_start_hour,
+        workday_length_hours=company.workday_length_hours,
+        working_days=company.working_days_list
     )
 
     # load add default_actor
