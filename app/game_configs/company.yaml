@@ -1,5 +1,5 @@
-name: Envolve Labs
-domain: envolvelabs.com
+name: Contoso Corporation
+domain: contoso.com
 count_employees: 1000
 roles:
   - title: Chief Executive Officer
@@ -31,15 +31,17 @@ roles:
     limit: 999
   - title: Human Resources associate
     limit: 999
-  - title: Medical Researcher
-    limit: 499
-  - title: Lab Technician
-    limit: 499
-  - title: Trial Administrator
-    limit: 100
 partners:
-  - wesellbeakers.com
-  - pharmasupplies.org
-  - vaccinedistributors.com
-  - researchcompliance.com
-
+  - it-supplier.com
+  - wesellstaples.com
+  - fancysteelparts.net
+activity_start_date: "2023-03-01"
+activity_end_date: "2023-05-01"
+activity_start_hour: 13
+workday_length_hours: 8
+working_days:
+  - "Monday"
+  - "Tuesday"
+  - "Wednesday"
+  - "Thursday"
+  - "Friday"
