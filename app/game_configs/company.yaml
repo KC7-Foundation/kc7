@@ -4,16 +4,27 @@ count_employees: 1000
 roles:
   - title: Chief Executive Officer
     limit: 1
+    names: 
+    - Buggs Bunny
   - title: Chief Financial Officer
     limit: 1
   - title: Chief Marketing Officer
     limit: 1
+    names: 
+    - SpongeBob SquarePants
   - title: Chief Information Security Officer
     limit: 1
   - title: Vice President
     limit: 10
+    names: 
+    - Patrick Star
   - title: IT associate
     limit: 999
+    names: 
+    - Squidward tentacles
+    - Simeon Kakpovi
+    - Emily Hacker
+    - Greg Schloemer
   - title: Finance associate
     limit: 999
   - title: Marketing associate

@@ -70,6 +70,7 @@ class Company(Base):
                                                     
         time_since_account_creation = days_since_hire * 24 * 60 * 60 # days to seconds
         account_creation_datetime = Clock.increment_time(time, time_since_account_creation * -1 )
+        title, name = self.get_role()
 
         employee = Employee(
             timestamp=timestamp or account_creation_datetime or Clock.get_current_gametime(),
@@ -77,7 +78,7 @@ class Company(Base):
             # user_agent=generate_user_agent(os=('win')),
             ip_addr=self.get_internal_ip(),
             company=self,
-            role=self.get_role()
+            role=title
         )
 
         return employee
@@ -135,7 +136,7 @@ class Company(Base):
         return ip
 
 
-    def get_role(self) -> str:
+    def get_role(self):
         """
         Get a role from the company's dictionary of possible positions
         Decrement the limit
@@ -155,7 +156,16 @@ class Company(Base):
         role["limit"] -= 1
         if role["limit"] == 0:
             self.roles.remove(role)
-        return role.get('title')
+
+        title = role.get('title')
+        # get first item of the provided names and remove it
+        try:
+            name = role.get('names').pop(0)
+        except:
+            # could not get a name
+            name = None
+        return title, name
+
 
     def get_partners(self) -> str:
         return Company.string_to_list(self.partners)
