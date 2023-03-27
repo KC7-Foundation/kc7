@@ -87,7 +87,7 @@ def gen_inbound_browsing_activity(actor: Actor, start_date: date, num_inbound_br
         
 
 
-        url = random.choice(["http://", "https://", ""]) + get_company().domain + "/" + uri_path
+        url = random.choice(["http://", "https://"]) + get_company().domain + "/" + uri_path
 
         # if actor is not default, then recon should happen retroactively
         if actor.is_default_actor:

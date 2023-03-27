@@ -20,42 +20,38 @@ fake = Faker()
 fake.add_provider(user_agent)
 
 @timing
-def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events:int, start_date:date, start_hour: int, day_length_hours:int) -> None:
+def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events_per_user:int, percent_employees_to_generate:float, start_date:date, start_hour: int, day_length_hours:int) -> None:
     """
     Get a random company user and have them login to the mail server
     """
-    users = random.choices(employees, k=num_auth_events)
+    users = random.choices(employees, k=int(len(employees)*percent_employees_to_generate))
     #Get the current game session from the database
     # this should be centralized somewhere as well
     
+    # TODO: This is not very performant
     for user in users:
-        # time is returned as timestamp (float)
-        # can we abstract this as well?
-        time = Clock.generate_bimodal_timestamp(start_date=start_date, start_hour=start_hour, day_length=day_length_hours).timestamp()
-        # during business hours, users login using internal IPs.
-        #  During off-hourse, they login using home IPs
-        # TODO: This doesn't work anymore, with new time generation method
+        for _ in range(num_auth_events_per_user):
+            # TODO: This should be more accurate prob
+            if random.random() > 0.7:
+                auth_ip = user.ip_addr
+            else:
+                auth_ip = user.home_ip_addr
 
-        # if Clock.is_business_hours(time):
-        auth_ip = user.ip_addr
-        # else:
-        #     auth_ip = user.home_ip_addr
+            auth_result = random.choice(AUTH_RESULTS)
+            if auth_result == "Successful Login":
+                password = f"{user.username}2023"
+            else:
+                # Get a random password (that is incorrect) if we have an unsuccessful login
+                password = f"{uuid.uuid4()}"
 
-        auth_result = random.choice(AUTH_RESULTS)
-        if auth_result == "Successful Login":
-            password = f"{user.username}2023"
-        else:
-            # Get a random password (that is incorrect) if we have an unsuccessful login
-            password = f"{uuid.uuid4()}"
-
-        auth_to_mail_server(
-            timestamp=time,
-            username=user.username,
-            src_ip= auth_ip,
-            user_agent=user.user_agent,
-            result= random.choice(AUTH_RESULTS),
-            password=password
-        )
+            auth_to_mail_server(
+                timestamp=Clock.generate_bimodal_timestamp(start_date=start_date, start_hour=start_hour, day_length=day_length_hours).timestamp(),
+                username=user.username,
+                src_ip= auth_ip,
+                user_agent=user.user_agent,
+                result= random.choice(AUTH_RESULTS),
+                password=password
+            )
 
 @timing
 def actor_password_spray(actor: Actor, start_date: date, num_employees:int = 25, num_passwords:int = 5) -> None:

@@ -37,6 +37,7 @@ class Company(Base):
     activity_end_date       = db.Column(db.String(50))
     activity_start_hour     = db.Column(db.Integer())
     workday_length_hours    = db.Column(db.Integer())
+    count_employees         = db.Column(db.Integer())
     working_days            = db.Column(db.String(300))
 
     def __init__(self, name: str, domain: str, activity_start_date: str, activity_end_date: str, activity_start_hour: int, 

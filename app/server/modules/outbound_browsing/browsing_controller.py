@@ -21,23 +21,39 @@ fake.add_provider(internet)
 fake.add_provider(user_agent)
 
 @timing
-def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsing:int, start_date: date):
+def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsing:int, percent_employees_to_generate: float, start_date: date):
     """
     Generate n web requests to random websites on the internet  
     # this should typically be for the default actor  
     """
+    company = get_company()
+
     # for default actor, browse partner domains 5% of the time
     if actor.is_default_actor:
         if random.random() < .05:
-            domains_to_browse = get_company().get_partners()
+            domains_to_browse = company.get_partners()
         else:
             domains_to_browse=actor.domains_list
 
-    for _ in range(count_browsing):
-        link = get_link(actor=actor, actor_domains=domains_to_browse)
-        employee = random.choice(employees)
-        time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
-        browse_website(employee, link, time)
+    # Get the number of employees to generate
+    total_num_employees = company.count_employees
+    employees_for_activity_generation = int(total_num_employees*percent_employees_to_generate)
+    employees_to_generate = random.choices(employees, k=employees_for_activity_generation)
+
+    browsing_events = []
+    # TODO: Can this be made more efficient?
+    for employee in employees_to_generate:
+        for _ in range(count_browsing):
+            link = get_link(actor=actor, actor_domains=domains_to_browse)
+            employee = random.choice(employees)
+            time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
+            outbound_event = OutboundEvent(
+                time=time,
+                src_ip=employee.ip_addr,
+                user_agent=employee.user_agent,
+                url=link,
+            )
+            upload_event_to_azure(outbound_event, "OutboundBrowsing")    
 
 
 def browse_website(employee:Employee, link:str, time:float, method: str = None):
@@ -50,17 +66,24 @@ def browse_website(employee:Employee, link:str, time:float, method: str = None):
         method = method
     )
     
-    upload_event_to_azure(event)
+    upload_event_to_azure(event, "OutboundBrowsing")
 
 
-def upload_event_to_azure(event):
-
+def upload_event_to_azure(events, table_name:str):
     from app.server.game_functions import LOG_UPLOADER
-    LOG_UPLOADER.send_request(
-            data = [event.stringify()],
-            table_name= "OutboundBrowsing")
 
+    if isinstance(events, list):
+        events = [event.stringify() for event in events]
+        # print(data)
+    else:
+        # it should just be an event obj
+        events = [events.stringify()]
 
+    for event in events:
+        # print(f"submitting {len(chunk)} events to ADX")
+        LOG_UPLOADER.send_request(
+            data=[event],
+            table_name=table_name)
 
 @timing
 def actor_stages_watering_hole(actor:Actor, start_date: date, num_employees:int, link_type="malware_delivery"):

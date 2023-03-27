@@ -12,7 +12,7 @@ from app.server.models import db, GameSession
 from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.infrastructure.DNSRecord import DNSRecord
 from app.server.modules.logging.uploadLogs import LogUploader
-from app.server.modules.email.email_controller import gen_email
+from app.server.modules.email.email_controller import gen_email, gen_actor_email
 from app.server.modules.outbound_browsing.browsing_controller import *
 from app.server.modules.infrastructure.passiveDNS_controller import *
 from app.server.modules.organization.company_controller import create_company
@@ -92,7 +92,7 @@ def start_game() -> None:
 
         current_date += timedelta(days=1)
     print("Done running!")
-    
+
     # count_cycles = 10
     # for i in range(count_cycles):
     #     # generate the activity
@@ -153,30 +153,6 @@ def init_setup():
         create_actors()
         actors = Actor.query.all()
 
-    # # generate some initial activity for the actors
-    # for actor in actors:
-    #     print(f"START DATE TYPE: {type(actor.activity_start_date)}")
-    #     generate_activity_new(
-    #                         actor, 
-    #                         date.fromisoformat(actor.activity_start_date),
-    #                         employees, 
-    #                         num_passive_dns=actor.count_init_passive_dns, 
-    #                         num_email=actor.count_init_email
-    #                     ) 
-
-        # if AttackTypes.RECONNAISSANCE_VIA_BROWSING.value in actor.get_attacks():
-        #     gen_inbound_browsing_activity(actor, 30) #TODO: Fix this to read from config
-
-    
-    # all_dns_records = DNSRecord.query.all()
-    # shuffle the dns records so that pivot points are not all next to each other in azure
-    # random.shuffle(all_dns_records)
-    # all_dns_records = [d.stringify() for d in all_dns_records]
-    # upload_dns_records_to_azure(all_dns_records)
-
-    # for actor in actors:
-    #     print(f"{actor.name}: {actor.get_attacks_by_type('email')}")
-
     return employees, actors
 
 
@@ -184,11 +160,12 @@ def generate_activity_new(actor: Actor,
                         current_date: date, 
                         employees: list, 
                         num_passive_dns:int=30, 
-                        num_email:int=100, 
-                        num_random_browsing:int=75, 
-                        num_auth_events:int=75,
+                        num_email:int=10, 
+                        num_random_browsing_per_employee:int=20, 
+                        num_auth_events_per_employee:int=10,
+                        num_random_inbound_browsing:int=100,
                         count_of_user_endpoint_events=5,
-                        count_of_system_endpoint_events=30) -> None:
+                        count_of_system_endpoint_events=10) -> None:
     """
     Given an actor, generates one cycle of activity for users in the orgs 
     based on the attack types that they have defined
@@ -196,20 +173,73 @@ def generate_activity_new(actor: Actor,
     The Default actor is used to represent normal company activities
     """
 
+    # Activity will be generated for 20% of employees each day
+    percent_employees_to_generate_activity_daily = 0.2 #percent
+
+    # Generate legit activity for default actor
+    if actor.is_default_actor:
+            gen_passive_dns                     (actor, current_date, num_passive_dns)
+
+            gen_email                           (employees=employees,
+                                                partners=get_company().get_partners(),
+                                                actor=actor,
+                                                count_emails_per_user=num_email,
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily,
+                                                start_date=current_date)
+            
+            browse_random_website               (employees=employees, 
+                                                actor=actor, 
+                                                count_browsing=num_random_browsing_per_employee, 
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily, 
+                                                start_date=current_date)
+            
+            auth_random_user_to_mail_server     (employees=employees, 
+                                                num_auth_events_per_user=num_auth_events_per_employee, 
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily,
+                                                start_date=current_date, 
+                                                start_hour=actor.activity_start_hour, 
+                                                day_length_hours=actor.workday_length_hours)
+            
+            gen_inbound_browsing_activity       (actor=actor, 
+                                                start_date=current_date, 
+                                                num_inbound_browsing_events=num_random_inbound_browsing)
+            
+            gen_system_files_on_host            (start_date=current_date, 
+                                                start_hour=actor.activity_start_hour, 
+                                                workday_length_hours=actor.workday_length_hours,
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily, 
+                                                count_of_events_per_user=count_of_system_endpoint_events)
+            
+            gen_user_files_on_host              (start_date=current_date, 
+                                                start_hour=actor.activity_start_hour, 
+                                                workday_length_hours=actor.workday_length_hours, 
+                                                percent_employees_to_generate=percent_employees_to_generate_activity_daily,
+                                                count_of_events_per_user=count_of_user_endpoint_events)
+            
+            gen_system_processes_on_host        (start_date=current_date, 
+                                                start_hour=actor.activity_start_hour, 
+                                                workday_length_hours=actor.workday_length_hours, 
+                                                percent_employees_to_generate=count_of_system_endpoint_events)
+            
+            return
+    
+    # Generate activity for malicious actors
+
     if date.fromisoformat(actor.activity_start_date) <= current_date <= date.fromisoformat(actor.activity_end_date) and\
         Clock.weekday_to_string(current_date.weekday()) in actor.working_days_list:
-        # Generate activity for the default actor
-        # Note... this is too noisy
+        # There's a 10% chance the actor will take the day off
+        if random.random() >= 0.9:
+            print(f"Actor {actor} is randomly taking a day off today: {current_date}!")
+            return
+
+        # Generate passive dns
         gen_passive_dns(actor, current_date, num_passive_dns)
 
         # Send emails
         if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
-        or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks()\
-        or actor.is_default_actor:
-            gen_email(employees, 
-                      get_company().get_partners(), 
+        or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks():
+            gen_actor_email(employees,
                       actor, 
-                      num_email, 
                       start_date=current_date
             )
 
@@ -218,7 +248,7 @@ def generate_activity_new(actor: Actor,
             actor_password_spray(
                 actor=actor, 
                 start_date=current_date,
-                num_employees=random.randint(5,50),
+                num_employees=random.randint(5, 50),
                 num_passwords=5
             )
 
@@ -236,76 +266,7 @@ def generate_activity_new(actor: Actor,
             gen_inbound_browsing_activity(actor=actor, 
                                           start_date=current_date, 
                                           num_inbound_browsing_events=random.randint(0,10))
-
-        # Generate legit activity for default actor
-        if actor.is_default_actor:
-            browse_random_website(employees, actor, num_random_browsing, current_date)
-            auth_random_user_to_mail_server(employees, num_auth_events, current_date, actor.activity_start_hour, actor.workday_length_hours)
-            gen_inbound_browsing_activity(actor, current_date, num_random_browsing)
-            gen_system_files_on_host(current_date, actor.activity_start_hour, actor.workday_length_hours, count_of_system_endpoint_events)
-            gen_user_files_on_host(current_date, actor.activity_start_hour, actor.workday_length_hours, count_of_user_endpoint_events)
-            gen_system_processes_on_host(current_date, actor.activity_start_hour, actor.workday_length_hours, count_of_system_endpoint_events)
     
-
-# def generate_activity(actor: Actor, employees: list, 
-#                         num_passive_dns:int=300, num_email:int=1000, 
-#                         num_random_browsing:int=500, 
-#                         num_auth_events:int=400,
-#                         count_of_user_endpoint_events=5,
-#                         count_of_system_endpoint_events=100) -> None:
-#     """
-#     Given an actor, generates one cycle of activity for users in the orgs 
-#     based on the attack types that they have defined
-
-#     The Default actor is used to represent normal company activities
-#     """
-#     print(f" activity for actor {actor.name}")
-#     # Generate passive DNS for specified actor
-#     gen_passive_dns(actor, num_passive_dns)
-
-#     # Generate emails for random employees for specified actor
-#     # only if either the actor is supposed to send email 
-#     # OR they are the default actor (generate email noise)
-#     # TODO: handle number of emails generated in the function
-#     if AttackTypes.PHISHING_VIA_EMAIL.value in actor.get_attacks()\
-#         or AttackTypes.MALWARE_VIA_EMAIL.value in actor.get_attacks()\
-#         or actor.is_default_actor:
-#         gen_email(employees, get_company().get_partners(), actor, num_email)
-
-#     # Perform password spray attack
-#     if AttackTypes.PASSWORD_SPRAY.value in actor.get_attacks():
-#         actor_password_spray(
-#             actor=actor, 
-#             num_employees=random.randint(5,50),
-#             num_passwords=5
-#         )
-
-#     # generate watering hole activity
-#     if AttackTypes.MALWARE_VIA_WATERING_HOLE.value in actor.get_attacks():
-#         actor_stages_watering_hole(
-#             actor=actor,
-#             num_employees=random.randint(5, 10),
-#             link_type="malware_delivery"
-#         )
-
-#     #TODO Implement cred phishing via watering holde
-#     if AttackTypes.PHISHING_VIA_WATERING_HOLE.value in actor.get_attacks():
-#         actor_stages_watering_hole(
-#             actor=actor,
-#             num_employees=random.randint(5, 10),
-#             link_type="credential_phishing"
-#         )
-
-#     # Generate browsing activity for random emplyoees for the default actor
-#     # browsing for other actors should only come through email clicks
-#     if actor.is_default_actor:
-#         browse_random_website(employees, actor, num_random_browsing)
-#         auth_random_user_to_mail_server(employees, num_auth_events)
-#         gen_inbound_browsing_activity(actor, num_random_browsing)
-#         gen_system_files_on_host(count_of_system_endpoint_events)
-#         gen_user_files_on_host(count_of_user_endpoint_events)
-#         gen_system_processes_on_host(count_of_system_endpoint_events)
-
 def create_actors() -> None:
     """
     Create a malicious actor in the game and adds them to the database
@@ -315,7 +276,7 @@ def create_actors() -> None:
     """
     company = Company.query.get(1) # TODO: This works because we only have one company
 
-    # instantial a default actor - this actor should always exist
+    # Instantiate a default actor - this actor should always exist
     # the default actor is used to generate background noise in the game
     default_actor = Actor(
         name = "Default",  # Dont change the name!
