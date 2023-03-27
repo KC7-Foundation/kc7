@@ -30,3 +30,4 @@ Werkzeug==2.0.2
 PyYAML==6.0
 names==0.3.0
 user-agent==0.1.10
+scipy==1.10.1
