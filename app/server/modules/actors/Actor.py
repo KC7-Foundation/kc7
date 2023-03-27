@@ -105,7 +105,7 @@ class Actor(Base):
         self.activity_end_date          = activity_end_date
         self.activity_start_hour        = activity_start_hour
         self.workday_length_hours       = workday_length_hours
-        self.working_days               = "~".join(working_days)
+        self.working_days               = "~".join(working_days or ['Monday','Tuesday','Wednesday','Thursday','Friday']) # Default to normal work week
 
         # post_exploit_commands come in as a list of dictionaries
         # turn the dicts into strings and join the list into a string
@@ -200,27 +200,11 @@ class Actor(Base):
         """
         return Actor.string_to_list(self.file_names)
 
-    def get_hacky_domain_name(self) -> str:
-        """
-        Assemble a domain name using the list of theme words from the Actor object
-        THIS IS A HACK given that these don't apprea in the passiveDNSls
-        """
-        separators = ["","-" ]
-        tlds = Actor.string_to_list(self.tlds)  
-        
-        # if actor is default, let's get a larger list of randomised words
-        if self.name == "Default":
-            domain_themes = wordGenerator.get_words(1000)
-        else:
-            # Splitting string representation of list from db into actual list
-            domain_themes = Actor.string_to_list(self.domain_themes) 
-
-        words = random.choices(domain_themes, k=random.randint(1,2))
-        domain = random.choice(separators).join(list(set(words))) + "." + random.choice(tlds)
-
-        return domain
-
     def get_domain(self):
+        from app.server.game_functions import LEGIT_DOMAINS
+
+        if self.is_default_actor:
+            return random.choice(LEGIT_DOMAINS)
         return random.choice(self.domains_list)
 
 

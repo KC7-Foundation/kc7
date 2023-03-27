@@ -32,7 +32,7 @@ class SecurityAlert:
         Returns the KQL representation of the SecurityAlert class
         """
         return (
-            "SecurityAlert",    # table name
+            "SecurityAlerts",    # table name
             {                   # type dict
                 "timestamp": "datetime",
                 "alert_type": "string",

@@ -67,7 +67,7 @@ def gen_passive_dns(actor: Actor, current_date: date, count_of_records: int = 10
 
                     new_record = DNSRecord(
                         time=timestamp,
-                        domain = random.choice(actor.domains_list), 
+                        domain = actor.get_domain(), 
                         ip = new_ip.address
                     )
                     db.session.add(new_ip)

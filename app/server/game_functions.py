@@ -22,7 +22,7 @@ from app.server.modules.authentication.auth_controller import auth_random_user_t
 from app.server.modules.helpers.config_helper import read_config_from_yaml
 from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host, gen_system_processes_on_host
 from app.server.modules.file.malware import Malware
-from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file
+from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file, read_list_from_file
 
 from app.server.utils import *
 from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
@@ -46,6 +46,9 @@ def start_game() -> None:
 
     global MALWARE_OBJECTS
     MALWARE_OBJECTS = create_malware()
+
+    global LEGIT_DOMAINS # Legit omains from Alex top 1M
+    LEGIT_DOMAINS = read_list_from_file('app/server/modules/helpers/alexa_top100k.txt')
 
     # The is current game session
     # This data object tracks whether or not the game is currently running
@@ -76,7 +79,7 @@ def start_game() -> None:
         for actor in actors: 
             if actor.is_default_actor:
                 # Default actor is used to create noise
-                generate_activity_new(actor, current_date, employees) 
+                generate_activity_new(actor, current_date, employees, num_passive_dns=200) 
             else:
                 # generate activity of actors defined in actor config
                 # num_email is actually number of emails waves sent
@@ -173,7 +176,7 @@ def generate_activity_new(actor: Actor,
     """
 
     # Activity will be generated for 20% of employees each day
-    percent_employees_to_generate_activity_daily = 0.2 #percent
+    percent_employees_to_generate_activity_daily = 0.10 #percent
 
     # Generate legit activity for default actor
     if actor.is_default_actor:
@@ -230,7 +233,7 @@ def generate_activity_new(actor: Actor,
         if random.random() <= current_app.config['ACTOR_SKIPS_DAY_RATE']:
             print(f"Actor {actor} is randomly taking a day off today: {current_date}!")
             return
-
+        print(f"Generating activity for actor {actor.name}")
         # Generate passive dns
         gen_passive_dns(actor, current_date, num_passive_dns)
 
