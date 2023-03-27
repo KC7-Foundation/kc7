@@ -59,7 +59,7 @@ def gen_passive_dns(actor: Actor, current_date: date, count_of_records: int = 10
         base_time = datetime.timestamp(Clock.generate_bimodal_timestamp(start_date=current_date, start_hour=actor.activity_start_hour, day_length=actor.workday_length_hours))
         for i in range(count_of_records):
             if actor.domains_list and actor.ips:            
-                if random.random() < .2:
+                if random.random() < current_app.config['RATE_DOMAIN_RESOLVES_TO_NEW_IP']:
                     # half the time
                     #choose an existing domain and give it a new ip
                     new_ip =IP(actor=actor)

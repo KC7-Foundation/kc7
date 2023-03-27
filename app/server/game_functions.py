@@ -228,7 +228,7 @@ def generate_activity_new(actor: Actor,
     if date.fromisoformat(actor.activity_start_date) <= current_date <= date.fromisoformat(actor.activity_end_date) and\
         Clock.weekday_to_string(current_date.weekday()) in actor.working_days_list:
         # There's a 10% chance the actor will take the day off
-        if random.random() >= 0.9:
+        if random.random() <= current_app.config['ACTOR_SKIPS_DAY_RATE']:
             print(f"Actor {actor} is randomly taking a day off today: {current_date}!")
             return
 

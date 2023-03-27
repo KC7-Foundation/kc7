@@ -30,7 +30,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
 
     # for default actor, browse partner domains 5% of the time
     if actor.is_default_actor:
-        if random.random() < .05:
+        if random.random() < current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM']:
             domains_to_browse = company.get_partners()
         else:
             domains_to_browse=actor.domains_list

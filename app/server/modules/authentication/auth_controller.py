@@ -12,6 +12,7 @@ from app.server.models import GameSession
 from app.server.modules.clock.Clock import Clock 
 from app.server.models import db
 from app.server.utils import *
+from flask import current_app
 
 AUTH_RESULTS = ["Successful Login", "Failed Login"]
 
@@ -32,7 +33,7 @@ def auth_random_user_to_mail_server(employees:"list[Employee]", num_auth_events_
     for user in users:
         for _ in range(num_auth_events_per_user):
             # TODO: This should be more accurate prob
-            if random.random() > 0.7:
+            if random.random() <= current_app.config['RATE_USER_AUTHS_FROM_WORK']:
                 auth_ip = user.ip_addr
             else:
                 auth_ip = user.home_ip_addr

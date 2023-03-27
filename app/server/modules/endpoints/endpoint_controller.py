@@ -61,7 +61,7 @@ def gen_system_files_on_host(start_date: date, start_hour: int, workday_length_h
                 process_name=random.choice(['svchost.exe','wuauclt.exe']) #TODO: Add more of these!
             )
 
-            if random.random() < .0001 and ".exe" in filename: #FP: Use reports legit system file
+            if random.random() < current_app.config['FP_RATE_HOST_ALERTS'] and ".exe" in filename: #FP: Use reports legit system file
                 generate_host_alert(
                     time=Clock.delay_time_by(time, factor="minutes"),
                     hostname=employee.hostname,
@@ -79,7 +79,6 @@ def gen_system_processes_on_host(start_date: date, start_hour: int, workday_leng
     """
     total_num_employees = get_company().count_employees
     employees = get_employees(count=int(total_num_employees*percent_employees_to_generate))
-    process_events = []
     
     for employee in employees:
         for i in range(count_of_events_per_user):
@@ -202,15 +201,12 @@ def gen_user_files_on_host(start_date: date, start_hour: int, workday_length_hou
             )
     # This will create legit executables/applications
     for employee in random.choices(employees, k=10): #FIX THIS LATER
-
-        file = random.choice(LEGIT_EXECUTABLES_TO_INSTALL)
-        time=Clock.delay_time_by(start_time=get_time(), factor="month", is_random=True)
         write_file_to_host(
             hostname=employee.hostname,
             username=employee.username,
             process_name=random.choice(FILE_CREATING_PROCESSES),
             timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
-            file=file
+            file=random.choice(LEGIT_EXECUTABLES_TO_INSTALL)
         )
     
 def upload_endpoint_event_to_azure(events, table_name: str) -> None:

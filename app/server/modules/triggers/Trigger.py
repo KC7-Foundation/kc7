@@ -55,14 +55,8 @@ class Trigger:
         """
         from app.server.modules.alerts.alerts_controller import generate_email_alert
 
-        if email.authenticity >= recipient.awareness and email.accepted:
-            # users click on email after 30 - 600 seconds after it was sent to them
-            # add time delay
-
-            # This is a user hands-on-keyboard action, so we need company working hours
-            company = get_company()
-
-            action_time = Clock.delay_time_in_working_hours(
+        company = get_company()
+        action_time = Clock.delay_time_in_working_hours(
                 start_time=email.time, factor="minutes", 
                 workday_start_hour=company.activity_start_hour,
                 workday_length_hours=company.workday_length_hours, 
@@ -76,13 +70,13 @@ class Trigger:
         else:
             # user didn't click the link they might report it instead
             if email.actor.is_default_actor:
-                if random.random() < .01: # FP, user reports legit email
+                if random.random() < current_app.config['FP_RATE_EMAIL_ALERTS']: # FP, user reports legit email
                     generate_email_alert(
                         time=action_time,
                         username=recipient.username,
                         subject=email.subject
                     )
-            elif random.random() < .2: # TP, user reports malicious email
+            elif random.random() < current_app.config['TP_RATE_EMAIL_ALERTS']: # TP, user reports malicious email
                 generate_email_alert(
                     time=action_time,
                     username=recipient.username,
@@ -176,7 +170,7 @@ class Trigger:
             process_name=process_name
         )
         
-        if random.random() < .1:
+        if random.random() < current_app.config['TP_RATE_HOST_ALERTS']:
             generate_host_alert(
                 time=Clock.delay_time_by(start_time=time, factor="minutes"),
                 hostname=recipient.hostname,
@@ -235,7 +229,7 @@ class Trigger:
 
         # Upload the recon and C2 processes to Azure
         for process in processes:
-            if random.random() > .9:
+            if random.random() < current_app.config['RATE_ACTOR_SKIPS_HANDS_ON_KEYBOARD']:
                 break
             # now turn the command into necessry process object
             # print("getting actor hands on keyboard")
