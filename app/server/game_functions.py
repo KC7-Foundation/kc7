@@ -68,7 +68,6 @@ def start_game() -> None:
     # You can customize the length of the game in the company.yaml config file
     company = Company.query.get(1)
     current_date = date.fromisoformat(company.activity_start_date)
-    print(f"TYPE OF DATE {type(current_date)}")
     while current_date <= date.fromisoformat(company.activity_end_date):
         print("##########################################")
         print(f"## Running for day {current_date}...")
