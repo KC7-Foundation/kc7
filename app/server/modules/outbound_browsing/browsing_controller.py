@@ -45,6 +45,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     for employee in employees_to_generate:
         for _ in range(count_browsing):
             link = get_link(actor=actor, actor_domains=domains_to_browse)
+            print(link)
             employee = random.choice(employees)
             time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
             outbound_event = OutboundEvent(
