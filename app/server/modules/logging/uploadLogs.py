@@ -255,6 +255,10 @@ class LogUploader():
                 # Then, return early to prevent queueing and uploading to ADX
                 print(f"Uploading to table {table_name}...")
 
+                # uncomment this to print data add data
+                # print(data_table_df.to_markdown())
+
+                # uncomment this to print data generated a event type
                 # if table_name == "SecurityAlert":
                 #     print(data_table_df.to_markdown())
             else:
