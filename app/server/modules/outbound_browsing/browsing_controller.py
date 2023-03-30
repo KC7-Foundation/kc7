@@ -53,7 +53,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
                 user_agent=employee.user_agent,
                 url=link,
             )
-            upload_event_to_azure(outbound_event, "OutboundBrowsing")    
+            upload_event_to_azure(outbound_event, "OutboundNetworkEvents")    
 
 
 def browse_website(employee:Employee, link:str, time:float, method: str = None):
@@ -66,7 +66,7 @@ def browse_website(employee:Employee, link:str, time:float, method: str = None):
         method = method
     )
     
-    upload_event_to_azure(event, "OutboundBrowsing")
+    upload_event_to_azure(event, "OutboundNetworkEvents")
 
 
 def upload_event_to_azure(events, table_name:str):

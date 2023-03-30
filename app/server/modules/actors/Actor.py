@@ -226,10 +226,12 @@ class Actor(Base):
         Assemble a subject line using list of theme words from the Actor object
         """
         subjects = Actor.string_to_list(self.subjects) 
+        # give it some prefixes for variety
+        prefix  = random.choices(["", "RE: ", "FW: ", "RE:RE: "], weights=(60, 20, 15, 5), k=1)[0]
         if subjects:
-            return random.choice(subjects)
+            return prefix + random.choice(subjects) 
         else:
-            return sentenceGenerator.genSentence()
+            return prefix + sentenceGenerator.genSentence() 
 
 
     def get_sender_address(self) -> str:

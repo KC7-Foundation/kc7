@@ -24,7 +24,7 @@ class Email:
     """
 
     def __init__(self, sender: str, recipient: str, subject: str, time: float = None, authenticity: int = None,
-                 accepted: bool = True, link: str = None, domain: str = "", reply_to: str = None, opened: bool = False, actor: Actor = None):
+                 verdict: str = "", link: str = None, domain: str = "", reply_to: str = None, opened: bool = False, actor: Actor = None):
 
         self.time = time or datetime.datetime.now().strftime("%a %b %d %H:%M:%S %Y")
         self.subject = subject
@@ -36,10 +36,7 @@ class Email:
         self.link = link
         self.actor = actor
 
-        if not accepted:
-            self.accepted = random.choice([True, False])
-        else:
-            self.accepted = accepted
+        self.verdict = verdict
 
         if not link:
             # this should not occur
@@ -57,6 +54,11 @@ class Email:
         else:
             self.authenticity = authenticity
 
+    
+    @property
+    def accepted(self):
+        return self.verdict != "BLOCKED"
+
     def stringify(self) -> "dict[str, str]":
         """return json object with email attributes"""
         # if time is a timestamp convert to datetime string
@@ -71,7 +73,7 @@ class Email:
             "reply_to": self.reply_to,
             "recipient": self.recipient,
             "subject": self.subject,
-            "accepted": self.accepted,
+            "verdict": self.verdict,
             "link": self.link
         }
 
@@ -84,7 +86,7 @@ class Email:
                 "reply_to": "string",
                 "recipient": "string",
                 "subject": "string",
-                "accepted": "bool",
+                "verdict": "string",
                 "link": "string"
             }
         )

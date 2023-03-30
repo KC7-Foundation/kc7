@@ -106,7 +106,7 @@ def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"
     link, domain = get_link(actor, actor_domains, return_domain=True)
     sender = actor.get_sender_address()
     reply_to = actor.get_sender_address() if actor.spoofs_email else sender
-    subject = actor.get_email_subject()
+    subject = "[External] " + actor.get_email_subject()
 
     for recipient in recipients:
         email = Email(
@@ -118,7 +118,7 @@ def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"
             link=link,
             domain=domain,
             actor=actor,
-            accepted=random.choices([True, False], weights=(70, 30), k=1)[0],
+            verdict=random.choices(["CLEAN", "SUSPICIOUS", "BLOCKED"], weights=(65, 20, 10), k=1)[0],
             authenticity=actor.effectiveness
         )
 
@@ -142,7 +142,7 @@ def gen_outbound_mail(sender: Employee, actor: Actor, actor_domains:"list[str]",
         recipient=fake.ascii_email(),
         subject=actor.get_email_subject(),
         link=get_link(actor, actor_domains=actor_domains),
-        accepted=True
+        verdict=""
     )
 
     send_email_to_azure(email)
@@ -158,7 +158,7 @@ def gen_internal_mail(sender: Employee, recipient: Employee, actor: Actor, actor
         recipient=recipient.email_addr,
         subject=actor.get_email_subject(),
         link=get_link(actor, actor_domains=actor_domains),
-        accepted=True,
+        verdict="",
         authenticity=INTERNAL_EMAIL_AUTHENTICITY
     )
 
@@ -177,9 +177,11 @@ def gen_partner_mail(employee: Employee, partner_domain: str, actor: Actor, acto
     if directionality == EmailType.INBOUND.value:
         sender = partner_email
         recipient = employee.email_addr
+        verdict="CLEAN"
     else:
         sender = employee.email_addr
         recipient = partner_email
+        verdict=""
 
     email = Email(
         time=time,
@@ -187,7 +189,7 @@ def gen_partner_mail(employee: Employee, partner_domain: str, actor: Actor, acto
         recipient=recipient,
         subject=actor.get_email_subject(),
         link=get_link(actor, actor_domains),
-        accepted=True,
+        verdict= verdict,
         authenticity=PARTNER_EMAIL_AUTHENTICITY
     )
 
