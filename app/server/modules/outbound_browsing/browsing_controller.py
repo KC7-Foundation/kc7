@@ -14,6 +14,15 @@ from app.server.modules.outbound_browsing.outboundEvent import OutboundEvent
 from app.server.modules.clock.Clock import Clock 
 from app.server.models import GameSession
 from app.server.utils import *
+from app.server.modules.helpers.browsing_helpers import *
+
+#get rest of domains and add them
+wiki_domains = wiki_get_random_articles()
+news_domains = news_get_top_headlines()
+reddit_worldnews = reddit_get_subreddit("worldnews")
+youtube_domains = youtube_get_random_videos()
+youtube_domains2 = youtube_get_random_videos()
+RANDOMIZED_DOMAINS = wiki_domains + news_domains + reddit_worldnews + youtube_domains + youtube_domains2
 
 # instantiate faker
 fake = Faker()
@@ -30,10 +39,9 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
 
     # for default actor, browse partner domains 5% of the time
     if actor.is_default_actor:
-        if random.random() < current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM']:
-            domains_to_browse = company.get_partners()
-        else:
-            domains_to_browse=actor.domains_list
+        PARTNER_DOMAINS = company.get_partners()
+        LEGIT_DOMAINS = actor.domains_list
+        probabilities = [current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM'],current_app.config['RATE_USER_BROWSE_TO_RANDOMIZED_DOMAIN'],current_app.config['RATE_USER_BROWSE_TO_LEGIT_DOMAIN']]
 
     # Get the number of employees to generate
     total_num_employees = company.count_employees
@@ -43,7 +51,12 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     browsing_events = []
     # TODO: Can this be made more efficient?
     for employee in employees_to_generate:
+        #randomize seed
+        curr_dt = datetime.now()
+        seed_value = int(round(curr_dt.timestamp()))
+        random.seed(seed_value)
         for _ in range(count_browsing):
+            domains_to_browse = random.choices([PARTNER_DOMAINS,RANDOMIZED_DOMAINS,LEGIT_DOMAINS], weights=probabilities)[0]
             link = get_link(actor=actor, actor_domains=domains_to_browse)
             employee = random.choice(employees)
             time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
