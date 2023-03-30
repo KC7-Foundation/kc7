@@ -1,4 +1,5 @@
 import glob
+import pandas as pd
 from flask_security import roles_required
 
 from flask import Blueprint, request, render_template, \
@@ -6,6 +7,7 @@ from flask import Blueprint, request, render_template, \
 from sqlalchemy import asc
 from  sqlalchemy.sql.expression import func, select
 from datetime import datetime, date, time, timedelta
+
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
 from app.server.models import db, GameSession
@@ -94,6 +96,27 @@ def start_game() -> None:
 
         current_date += timedelta(days=1)
     print("Done running!")
+
+    #### Cleanup activities
+    # clear the rest of queue
+    LOG_UPLOADER.submit_queue()
+
+    print("#########################")
+    print("Summary of activities")
+    print("########################")
+    # print the tally
+    print(
+        json.dumps(
+            LOG_UPLOADER.tally, indent=4
+        )
+    )
+    for actor in actors:
+        if not actor.is_default_actor:
+            print("###############")
+            print(actor.name)
+            print("###############")
+            print(list(set(actor.domains_list)))
+            print(list(set(actor.ips_list)))
 
     # count_cycles = 10
     # for i in range(count_cycles):
