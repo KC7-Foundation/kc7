@@ -1,0 +1,11 @@
+https://outlook.live.com/mail/0/
+https://outlook.office365.com/owa
+https://www.office.com/launch/word?auth=1
+https://www.office.com/launch/excel?auth=1
+https://www.onenote.com/
+https://learn.microsoft.com/en-us/training/?source=learn
+https://security.microsoft.com/homepage?
+https://www.linkedin.com/feed/
+https://www.office.com/launch/onenote?auth=1
+https://app.slack.com/client/
+https://teams.microsoft.com/
