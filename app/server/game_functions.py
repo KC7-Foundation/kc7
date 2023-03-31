@@ -52,7 +52,16 @@ def start_game() -> None:
 
     global LEGIT_DOMAINS # Legit domains from legit.txt
     legit = read_list_from_file('app/server/modules/helpers/legit.txt')
-    LEGIT_DOMAINS = legit
+    wiki_domains = wiki_get_random_articles()
+    reddit_worldnews = reddit_get_subreddit("worldnews")
+    LEGIT_DOMAINS = legit + wiki_domains + reddit_worldnews 
+    if current_app.config['API_NEWSAPI'] != "":
+        news_domains = news_get_top_headlines(current_app.config['API_NEWSAPI'])
+        LEGIT_DOMAINS = LEGIT_DOMAINS + news_domains
+    if current_app.config['API_YOUTUBEAPI'] != "":
+        youtube_domains = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
+        youtube_domains2 = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
+        LEGIT_DOMAINS = LEGIT_DOMAINS + youtube_domains + youtube_domains2
 
     # The is current game session
     # This data object tracks whether or not the game is currently running
