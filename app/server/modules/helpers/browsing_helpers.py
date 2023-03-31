@@ -103,17 +103,6 @@ def generate_company_domains(company_domain):
         tempurl = "https://reports." + domain + "/id/?auth=True&requestid=" + nums
         domainList.append(tempurl)
 
-    #generate Slack links
-    for i in range(0,500):
-        faker_dt = datetime.now()
-        seed_value = int(round(faker_dt.timestamp()))
-        Faker.seed(seed_value+random.randint(0,999999))
-        random.seed(seed_value+random.randint(0,999999))
-        passwd = fake.password(length=11,lower_case=False,upper_case=True,special_chars=False)
-        passwd2 = fake.password(length=11,lower_case=False,upper_case=True,special_chars=False)
-        tempurl = "https/:/app.slack.com/client/" + passwd + "/" + passwd2
-        domainList.append(tempurl)
-
     #generate Google Spreadsheets/Word/Drive
     for i in range(0,1000):
         faker_dt = datetime.now()
@@ -171,15 +160,23 @@ def generate_partner_domains(partner_domains):
     return domainList
 
 
-
-
-
 def generate_company_traffic(company_domain):
     # to use with randomized_domains
     domain = company_domain
     domainList = []
     url = domain[:domain.find('.')]
     fake = Faker()
+
+    #generate Slack links
+    for i in range(0,500):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        passwd = fake.password(length=11,lower_case=False,upper_case=True,special_chars=False)
+        passwd2 = fake.password(length=11,lower_case=False,upper_case=True,special_chars=False)
+        tempurl = "https/:/app.slack.com/client/" + passwd + "/" + passwd2
+        domainList.append(tempurl)
 
     #generate "workspace"" links
     for i in range(0,500):
