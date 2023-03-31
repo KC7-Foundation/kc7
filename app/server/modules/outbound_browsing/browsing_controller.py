@@ -33,7 +33,8 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     #get rest of domains and add them
     wiki_domains = wiki_get_random_articles()
     reddit_worldnews = reddit_get_subreddit("worldnews")
-    RANDOMIZED_DOMAINS = wiki_domains + reddit_worldnews
+    randomized_company_domains = generate_company_traffic(company.domain)
+    RANDOMIZED_DOMAINS = wiki_domains + reddit_worldnews + randomized_company_domains
     if current_app.config['API_NEWSAPI'] != "":
         news_domains = news_get_top_headlines(current_app.config['API_NEWSAPI'])
         RANDOMIZED_DOMAINS = RANDOMIZED_DOMAINS + news_domains
@@ -41,7 +42,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
         youtube_domains = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
         youtube_domains2 = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
         RANDOMIZED_DOMAINS = RANDOMIZED_DOMAINS + youtube_domains + youtube_domains2
-
+    
     # for default actor, browse partner domains 5% of the time
     if actor.is_default_actor:
         PARTNER_DOMAINS = company.get_partners()

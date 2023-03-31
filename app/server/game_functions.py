@@ -7,7 +7,7 @@ from flask import Blueprint, request, render_template, \
 from sqlalchemy import asc
 from  sqlalchemy.sql.expression import func, select
 from datetime import datetime, date, time, timedelta
-
+import random
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
 from app.server.models import db, GameSession
@@ -74,7 +74,15 @@ def start_game() -> None:
     # Iterate through each day in the loop
     # You can customize the length of the game in the company.yaml config file
     company = Company.query.get(1)
+
+    #Generate Company Domains
     LEGIT_DOMAINS.append(company.domain)
+    company_data = generate_company_domains(company.domain)
+    partner_data = generate_partner_domains(company.get_partners())
+    LEGIT_DOMAINS = LEGIT_DOMAINS + company_data + partner_data
+
+
+
     current_date = date.fromisoformat(company.activity_start_date)
     while current_date <= date.fromisoformat(company.activity_end_date):
         print("##########################################")
