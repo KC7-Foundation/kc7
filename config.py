@@ -72,7 +72,7 @@ class ActivityVolumeSettings(BaseConfig):
     RATE_USER_BROWSE_TO_LEGIT_DOMAIN = 0.30
     RATE_USER_BROWSE_TO_CONTENT_DOMAIN = 0.30
 
-        # Set up your NewsAPI and YouTubeAPI keys here. 
+    # Set up your NewsAPI and YouTubeAPI keys here. 
     # NewsAPI (Free): https://newsapi.org/docs/get-started
     # Youtube Data API v3 (Free):  https://console.developers.google.com/
     API_NEWSAPI = ""
