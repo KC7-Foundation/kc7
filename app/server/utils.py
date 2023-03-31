@@ -64,8 +64,11 @@ def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -
         all_uri_types = ["browsing", "phishing", "malware_delivery"]
         uri_type = random.choice(all_uri_types)
 
-    link = random.choice(["http://", "https://"]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
-    
+    if "http" not in domain:
+        link = random.choice(["http://", "https://"]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
+    else:
+        link = domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
+
     # return both the links and the domain - 
     # so that we can access the domain without having to do a weird regex
     if return_domain:
