@@ -3,7 +3,6 @@ from app.server.models import Base
 import random
 from app import db
 from app.server.modules.helpers.word_generator import WordGenerator
-import tldextract
 from datetime import datetime
 
 # Import external modules
@@ -45,13 +44,7 @@ class Domain(Base):
         
         # if actor is default, let's get a larger list of randomised words
         if self.actor.is_default_actor:
-            #better randomization + fix for tldextract
-            curr_dt = datetime.now()
-            seed_value = int(round(curr_dt.timestamp()))
-            random.seed(seed_value+random.randint(0,999999))
-            ext = tldextract.extract(random.choice(LEGIT_DOMAINS))
-            domain = '.'.join(ext[:3])
-            return domain
+            return random.choice(LEGIT_DOMAINS)
         else:
             # Splitting string representation of list from db into actual list
             domain_themes = self.actor.domain_theme_values
