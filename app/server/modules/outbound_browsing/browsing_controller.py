@@ -16,13 +16,7 @@ from app.server.models import GameSession
 from app.server.utils import *
 from app.server.modules.helpers.browsing_helpers import *
 
-#get rest of domains and add them
-wiki_domains = wiki_get_random_articles()
-news_domains = news_get_top_headlines()
-reddit_worldnews = reddit_get_subreddit("worldnews")
-youtube_domains = youtube_get_random_videos()
-youtube_domains2 = youtube_get_random_videos()
-RANDOMIZED_DOMAINS = wiki_domains + news_domains + reddit_worldnews + youtube_domains + youtube_domains2
+
 
 # instantiate faker
 fake = Faker()
@@ -36,6 +30,18 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     # this should typically be for the default actor  
     """
     company = get_company()
+
+    #get rest of domains and add them
+    wiki_domains = wiki_get_random_articles()
+    reddit_worldnews = reddit_get_subreddit("worldnews")
+    RANDOMIZED_DOMAINS = wiki_domains + reddit_worldnews
+    if current_app.config['API_NEWSAPI'] != "apikey":
+        news_domains = news_get_top_headlines(current_app.config['API_NEWSAPI'])
+        RANDOMIZED_DOMAINS = RANDOMIZED_DOMAINS + news_domains
+    if current_app.config['API_YOUTUBEAPI'] != "apikey":
+        youtube_domains = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
+        youtube_domains2 = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
+        RANDOMIZED_DOMAINS = RANDOMIZED_DOMAINS + youtube_domains + youtube_domains2
 
     # for default actor, browse partner domains 5% of the time
     if actor.is_default_actor:
@@ -52,10 +58,10 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     # TODO: Can this be made more efficient?
     for employee in employees_to_generate:
         #randomize seed
-        curr_dt = datetime.now()
-        seed_value = int(round(curr_dt.timestamp()))
-        random.seed(seed_value)
         for _ in range(count_browsing):
+            curr_dt = datetime.now()
+            seed_value = int(round(curr_dt.timestamp()))
+            random.seed(seed_value+random.randint(0,999999))
             domains_to_browse = random.choices([PARTNER_DOMAINS,RANDOMIZED_DOMAINS,LEGIT_DOMAINS], weights=probabilities)[0]
             link = get_link(actor=actor, actor_domains=domains_to_browse)
             employee = random.choice(employees)
