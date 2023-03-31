@@ -90,7 +90,7 @@ def generate_company_domains(company_domain):
         isbn13 = fake.isbn13()
         nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
         line2 = [isbn10, isbn13, nums]
-        tempurl = "https://" + url + "sharepoint.com/" + random.choice(line1) + "/?items=" + random.choice(line2) + "/" + random.choice(line1)
+        tempurl = "https://" + url + ".sharepoint.com/" + random.choice(line1) + "/?items=" + random.choice(line2) + "/" + random.choice(line1)
         domainList.append(tempurl)
 
     #generate "report"" links
@@ -120,7 +120,7 @@ def generate_company_domains(company_domain):
         seed_value = int(round(faker_dt.timestamp()))
         Faker.seed(seed_value+random.randint(0,999999))
         random.seed(seed_value+random.randint(0,999999))
-        googleurls = ["docs.google.com/spreadsheets/d/", "drive.google.com/drive/u/1/folders/", "https://docs.google.com/document/d/", "https://docs.google.com/presentation/d/"]
+        googleurls = ["docs.google.com/spreadsheets/d/", "drive.google.com/drive/u/1/folders/", "docs.google.com/document/d/", "docs.google.com/presentation/d/"]
         passwd = fake.password(length=25,special_chars=False)
         tempurl = "https://" + random.choice(googleurls) + passwd
         domainList.append(tempurl)
@@ -139,7 +139,7 @@ def generate_company_domains(company_domain):
         isbn13 = fake.isbn13()
         nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
         line2 = [isbn10, isbn13, nums]
-        tempurl = "images." + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='image')
+        tempurl = "images" + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='image')
         domainList.append(tempurl)
 
     return domainList
@@ -166,7 +166,7 @@ def generate_partner_domains(partner_domains):
             isbn13 = fake.isbn13()
             nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
             line2 = [isbn10, isbn13, nums]
-            tempurl = "https://" + url + "sharepoint.com/" + random.choice(line1) + "/?items=" + random.choice(line2) + "/" + random.choice(line1)
+            tempurl = "https://" + url + ".sharepoint.com/" + random.choice(line1) + "/?items=" + random.choice(line2) + "/" + random.choice(line1)
             domainList.append(tempurl)
     return domainList
 
@@ -234,7 +234,7 @@ def generate_company_traffic(company_domain):
         isbn13 = fake.isbn13()
         nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
         line2 = [isbn10, isbn13, nums]
-        tempurl = "images." + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='image')
+        tempurl = "https://images" + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='image')
         domainList.append(tempurl)
 
     #generate asset links
@@ -251,7 +251,7 @@ def generate_company_traffic(company_domain):
         isbn13 = fake.isbn13()
         nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
         line2 = [isbn10, isbn13, nums]
-        tempurl = "assets." + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='text')
+        tempurl = "assets" + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='text')
         domainList.append(tempurl)
 
     return domainList
