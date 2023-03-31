@@ -25,6 +25,7 @@ from app.server.modules.helpers.config_helper import read_config_from_yaml
 from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host, gen_system_processes_on_host
 from app.server.modules.file.malware import Malware
 from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file, read_list_from_file
+from app.server.modules.helpers.browsing_helpers import *
 
 from app.server.utils import *
 from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
@@ -49,8 +50,9 @@ def start_game() -> None:
     global MALWARE_OBJECTS
     MALWARE_OBJECTS = create_malware()
 
-    global LEGIT_DOMAINS # Legit omains from Alex top 1M
-    LEGIT_DOMAINS = read_list_from_file('app/server/modules/helpers/alexa_top100k.txt')
+    global LEGIT_DOMAINS # Legit domains from legit.txt
+    legit = read_list_from_file('app/server/modules/helpers/legit.txt')
+    LEGIT_DOMAINS = legit
 
     # The is current game session
     # This data object tracks whether or not the game is currently running
@@ -72,6 +74,7 @@ def start_game() -> None:
     # Iterate through each day in the loop
     # You can customize the length of the game in the company.yaml config file
     company = Company.query.get(1)
+    LEGIT_DOMAINS.append(company.domain)
     current_date = date.fromisoformat(company.activity_start_date)
     while current_date <= date.fromisoformat(company.activity_end_date):
         print("##########################################")
