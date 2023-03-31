@@ -69,13 +69,14 @@ class ActivityVolumeSettings(BaseConfig):
     RATE_DOMAIN_RESOLVES_TO_NEW_IP = 0.2
     RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM = 0.05
     RATE_USER_BROWSE_TO_RANDOMIZED_DOMAIN = 0.35
-    RATE_USER_BROWSE_TO_LEGIT_DOMAIN = 0.60
+    RATE_USER_BROWSE_TO_LEGIT_DOMAIN = 0.30
+    RATE_USER_BROWSE_TO_CONTENT_DOMAIN = 0.30
 
         # Set up your NewsAPI and YouTubeAPI keys here. 
     # NewsAPI (Free): https://newsapi.org/docs/get-started
     # Youtube Data API v3 (Free):  https://console.developers.google.com/
-    API_NEWSAPI = "apikey"
-    API_YOUTUBEAPI = "apikey"
+    API_NEWSAPI = ""
+    API_YOUTUBEAPI = ""
 
     FP_RATE_EMAIL_ALERTS = 0.1
     TP_RATE_EMAIL_ALERTS = 0.2

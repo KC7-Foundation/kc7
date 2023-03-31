@@ -15,6 +15,7 @@ from app.server.modules.clock.Clock import Clock
 from app.server.models import GameSession
 from app.server.utils import *
 from app.server.modules.helpers.browsing_helpers import *
+from app.server.modules.helpers.config_helper import read_list_from_file
 
 # instantiate faker
 fake = Faker()
@@ -33,10 +34,10 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     wiki_domains = wiki_get_random_articles()
     reddit_worldnews = reddit_get_subreddit("worldnews")
     RANDOMIZED_DOMAINS = wiki_domains + reddit_worldnews
-    if current_app.config['API_NEWSAPI'] != "apikey":
+    if current_app.config['API_NEWSAPI'] != "":
         news_domains = news_get_top_headlines(current_app.config['API_NEWSAPI'])
         RANDOMIZED_DOMAINS = RANDOMIZED_DOMAINS + news_domains
-    if current_app.config['API_YOUTUBEAPI'] != "apikey":
+    if current_app.config['API_YOUTUBEAPI'] != "":
         youtube_domains = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
         youtube_domains2 = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
         RANDOMIZED_DOMAINS = RANDOMIZED_DOMAINS + youtube_domains + youtube_domains2
@@ -45,7 +46,8 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     if actor.is_default_actor:
         PARTNER_DOMAINS = company.get_partners()
         LEGIT_DOMAINS = actor.domains_list
-        probabilities = [current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM'],current_app.config['RATE_USER_BROWSE_TO_RANDOMIZED_DOMAIN'],current_app.config['RATE_USER_BROWSE_TO_LEGIT_DOMAIN']]
+        probabilities = [current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM'],current_app.config['RATE_USER_BROWSE_TO_RANDOMIZED_DOMAIN'],current_app.config['RATE_USER_BROWSE_TO_LEGIT_DOMAIN'], current_app.config['RATE_USER_BROWSE_TO_CONTENT_DOMAIN']]
+        CONTENT_DOMAINS = read_list_from_file('app/server/modules/helpers/content-domains.txt')
 
     # Get the number of employees to generate
     total_num_employees = company.count_employees
@@ -59,8 +61,8 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
             curr_dt = datetime.now()
             seed_value = int(round(curr_dt.timestamp()))
             random.seed(seed_value+random.randint(0,999999))
-            domains_to_browse = random.choices([PARTNER_DOMAINS,RANDOMIZED_DOMAINS,LEGIT_DOMAINS], weights=probabilities)[0]
-            link = get_link(actor=actor, actor_domains=domains_to_browse)
+            domains_to_browse = random.choices([PARTNER_DOMAINS,RANDOMIZED_DOMAINS,LEGIT_DOMAINS,CONTENT_DOMAINS], weights=probabilities)[0]
+            link = random.choice(domains_to_browse)
             employee = random.choice(employees)
             time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
             outbound_event = OutboundEvent(

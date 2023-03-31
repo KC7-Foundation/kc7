@@ -52,7 +52,12 @@ def start_game() -> None:
 
     global LEGIT_DOMAINS # Legit domains from legit.txt
     legit = read_list_from_file('app/server/modules/helpers/legit.txt')
-    LEGIT_DOMAINS = legit
+    a = read_list_from_file('app/server/modules/helpers/alexa_top100k.txt')
+    curr_dt = datetime.now()
+    seed_value = int(round(curr_dt.timestamp()))
+    random.seed(seed_value+random.randint(0,999999))
+    alexa = random.sample(a,5000)
+    LEGIT_DOMAINS = legit + alexa
 
     # The is current game session
     # This data object tracks whether or not the game is currently running

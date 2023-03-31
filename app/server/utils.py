@@ -54,17 +54,6 @@ def timing(f):
     return wrap
 
 def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
-    #default actor links
-    if actor.is_default_actor:
-        domain = random.choice(actor_domains)
-        if "http" not in domain:
-            link =  "https//" + domain + "/"
-        else:
-            link = domain
-        if return_domain:
-            return link, domain
-        return link
-
     """Get a link containing actor's domain"""
 
     domain = random.choice(actor_domains)
