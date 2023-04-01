@@ -175,7 +175,7 @@ def generate_company_traffic(company_domain):
         random.seed(seed_value+random.randint(0,999999))
         passwd = fake.password(length=11,lower_case=False,upper_case=True,special_chars=False)
         passwd2 = fake.password(length=11,lower_case=False,upper_case=True,special_chars=False)
-        tempurl = "https/:/app.slack.com/client/" + passwd + "/" + passwd2
+        tempurl = "https://app.slack.com/client/" + passwd + "/" + passwd2
         domainList.append(tempurl)
 
     #generate "workspace"" links
