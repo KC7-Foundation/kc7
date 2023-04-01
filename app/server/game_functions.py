@@ -7,7 +7,7 @@ from flask import Blueprint, request, render_template, \
 from sqlalchemy import asc
 from  sqlalchemy.sql.expression import func, select
 from datetime import datetime, date, time, timedelta
-
+import random
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
 from app.server.models import db, GameSession
@@ -40,7 +40,7 @@ def start_game() -> None:
     3. Run infinite loop to generate additional activity
     """
     print("Starting the game...")
-
+    
     # instantiate a logUploader. This instance is used by all other modules to send logs to azure
     # we use a singular instances in order to queue up muliple rows of logs and send them all at once
     global LOG_UPLOADER
@@ -52,8 +52,24 @@ def start_game() -> None:
 
     global LEGIT_DOMAINS # Legit domains from legit.txt
     legit = read_list_from_file('app/server/modules/helpers/legit.txt')
-    LEGIT_DOMAINS = legit
+    wiki_domains = wiki_get_random_articles()
+    reddit_worldnews = reddit_get_subreddit("worldnews")
+    LEGIT_DOMAINS = legit + wiki_domains + reddit_worldnews 
+    if current_app.config['API_NEWSAPI'] != "":
+        news_domains = news_get_top_headlines(current_app.config['API_NEWSAPI'])
+        LEGIT_DOMAINS = LEGIT_DOMAINS + news_domains
+    if current_app.config['API_YOUTUBEAPI'] != "":
+        youtube_domains = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
+        youtube_domains2 = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
+        LEGIT_DOMAINS = LEGIT_DOMAINS + youtube_domains + youtube_domains2
 
+   
+    global CONTENT_DOMAINS
+    CONTENT_DOMAINS = read_list_from_file('app/server/modules/helpers/content-domains.txt')
+    global RANDOMIZED_DOMAINS
+    global PARTNER_DOMAINS
+    global ALL_DOMAINS
+    ALL_DOMAINS = LEGIT_DOMAINS + CONTENT_DOMAINS 
     # The is current game session
     # This data object tracks whether or not the game is currently running
     # It allows us to start/stop/restart the game from the views
@@ -74,7 +90,17 @@ def start_game() -> None:
     # Iterate through each day in the loop
     # You can customize the length of the game in the company.yaml config file
     company = Company.query.get(1)
+
+    #Generate Domains
     LEGIT_DOMAINS.append(company.domain)
+    company_data = generate_company_domains(company.domain)
+    partner_data = generate_partner_domains(company.get_partners())
+    LEGIT_DOMAINS = LEGIT_DOMAINS + company_data + partner_data
+    randomized_company_domains = generate_company_traffic(company.domain)
+    RANDOMIZED_DOMAINS = randomized_company_domains
+    PARTNER_DOMAINS = company.get_partners()
+    ALL_DOMAINS =  ALL_DOMAINS + RANDOMIZED_DOMAINS + PARTNER_DOMAINS
+
     current_date = date.fromisoformat(company.activity_start_date)
     while current_date <= date.fromisoformat(company.activity_end_date):
         print("##########################################")

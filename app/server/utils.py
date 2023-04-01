@@ -54,20 +54,12 @@ def timing(f):
     return wrap
 
 def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
-    #default actor links
-    if actor.is_default_actor:
-        domain = random.choice(actor_domains)
-        if "http" not in domain:
-            link =  "https//" + domain + "/"
-        else:
-            link = domain
-        if return_domain:
-            return link, domain
-        return link
-
     """Get a link containing actor's domain"""
-
-    domain = random.choice(actor_domains)
+    if actor.is_default_actor:
+        from app.server.game_functions import LEGIT_DOMAINS
+        domain = random.choice(LEGIT_DOMAINS)
+    else: 
+        domain = random.choice(actor_domains)
 
     try:
         uri_type = random.choice(actor.get_attacks_by_type("email"))
@@ -75,8 +67,11 @@ def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -
         all_uri_types = ["browsing", "phishing", "malware_delivery"]
         uri_type = random.choice(all_uri_types)
 
-    link = random.choice(["http://", "https://"]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
-    
+    if "http" not in domain:
+        link = random.choice(["http://", "https://"]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
+    else:
+        link = domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
+
     # return both the links and the domain - 
     # so that we can access the domain without having to do a weird regex
     if return_domain:

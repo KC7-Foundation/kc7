@@ -3,6 +3,7 @@ from app.server.models import Base
 import random
 from app import db
 from app.server.modules.helpers.word_generator import WordGenerator
+from datetime import datetime
 
 # Import external modules
 from faker import Faker

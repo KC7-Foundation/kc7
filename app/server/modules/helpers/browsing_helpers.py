@@ -3,6 +3,9 @@ import json
 import urllib.parse
 from datetime import date, timedelta, datetime
 from flask import current_app
+from faker import Faker
+import random
+
 
 
 def wiki_get_random_articles():
@@ -66,3 +69,186 @@ def news_search_everything(searchterm, apikey):
     for article in response_json["articles"]:
         everything.append(article['url'])
     return everything
+
+def generate_company_domains(company_domain):
+    # to use with legit_domains
+    domain = company_domain
+    domainList = []
+    url = domain[:domain.find('.')]
+    #generate sharepoint links
+    fake = Faker()
+    for i in range(0,250):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        uuid = fake.uuid4()
+        passwd = fake.password(length=20,special_chars=False)
+        both = fake.bothify(text='????-#########')
+        line1 = [uuid, passwd, both]
+        isbn10 = fake.isbn10()
+        isbn13 = fake.isbn13()
+        nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
+        line2 = [isbn10, isbn13, nums]
+        tempurl = "https://" + url + ".sharepoint.com/" + random.choice(line1) + "/?items=" + random.choice(line2) + "/" + random.choice(line1)
+        domainList.append(tempurl)
+
+    #generate "report"" links
+    for i in range(0,250):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
+        tempurl = "https://reports." + domain + "/id/?auth=True&requestid=" + nums
+        domainList.append(tempurl)
+
+    #generate Google Spreadsheets/Word/Drive
+    for i in range(0,1000):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        googleurls = ["docs.google.com/spreadsheets/d/", "drive.google.com/drive/u/1/folders/", "docs.google.com/document/d/", "docs.google.com/presentation/d/"]
+        passwd = fake.password(length=25,special_chars=False)
+        tempurl = "https://" + random.choice(googleurls) + passwd
+        domainList.append(tempurl)
+
+    #generate image links
+    for i in range(0,500):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        uuid = fake.uuid4()
+        passwd = fake.password(length=20,special_chars=False)
+        both = fake.bothify(text='????-#########')
+        line1 = [uuid, passwd, both]
+        isbn10 = fake.isbn10()
+        isbn13 = fake.isbn13()
+        nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
+        line2 = [isbn10, isbn13, nums]
+        tempurl = "images" + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='image')
+        domainList.append(tempurl)
+
+    return domainList
+
+def generate_partner_domains(partner_domains):
+    # to use with partner domains (add to legit_domains)
+    # only gets "sharepoint" stuff for now
+    domains = partner_domains
+    domainList = []
+    for partner in domains:
+        url = partner[:partner.find('.')]
+        #generate sharepoint links
+        fake = Faker()
+        for i in range(0,100):
+            faker_dt = datetime.now()
+            seed_value = int(round(faker_dt.timestamp()))
+            Faker.seed(seed_value+random.randint(0,999999))
+            random.seed(seed_value+random.randint(0,999999))
+            uuid = fake.uuid4()
+            passwd = fake.password(length=20,special_chars=False)
+            both = fake.bothify(text='????-#########')
+            line1 = [uuid, passwd, both]
+            isbn10 = fake.isbn10()
+            isbn13 = fake.isbn13()
+            nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
+            line2 = [isbn10, isbn13, nums]
+            tempurl = "https://" + url + ".sharepoint.com/" + random.choice(line1) + "/?items=" + random.choice(line2) + "/" + random.choice(line1)
+            domainList.append(tempurl)
+    return domainList
+
+
+def generate_company_traffic(company_domain):
+    # to use with randomized_domains
+    domain = company_domain
+    domainList = []
+    url = domain[:domain.find('.')]
+    fake = Faker()
+
+    #generate Slack links
+    for i in range(0,500):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        passwd = fake.password(length=11,lower_case=False,upper_case=True,special_chars=False)
+        passwd2 = fake.password(length=11,lower_case=False,upper_case=True,special_chars=False)
+        tempurl = "https://app.slack.com/client/" + passwd + "/" + passwd2
+        domainList.append(tempurl)
+
+    #generate "workspace"" links
+    for i in range(0,500):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        uuid = fake.uuid4()
+        isbn10 = fake.isbn10()
+        tempurl = "https://www." + domain + "/workspace/?auth=True&sessionid=" + uuid + "/" + isbn10 + "/"
+        domainList.append(tempurl)   
+
+    #generate dashboard links
+    for i in range(0,250):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        uuid = fake.uuid4()
+        passwd = fake.password(length=20,special_chars=False)
+        tempurl = "https://prod." + domain + "/dashboard/?auth=True&" + uuid + "/" + passwd + "/"
+        domainList.append(tempurl)   
+
+    #generate "pulse" links:
+    for i in range(0,500):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        uuid = fake.uuid4()
+        passwd = fake.password(length=20,special_chars=False)
+        both = fake.bothify(text='????-#########')
+        line1 = [uuid, passwd, both]
+        isbn10 = fake.isbn10()
+        isbn13 = fake.isbn13()
+        nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
+        line2 = [isbn10, isbn13, nums]
+        tempurl = "https://security-cloudapps." + domain + "/pulse/?id=" + both + "&request=" + nums + "/" + uuid + "&" + random.choice(line1) + "/" + random.choice(line2)
+        domainList.append(tempurl)
+
+    #generate image links
+    for i in range(0,250):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        uuid = fake.uuid4()
+        passwd = fake.password(length=20,special_chars=False)
+        both = fake.bothify(text='????-#########')
+        line1 = [uuid, passwd, both]
+        isbn10 = fake.isbn10()
+        isbn13 = fake.isbn13()
+        nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
+        line2 = [isbn10, isbn13, nums]
+        tempurl = "https://images" + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='image')
+        domainList.append(tempurl)
+
+    #generate asset links
+    for i in range(0,500):
+        faker_dt = datetime.now()
+        seed_value = int(round(faker_dt.timestamp()))
+        Faker.seed(seed_value+random.randint(0,999999))
+        random.seed(seed_value+random.randint(0,999999))
+        uuid = fake.uuid4()
+        passwd = fake.password(length=20,special_chars=False)
+        both = fake.bothify(text='????-#########')
+        line1 = [uuid, passwd, both]
+        isbn10 = fake.isbn10()
+        isbn13 = fake.isbn13()
+        nums = fake.numerify(text='!!!!!!!!!!!!!!!!!!')
+        line2 = [isbn10, isbn13, nums]
+        tempurl = "assets" + "." + domain + "/static/" + random.choice(line1) + "/" + random.choice(line2) + "."+ fake.file_extension(category='text')
+        domainList.append(tempurl)
+
+    return domainList
