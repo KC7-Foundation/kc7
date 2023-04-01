@@ -108,6 +108,7 @@ def gen_passive_dns(actor: Actor, current_date: date, count_of_records: int = 10
     else:
         # this is the default actor
         # Time of day doesn't matter for default PDNS
+        from app.server.game_functions import ALL_DOMAINS
         rand_time = time(
                 hour=random.randint(0,23),
                 minute=random.randint(0,59),
@@ -119,8 +120,11 @@ def gen_passive_dns(actor: Actor, current_date: date, count_of_records: int = 10
             curr_dt = datetime.now()
             seed_value = int(round(curr_dt.timestamp()))
             random.seed(seed_value+random.randint(0,999999))
-            ext = tldextract.extract(Domain(actor=actor).name)
+            tempdomain = random.choice(ALL_DOMAINS)
+            ext = tldextract.extract(tempdomain)
             url = '.'.join(ext[:3])
+            if url[0] == ".":
+                url = url[1:]
             record = DNSRecord(
                 time = Clock.delay_time_by(default_datetime, factor="days", is_negative=True),
                 domain=url,

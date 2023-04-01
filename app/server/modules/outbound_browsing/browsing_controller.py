@@ -28,18 +28,13 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     Generate n web requests to random websites on the internet  
     # this should typically be for the default actor  
     """
+    from app.server.game_functions import LEGIT_DOMAINS, CONTENT_DOMAINS, RANDOMIZED_DOMAINS, PARTNER_DOMAINS
     company = get_company()
 
-    randomized_company_domains = generate_company_traffic(company.domain)
-    RANDOMIZED_DOMAINS = randomized_company_domains
-    
     # for default actor, browse partner domains 5% of the time
     if actor.is_default_actor:
-        PARTNER_DOMAINS = company.get_partners()
-        LEGIT_DOMAINS = actor.domains_list
         probabilities = [current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM'],current_app.config['RATE_USER_BROWSE_TO_RANDOMIZED_DOMAIN'],current_app.config['RATE_USER_BROWSE_TO_LEGIT_DOMAIN'], current_app.config['RATE_USER_BROWSE_TO_CONTENT_DOMAIN']]
-        CONTENT_DOMAINS = read_list_from_file('app/server/modules/helpers/content-domains.txt')
-
+        
     # Get the number of employees to generate
     total_num_employees = company.count_employees
     employees_for_activity_generation = int(total_num_employees*percent_employees_to_generate)

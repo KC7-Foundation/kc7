@@ -55,8 +55,11 @@ def timing(f):
 
 def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
     """Get a link containing actor's domain"""
-
-    domain = random.choice(actor_domains)
+    if actor.is_default_actor:
+        from app.server.game_functions import LEGIT_DOMAINS
+        domain = random.choice(LEGIT_DOMAINS)
+    else: 
+        domain = random.choice(actor_domains)
 
     try:
         uri_type = random.choice(actor.get_attacks_by_type("email"))
