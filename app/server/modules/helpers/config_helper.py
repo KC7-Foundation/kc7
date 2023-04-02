@@ -12,8 +12,8 @@ def read_config_from_yaml(path) -> dict:
         try:
             return yaml.safe_load(stream)
         except yaml.YAMLError as exc:
-            return None
-            print(exc)
+            raise Exception(f"Failed to read yaml config from {path}. {exc}")
+       
 
 def read_list_from_file(path) -> list:
     """
