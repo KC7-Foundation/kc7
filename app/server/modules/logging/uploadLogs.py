@@ -259,8 +259,8 @@ class LogUploader():
                 # print(data_table_df.to_markdown())
 
                 # uncomment this to print data generated a event type
-                # if table_name == "SecurityAlert":
-                #     print(data_table_df.to_markdown())
+                if table_name == "Email":
+                    print(data_table_df.to_markdown())
             else:
                 # submit logs to Kusto
                 result =  self.ingest.ingest_from_dataframe(

@@ -51,6 +51,10 @@ def start_game() -> None:
     MALWARE_OBJECTS = create_malware()
 
     global LEGIT_DOMAINS # Legit domains from legit.txt
+    global ALEXA_DOMAINS # Domains from Alexa top 100k
+
+    ALEXA_DOMAINS = read_list_from_file('app/server/modules/helpers/alexa_top100k.txt')
+    
     legit = read_list_from_file('app/server/modules/helpers/legit.txt')
     wiki_domains = wiki_get_random_articles()
     reddit_worldnews = reddit_get_subreddit("worldnews")
