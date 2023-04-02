@@ -29,11 +29,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     # this should typically be for the default actor  
     """
     from app.server.game_functions import LEGIT_DOMAINS, CONTENT_DOMAINS, RANDOMIZED_DOMAINS, PARTNER_DOMAINS
-    company = get_company()
-
-    # for default actor, browse partner domains 5% of the time
-    if actor.is_default_actor:
-        probabilities = [current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM'],current_app.config['RATE_USER_BROWSE_TO_RANDOMIZED_DOMAIN'],current_app.config['RATE_USER_BROWSE_TO_LEGIT_DOMAIN'], current_app.config['RATE_USER_BROWSE_TO_CONTENT_DOMAIN']]
+    company = get_company()   
         
     # Get the number of employees to generate
     total_num_employees = company.count_employees
@@ -44,11 +40,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     # TODO: Can this be made more efficient?
     for employee in employees_to_generate:
         for _ in range(count_browsing):
-            curr_dt = datetime.now()
-            seed_value = int(round(curr_dt.timestamp()))
-            random.seed(seed_value+random.randint(0,999999))
-            domains_to_browse = random.choices([PARTNER_DOMAINS,RANDOMIZED_DOMAINS,LEGIT_DOMAINS,CONTENT_DOMAINS], weights=probabilities)[0]
-            link = random.choice(domains_to_browse)
+            link = get_link()
             employee = random.choice(employees)
             time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
             outbound_event = OutboundEvent(

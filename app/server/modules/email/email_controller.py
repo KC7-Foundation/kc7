@@ -177,17 +177,19 @@ def gen_partner_mail(employee: Employee, partner_domain: str, actor: Actor, acto
     if directionality == EmailType.INBOUND.value:
         sender = partner_email
         recipient = employee.email_addr
+        subject_prefix = "[EXTERNAL] "
         verdict="CLEAN"
     else:
         sender = employee.email_addr
         recipient = partner_email
+        subject_prefix = ""
         verdict=""
 
     email = Email(
         time=time,
         sender=sender,
         recipient=recipient,
-        subject=actor.get_email_subject(),
+        subject=subject_prefix + actor.get_email_subject(),
         link=get_link(actor, actor_domains),
         verdict= verdict,
         authenticity=PARTNER_EMAIL_AUTHENTICITY
