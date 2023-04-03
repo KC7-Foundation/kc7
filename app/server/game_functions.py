@@ -44,7 +44,7 @@ def start_game() -> None:
     # instantiate a logUploader. This instance is used by all other modules to send logs to azure
     # we use a singular instances in order to queue up muliple rows of logs and send them all at once
     global LOG_UPLOADER
-    LOG_UPLOADER = LogUploader(queue_limit=10000)
+    LOG_UPLOADER = LogUploader(queue_limit=100000)
     LOG_UPLOADER.create_tables(reset=True)
 
     global MALWARE_OBJECTS
@@ -54,7 +54,7 @@ def start_game() -> None:
     global ALEXA_DOMAINS # Domains from Alexa top 100k
 
     ALEXA_DOMAINS = read_list_from_file('app/server/modules/helpers/alexa_top100k.txt')
-    
+
     legit = read_list_from_file('app/server/modules/helpers/legit.txt')
     wiki_domains = wiki_get_random_articles()
     reddit_worldnews = reddit_get_subreddit("worldnews")
@@ -223,7 +223,7 @@ def generate_activity_new(actor: Actor,
                         num_auth_events_per_employee:int=10,
                         num_random_inbound_browsing:int=100,
                         count_of_user_endpoint_events=5,
-                        count_of_system_endpoint_events=10) -> None:
+                        count_of_system_endpoint_events=5) -> None:
     """
     Given an actor, generates one cycle of activity for users in the orgs 
     based on the attack types that they have defined
