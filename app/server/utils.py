@@ -6,7 +6,10 @@ from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.clock.Clock import Clock 
 from app.server.models import GameSession
 
+
 # Import external modules
+from flask import current_app
+from datetime import datetime
 from fileinput import filename
 from enum import Enum
 import random
@@ -53,24 +56,64 @@ def timing(f):
         return result
     return wrap
 
-def get_link(actor:Actor, actor_domains:"list[str]", return_domain:bool=False) -> str:
+def get_link(actor:Actor=None, actor_domains:"list[str]"=[], return_domain:bool=False) -> str:
     """Get a link containing actor's domain"""
+    if not actor:
+        # get the default actor
+        actor = Actor.query.get(1)
+
+    all_uri_types = ["browsing", "phishing", "malware_delivery"]
+
+    probabilities = [
+                        current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM'],
+                        current_app.config['RATE_USER_BROWSE_TO_RANDOMIZED_DOMAIN'],
+                        current_app.config['RATE_USER_BROWSE_TO_LEGIT_DOMAIN'], 
+                        current_app.config['RATE_USER_BROWSE_TO_CONTENT_DOMAIN']
+                    ]
+                        
     if actor.is_default_actor:
-        from app.server.game_functions import LEGIT_DOMAINS
-        domain = random.choice(LEGIT_DOMAINS)
+        curr_dt = datetime.now()
+        seed_value = int(round(curr_dt.timestamp()))
+        random.seed(seed_value+random.randint(0,999999))
+        domains_to_browse = random.choices(["PARTNER_DOMAINS","RANDOMIZED_DOMAINS","LEGIT_DOMAINS","CONTENT_DOMAINS"], 
+                                            weights=probabilities)[0]
+
+        if domains_to_browse == "LEGIT_DOMAINS": #TODO abstract this out to a config
+            # pick from the defined legit domains most of othe time
+            from app.server.game_functions import LEGIT_DOMAINS
+            domain = random.choice(LEGIT_DOMAINS)
+            uri_type = ""
+        elif domains_to_browse == "PARTNER_DOMAINS":
+            # pick a partner domain a small percentage of the time
+            from app.server.game_functions import PARTNER_DOMAINS
+            domain = random.choice(PARTNER_DOMAINS)
+            uri_type = random.choice(all_uri_types)
+        elif domains_to_browse == "RANDOMIZED_DOMAINS":
+            # rest of the time, pick form alexas domains
+            # and do some random uri magic
+            from app.server.game_functions import ALEXA_DOMAINS
+            domain = random.choice(ALEXA_DOMAINS)
+            uri_type = random.choice(all_uri_types)
+        else:
+            from app.server.game_functions import CONTENT_DOMAINS
+            domain = random.choice(CONTENT_DOMAINS)
+            uri_type = ""
+
     else: 
         domain = random.choice(actor_domains)
-
-    try:
-        uri_type = random.choice(actor.get_attacks_by_type("email"))
-    except IndexError:
-        all_uri_types = ["browsing", "phishing", "malware_delivery"]
-        uri_type = random.choice(all_uri_types)
+        try:
+            uri_type = random.choice(actor.get_attacks_by_type("email"))
+        except IndexError:
+            uri_type = random.choice(all_uri_types)
 
     if "http" not in domain:
-        link = random.choice(["http://", "https://"]) + domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
+        link = random.choice(["http://", "https://"]) + domain + get_uri_path(uri_type=uri_type, actor=actor)
     else:
         link = domain + "/" + get_uri_path(uri_type=uri_type, actor=actor)
+
+    # check for rogue slack at the end of url
+    if link[-1] == "/":
+        link = link[:-1]
 
     # return both the links and the domain - 
     # so that we can access the domain without having to do a weird regex
@@ -90,6 +133,9 @@ def get_uri_path(max_depth:int=4, max_params:int=6, uri_type:str="browsing", act
 
     NOTE: This function is poorly optimized due to repeated iterations for URL generation. Can we make this more efficient?
     """
+    if not uri_type:
+        return ""
+
     uri_path = ""
 
     dir_words = ['share','files','search','published','online','images','modules','public']
@@ -100,7 +146,6 @@ def get_uri_path(max_depth:int=4, max_params:int=6, uri_type:str="browsing", act
 
     login_paths = ['login', 'login.html', 'signin', 'sign_in', 'enter','login?language=en', 'auth']
 
-   
     # Generate these using faker
     file_extensions = ['zip','rar','docx','7z','pptx', 'xls','exe']
 
@@ -129,7 +174,7 @@ def get_uri_path(max_depth:int=4, max_params:int=6, uri_type:str="browsing", act
     elif uri_type == "phishing":
         # crude but will do for now
         uri_path += f"/{random.choice(login_paths)}"
-    return uri_path
+    return "/" + uri_path
 
 
 def get_employees(roles_list=None, count=0) -> "list[Employee]":

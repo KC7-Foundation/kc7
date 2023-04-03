@@ -117,6 +117,7 @@ class Trigger:
         When a user clicks a bad link, they download a malicioud file
         Write a file to the filesystem
         """
+        from app.server.modules.alerts.alerts_controller import generate_host_quarantine_alert
 
         filename = link.split(
             "/")[-1]  # in the future, this should be parsed from the link
@@ -135,10 +136,14 @@ class Trigger:
 
         # if user runs the file then beacon from user machine
         # there should be a condition here
-        if actor.name != "Default":
+        if not actor.is_default_actor:
             if actor.malware:
                 payload_time = Clock.delay_time_by(start_time=time, factor="seconds")
-                Trigger.email_attachment_drops_payload(filename, recipient, payload_time, actor)
+                if random.random() < .9:
+                    Trigger.email_attachment_drops_payload(filename, recipient, payload_time, actor)
+                else:
+                    # Qurantine the file and send an alert
+                    generate_host_quarantine_alert(time=payload_time, hostname=recipient.hostname, filename=filename, sha256="-")
 
     @staticmethod
     def email_attachment_drops_payload(attachment_name:str, recipient: Employee, time: float, actor: Actor) -> None:

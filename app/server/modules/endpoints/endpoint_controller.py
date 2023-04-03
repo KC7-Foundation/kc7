@@ -73,7 +73,7 @@ def gen_system_files_on_host(start_date: date, start_hour: int, workday_length_h
 
 
 @timing
-def gen_system_processes_on_host(start_date: date, start_hour: int, workday_length_hours: int, percent_employees_to_generate: float, count_of_events_per_user:int=2) -> None:
+def gen_system_processes_on_host(start_date: date, start_hour: int, workday_length_hours: int, percent_employees_to_generate: float, count_of_events_per_user:int=1) -> None:
     """
     Generates ProcessEvents for users
     """

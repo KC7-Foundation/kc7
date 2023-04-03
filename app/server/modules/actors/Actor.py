@@ -126,7 +126,7 @@ class Actor(Base):
 
     @property
     def domain_theme_values(self):
-        return Actor.string_to_list(self.domain_themes)
+        return list(set(Actor.string_to_list(self.domain_themes)))
 
     @property
     def domains_list(self):
@@ -259,21 +259,30 @@ class Actor(Base):
 
     def gen_sender_address(self) -> str:
         """Make a list of fake sender addresses"""
+        import names
+
         sender_themes = Actor.string_to_list(self.sender_themes)
 
+        splitter = random.choice(["", "_", "."])
         # Read actor domains from config
         # If nothing available in the config, choose a freemail provider
-        
         if self.sender_domains_list:
             email_domain = random.choice(self.sender_domains_list)
         else:
             email_domain = random.choice(['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com'])
 
-        # get one or two words from our sender themes
-        words = random.choices(sender_themes, k=random.randint(1,2))
+        if (self.is_default_actor and random.random() < .5)\
+            or (not self.is_default_actor):
+            # use words for the send prefic
+            # all the time for non-default actors
+            # half the time for default actor
+            # get one or two words from our sender themes
+            prefix_parts = random.choices(sender_themes, k=random.randint(1,2))
+        else:
+            prefix_parts = names.get_full_name().lower().split(" ")
         
-        splitter = random.choice(["", "_", "."])
-        sender_addr = splitter.join(words) + "@" + email_domain
+        email_prefix = splitter.join(prefix_parts)
+        sender_addr = email_prefix + "@" + email_domain
         
         return sender_addr
 

@@ -32,7 +32,7 @@ class LogUploader():
     see: https://github.com/Azure/azure-kusto-python/blob/master/azure-kusto-ingest/tests/sample.py
     """
 
-    def __init__(self, queue_limit=1000):
+    def __init__(self, queue_limit=10000):
         # set Azure tenant config variables
         self.AAD_TENANT_ID = current_app.config["AAD_TENANT_ID"]
         self.KUSTO_URI = current_app.config["KUSTO_URI"]
@@ -259,8 +259,8 @@ class LogUploader():
                 # print(data_table_df.to_markdown())
 
                 # uncomment this to print data generated a event type
-                if table_name == "Email":
-                    print(data_table_df.to_markdown())
+                # if table_name == "Email":
+                    # print(data_table_df.to_markdown())
             else:
                 # submit logs to Kusto
                 result =  self.ingest.ingest_from_dataframe(
