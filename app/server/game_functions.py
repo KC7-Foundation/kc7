@@ -26,6 +26,7 @@ from app.server.modules.endpoints.endpoint_controller import gen_system_files_on
 from app.server.modules.file.malware import Malware
 from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file, read_list_from_file
 from app.server.modules.helpers.browsing_helpers import *
+from app.server.modules.logging.meta import DebugLogger
 
 from app.server.utils import *
 from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
@@ -46,6 +47,11 @@ def start_game() -> None:
     global LOG_UPLOADER
     LOG_UPLOADER = LogUploader(queue_limit=100000)
     LOG_UPLOADER.create_tables(reset=True)
+
+    # instantiate a logUploader. This allows us to locally log actor activity 
+    global DEBUG_LOGGER
+    DEBUG_LOGGER = DebugLogger('actor_activity.log')
+    DEBUG_LOGGER.log_debug('This is a debug message.')
 
     global MALWARE_OBJECTS
     MALWARE_OBJECTS = create_malware()

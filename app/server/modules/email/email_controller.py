@@ -88,7 +88,6 @@ def gen_actor_email(employees: "list[Employee]", actor: Actor, start_date: date)
     """
     This function generates malicious emails for non-default actors
     """
-
     # This shouldn't happen, but handle for case where this is called for default actor
     if actor.is_default_actor:
         return
@@ -97,12 +96,15 @@ def gen_actor_email(employees: "list[Employee]", actor: Actor, start_date: date)
     wave_size = random.randint(1, actor.max_wave_size)
     recipients = random.choices(employees, k=wave_size)
     gen_inbound_mail(recipients, actor, actor.domains_list, email_time)
+
         
 
 def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"list[str]", time: float) -> None:
     """
     Generate an email from someone outside the company to someone inside
     """
+    from app.server.game_functions import DEBUG_LOGGER
+
     link, domain = get_link(actor, actor_domains, return_domain=True)
     sender = actor.get_sender_address()
     reply_to = actor.get_sender_address() if actor.spoofs_email else sender
@@ -128,7 +130,15 @@ def gen_inbound_mail(recipients: "list[Employee]", actor: Actor, actor_domains:"
         # We should skip this most of the time for the default actor (performance savings)
         if actor.is_default_actor and (random.random() < 0.8):
             return
-        
+    
+        # log all actor activity for debug andq question generation
+        if not actor.is_default_actor:
+            metalog(
+                time=time, 
+                actor=actor, 
+                message=f'{recipient.email_addr} received an email from senders {sender} and {reply_to} with subject {subject} and link {link}'
+            )
+
         Trigger.user_receives_email(email, recipient)
 
 
