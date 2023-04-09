@@ -21,8 +21,6 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 
 [Why it works](https://kc7cyber.com/kc7-a-fun-and-hands-on-approach-to-cybersecurity-learning/)
 
-[Why it works](https://kc7cyber.com/kc7-a-fun-and-hands-on-approach-to-cybersecurity-learning/)
-
 
 ## 👨🏽‍🎓 Who is this for?
 
