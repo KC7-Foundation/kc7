@@ -1,5 +1,3 @@
-![Admin Central button](readme_assets/kc7.png)
-
 # KC7 - a cybersecurity game (kc7cyber.com)
 
 KC7 allows you to learn the big picture of cybersecurity analysis and threat intelligence using realistic data. The game simulates an intrusion by multiple cyber threat actors against a fictitious company that spans the entire `Cyber Kill Chain`.
