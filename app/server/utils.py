@@ -237,3 +237,14 @@ def divide_chunks(l, n):
     # looping till length l
     for i in range(0, len(l), n):
         yield l[i:i + n]
+
+def metalog(time:int, actor:Actor, message:str):
+    from app.server.game_functions import DEBUG_LOGGER
+    from app.server.modules.clock.Clock import Clock
+
+    time = Clock.from_timestamp_to_string(time)
+    actor = actor.name
+
+    debug_message = f"{actor}\t{time}: {message}"
+
+    DEBUG_LOGGER.log_debug(message=debug_message)

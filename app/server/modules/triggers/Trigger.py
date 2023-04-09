@@ -26,7 +26,7 @@ from app.server.modules.file.malware_controller import get_malware_by_name
 from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_inbound_request, make_email_exfil_url
 from app.server.modules.file.malware import Malware
 from app.server.modules.constants.constants import FILE_CREATING_PROCESSES
-
+from app.server.utils import metalog
 
 from app.server.utils import *
 
@@ -68,7 +68,6 @@ class Trigger:
                 # users click on email minutes (within working hours) after it was sent to them
                 # add time delay
                 Trigger.user_clicks_link(recipient=recipient, link=email.link, actor=email.actor, time=action_time)
-
                 if email.actor.is_default_actor:
                     if random.random() < current_app.config['FP_RATE_EMAIL_ALERTS']: # FP, user reports legit email
                         generate_email_alert(
@@ -92,13 +91,20 @@ class Trigger:
         """
         A user clicks a link
         can be from an email or otherwise
-        """
+        """        
         browse_website(
             employee=recipient,
             link= link,
             time=time,
             method="GET"
         )
+
+        if not actor.is_default_actor:
+            metalog(
+                time=time, 
+                actor=actor, 
+                message=f'{recipient.name} clicked on a link: {link}'
+            )
 
         if ("." in link.split("/")[-1]) and ("html" not in link): # could be cleaner
             # This should be conditionals
@@ -119,20 +125,32 @@ class Trigger:
         """
         from app.server.modules.alerts.alerts_controller import generate_host_quarantine_alert
 
+        
+
         filename = link.split(
             "/")[-1]  # in the future, this should be parsed from the link
+        path = f"C:\\Users\\{recipient.username}\\Downloads\\{filename}"
+        process = random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe']) 
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
             username=recipient.username,
             timestamp=time,
             filename=filename,
             # TODO: generate in filesystem instead
-            path=f"C:\\Users\\{recipient.username}\\Downloads\\{filename}",
-            process_name=random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe']) #TODO: Make this correlate to employee UA
+            path=path,
+            process_name=process#TODO: Make this correlate to employee UA
         )
 
         # This will come from the filesystem controller
         upload_endpoint_event_to_azure(file_creation_event, table_name="FileCreationEvents")
+
+        ## log metadata for question generation
+        if not actor.is_default_actor:
+            metalog(
+                time=time, 
+                actor=actor, 
+                message=f'{recipient.name} ({recipient.username}) downloaded file with path {path} via {process}'
+            )
 
         # if user runs the file then beacon from user machine
         # there should be a condition here
@@ -185,6 +203,14 @@ class Trigger:
                 sha256=implant.sha256
             )
 
+        ## log metadata for question generation
+        if not actor.is_default_actor:
+            metalog(
+                time=time, 
+                actor=actor, 
+                message=f'{recipient.name} ({recipient.username}) had an malicious file {implant.filename} ({implant.sha256}) created on their machine by {attachment_name}'
+            )
+
         process_creation_time = Clock.delay_time_by(start_time=time, factor="minutes")
         Trigger.payload_creates_processes(recipient, process_creation_time, actor, malware, payload=implant)
 
@@ -214,6 +240,14 @@ class Trigger:
                 process=process,
                 username=recipient.username
             )
+
+            ## log metadata for question generation
+            if not actor.is_default_actor:
+                metalog(
+                    time=time, 
+                    actor=actor, 
+                    message=f'A suspicious was created on {recipient.username}\'s machine by {payload.filename}: {process.process_commandline}'
+                )
 
         # wait a couple hours before running post exploitation commands
         if actor.post_exploit_commands:
@@ -260,6 +294,13 @@ class Trigger:
                 username=recipient.username
             )
 
+            if not actor.is_default_actor:
+                metalog(
+                    time=time, 
+                    actor=actor, 
+                    message=f'A suspicious process was created on {recipient.username}\'s machine: {process_obj.process_commandline}'
+                )
+
 
     @staticmethod
     def actor_auths_into_user_email(recipient:Employee, actor: Actor, time: float) -> None:
@@ -291,13 +332,21 @@ class Trigger:
             password=password
         )
 
+        if not actor.is_default_actor:
+            metalog(
+                time=time, 
+                actor=actor, 
+                message=f'A suspicious login attempt was observed to {recipient.username}\'s account from ip {src_ip}. The result of the login attempt was: {result}.'
+            )
+
         if result == "Successful Login":
             download_time = Clock.delay_time_in_working_hours(start_time=time, factor="minutes", workday_start_hour=actor.activity_start_hour,
                                                            workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
-            Trigger.actor_downloads_files_from_email(recipient=recipient.username, src_ip=src_ip, time=download_time)
+            Trigger.actor_downloads_files_from_email(recipient=recipient, src_ip=src_ip, time=download_time, actor=actor)
+
 
     @staticmethod
-    def actor_downloads_files_from_email(recipient:Employee, src_ip:str, time: float) -> None:
+    def actor_downloads_files_from_email(recipient:Employee, src_ip:str, time: float, actor:Actor) -> None:
         """
         Following successful auth into a user's account
         The actor downloads files from the user's email by making web requests
@@ -305,7 +354,7 @@ class Trigger:
         # wait several hours before exfil
         time_delay = random.randint(5000, 99999)
         exfil_time = Clock.increment_time(time, time_delay)
-        exfil_url = make_email_exfil_url(recipient)
+        exfil_url = make_email_exfil_url(recipient.username)
 
         gen_inbound_request(
             time=exfil_time,
@@ -315,5 +364,11 @@ class Trigger:
             url=exfil_url,
             user_agent=fake.firefox()
         )
+
+        metalog(
+                time=time, 
+                actor=actor, 
+                message=f'A file was downloaded from {recipient.username}\'s email account from ip {src_ip}. The download url was: {exfil_url}'
+            )
 
         
