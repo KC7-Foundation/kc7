@@ -38,6 +38,10 @@ def gen_inbound_browsing_activity(actor: Actor, start_date: date, num_inbound_br
     Generate browsing to the company's website by random users
     This is background noise
     """
+    from app.server.modules.helpers.config_helper import read_list_from_file
+    webpaths = read_list_from_file("app/game_configs/gameplay/company_website_paths.txt")
+    WEBSITE_STATIC_PATHS = webpaths
+
     for _ in range(num_inbound_browsing_events):
 
         # Choose an IP for the browsing
