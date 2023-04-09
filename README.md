@@ -19,6 +19,8 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 
 [Read our background story](https://mem.ai/p/nlIjcw3yPTbb0DNDfPAI)
 
+[Why it works](https://kc7cyber.com/kc7-a-fun-and-hands-on-approach-to-cybersecurity-learning/)
+
 
 ## 👨🏽‍🎓 Who is this for?
 
@@ -93,7 +95,9 @@ Go check out the wiki for details on how the code base is structured
 * Syeda Sani-e-Zehra
 * Stuti Kanodia
 * Helton Wernik
-* Logo by David Hardman
+* Sara Rufael
+* Waymon Ho
+* (ret) Logo by David Hardman
 
 ## Follow us on twitter
 
