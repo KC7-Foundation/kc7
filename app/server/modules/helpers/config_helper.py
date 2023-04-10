@@ -3,9 +3,6 @@ import glob
 
 from app.server.modules.file.malware import Malware
 
-
-
-
         
 def read_list_from_file(path) -> list:
     """

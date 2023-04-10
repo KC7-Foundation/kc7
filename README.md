@@ -1,5 +1,3 @@
-![Admin Central button](readme_assets/kc7.png)
-
 # KC7 - a cybersecurity game (kc7cyber.com)
 
 KC7 allows you to learn the big picture of cybersecurity analysis and threat intelligence using realistic data. The game simulates an intrusion by multiple cyber threat actors against a fictitious company that spans the entire `Cyber Kill Chain`.
@@ -20,6 +18,8 @@ Game players get experience triaging Web, Email, and Endpoint audit logs
 ## 📖 Our Story
 
 [Read our background story](https://mem.ai/p/nlIjcw3yPTbb0DNDfPAI)
+
+[Why it works](https://kc7cyber.com/kc7-a-fun-and-hands-on-approach-to-cybersecurity-learning/)
 
 
 ## 👨🏽‍🎓 Who is this for?
@@ -95,7 +95,9 @@ Go check out the wiki for details on how the code base is structured
 * Syeda Sani-e-Zehra
 * Stuti Kanodia
 * Helton Wernik
-* Logo by David Hardman
+* Sara Rufael
+* Waymon Ho
+* (ret) Logo by David Hardman
 
 ## Follow us on twitter
 
