@@ -454,22 +454,5 @@ def create_malware() -> "list[Malware]":
     for path in malware_configs:
         malware_objects.append(load_malware_obj_from_yaml_by_file(path))
     
-    malware_objects = assign_hash_to_malware(malware_objects)
-    return malware_objects
-
-def assign_hash_to_malware(malware_objects: "list[Malware]") -> "list[Malware]":
-    """
-    Take all available VT hashes and assign them to malware families 
-    there should be a 1-1 mapping of hash to malware family
-    """
-    # Look through available hashes and assign them to malware families via a round robin
-    while FILES_MALICIOUS_VT_SEED_HASHES:
-        for malware_object in malware_objects:
-            if not FILES_MALICIOUS_VT_SEED_HASHES:
-                break
-            # take a hash and remove it from our list of hashes
-            hash = FILES_MALICIOUS_VT_SEED_HASHES.pop()
-            malware_object.hashes.append(hash) # TODO: This might not work!!
-   
     return malware_objects
 
