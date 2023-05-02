@@ -1,10 +1,8 @@
 
-# KC7 Foundation - A Cybersecurity Game 
-## Guide: {{COMPANY_NAME}}
 
-### Introduction: Welcome to {{COMPANY_NAME}}
+# Welcome to {{COMPANY_NAME}}
 
-Welcome to {{COMPANY_NAME}}! 🥳 Today is your first day as a Junior Security Operations Center (SOC) Analyst with our company. Your primary job responsibility is to defend {{COMPANY_NAME}} and our employees from malicious cyber actors.
+🥳 Today is your first day as a Junior Security Operations Center (SOC) Analyst with our company. Your primary job responsibility is to defend {{COMPANY_NAME}} and our employees from malicious cyber actors.
 
 {{IMAGE_LOGO}}
 
@@ -36,11 +34,11 @@ You can find full documentation on ADX here: [https://docs.microsoft.com/en-us/a
 -   Use third party data sets to discover things about your attackers
 -   Make recommendations on what actions a company can take to protect themselves
 
-#### The attackers have gotten a head start, so let's not waste any more time... let's get to work! 
 
-Some important links: 
+**The attackers have gotten a head start, so let's not waste any more time... let's get to work!**
 
-The training module: [kc7cyber.com/{{COMPANY_NAME}}](http://kc7cyber.com/{{COMPANY_NAME}})
+
+You can find all the links you need here: [kc7cyber.com/{{COMPANY_NAME}}](http://kc7cyber.com/{{COMPANY_NAME}})
 
 ### Legend
 
