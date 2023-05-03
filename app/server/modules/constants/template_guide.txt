@@ -1,10 +1,8 @@
 
-# KC7 Foundation - A Cybersecurity Game 
-## Guide: {{COMPANY_NAME}}
 
-### Introduction: Welcome to {{COMPANY_NAME}}
+# Welcome to {{COMPANY_NAME}}
 
-Welcome to {{COMPANY_NAME}}! 🥳 Today is your first day as a Junior Security Operations Center (SOC) Analyst with our company. Your primary job responsibility is to defend {{COMPANY_NAME}} and our employees from malicious cyber actors.
+🥳 Today is your first day as a Junior Security Operations Center (SOC) Analyst with our company. Your primary job responsibility is to defend {{COMPANY_NAME}} and our employees from malicious cyber actors.
 
 {{IMAGE_LOGO}}
 
@@ -36,19 +34,19 @@ You can find full documentation on ADX here: [https://docs.microsoft.com/en-us/a
 -   Use third party data sets to discover things about your attackers
 -   Make recommendations on what actions a company can take to protect themselves
 
-#### The attackers have gotten a head start, so let's not waste any more time... let's get to work! 
 
-Some important links: 
+**The attackers have gotten a head start, so let's not waste any more time... let's get to work!**
 
-The training module: [kc7cyber.com/{{COMPANY_NAME}}](http://kc7cyber.com/{{COMPANY_NAME}})
+
+You can find all the links you need here: [kc7cyber.com/{{COMPANY_NAME}}](http://kc7cyber.com/{{COMPANY_NAME}})
 
 ### Legend
 
-🎯Key Point – Occasionally, you will see a dart emoji with a “key point.” These signal explanations of certain concepts that may enhance your understanding of key cybersecurity ideas that are demonstrated in the game. 
+> 🎯Key Point – Occasionally, you will see a dart emoji with a “key point.” These signal explanations of certain concepts that may enhance your understanding of key cybersecurity ideas that are demonstrated in the game. 
 
-🤔Question – “Thinking” emojis represent questions that will enable you to demonstrate mastery of the concepts at hand. You can earn points by entering your responses to questions from section 3 in the scoring portal available at kc7cyber.com/scoreboard.
+> 🤔Question – “Thinking” emojis represent questions that will enable you to demonstrate mastery of the concepts at hand. You can earn points by entering your responses to questions from section 3 in the scoring portal available at kc7cyber.com/scoreboard.
 
-🤫 Hint – “Whisper” emojis represent in-game hints. These hints will guide you in the right direction in answering some of the questions.
+> 🤫 Hint – “Whisper” emojis represent in-game hints. These hints will guide you in the right direction in answering some of the questions.
 
 ## Section 1: The Walkthrough 
 
@@ -110,11 +108,8 @@ We currently have nine types of log data. As you’ll see in ADX, each log type 
 | PassiveDns (External) | Records IP-domain resolutions |
 | SecurityAlerts | Records security alerts from an employee’s device or the company’s email security system |
 
-<hr>
+> 🎯**Key Point – Over the Horizon (OTH) data**: One of the tables listed above is not like the others – **PassiveDns**. Rather than being an internal security log, PassiveDns is a data source that we’ve purchased from a 3rd party vendor. Not all malicious cyber activity happens within our company network, so sometimes we depend on data from other sources to complete our investigations.
 
-🎯**Key Point – Over the Horizon (OTH) data**: One of the tables listed above is not like the others – **PassiveDns**. Rather than being an internal security log, PassiveDns is a data source that we’ve purchased from a 3rd party vendor. Not all malicious cyber activity happens within our company network, so sometimes we depend on data from other sources to complete our investigations.
-
-<hr> 
 
 You’ll learn more about how to use each of these datasets in just a minute. First, let’s just run some queries so you can practice using KQL and ADX.
 
@@ -123,7 +118,7 @@ You’ll learn more about how to use each of these datasets in just a minute. Fi
 
 Type the following query in the workspace to view the first rows in the **Employees** table. Press “run” or “shift + enter” to execute the query.
 
-```kusto
+```sql
 Employees
 | take 10
 ```
@@ -140,21 +135,18 @@ Description automatically generated with low confidence](https://lh4.googleuserc
 
 The **take** operator is a powerful tool you can use to explore rows in a table, and therefore better understand what kinds of data are stored there.
 
-<hr>
+> 🎯**Key Point – What to do when you don’t know what to do**: Whenever you are faced with an unfamiliar database table, the first thing you should do is sample its rows using the **take** operator. That way, you know what fields are available for you to query and you can guess what type of information you might extract from the data source.
 
-🎯**Key Point – What to do when you don’t know what to do**: Whenever you are faced with an unfamiliar database table, the first thing you should do is sample its rows using the **take** operator. That way, you know what fields are available for you to query and you can guess what type of information you might extract from the data source.
-
-<hr> 
 
 The Employees table contains information about all the employees in our organization. In this case, we can see that the organization is named “{{COMPANY_NAME}}” and the domain is “{{COMPANY_DOMAIN}}”.
 
-1. 🤔 Try it for yourself! Do a **take** 10 on all the other tables to see what kind of data they contain.
+>1. 🤔 Try it for yourself! Do a **take** 10 on all the other tables to see what kind of data they contain.
 
 Make sure you record your answer to all the questions from KQL 101 in the scoreboard at kc7cyber.com/scoreboard
 
 You can easily write multiple queries in the same workspace tab. To do this, make sure to separate each query by an empty line. Notice below how we have separated the queries for the **Employees**, **Email**, and **OutboundNetworkEvents** tables by adding empty lines between them.
 
-```kusto
+```sql
 Email
 | take 10
 
@@ -171,7 +163,7 @@ When you have multiple queries, it’s important to tell ADX which query you wan
 
 We can use **count** to see how many rows are in a table. This tells us how much data is stored there.
 
-```kusto
+```sql
 Employees
 | count
 ```
@@ -190,56 +182,61 @@ We can use the **where** operator in KQL to apply filters to a particular field.
 | ----------- | ----------- | ----------- | ----------- |
 | where | name | has | "{{COMPANY_USER_1_FNAME}}" |
 
-```kusto
-
+```sql
 Employees
 | where name has "{{COMPANY_USER_1_FNAME}}"
-
 ```
 
 The **has** operator is useful here because we’re looking for only a partial match. If we wanted to look for an employee with a specific first and last name (an exact match), we’d use the == operator:
 
-```kusto
-
+```sql
 Employees
 | where name == "{{COMPANY_USER_1_NAME}}"
-
 ```
 
-3. 🤔Each employee at {{COMPANY_NAME}} is assigned an IP address. Which employee has the IP address: “192.168.2.191”?
+>3. 🤔Each employee at {{COMPANY_NAME}} is assigned an IP address. Which employee has the IP address: “192.168.2.191”?
+
+Here are some additional operators we like to use:
+
+| Operator | Description | Case-Sensitive | Example (yields true) |
+|---|---|---|---|
+| == | Equals | Yes | "aBc" == "aBc" |
+| != | Not equals | Yes | "abc" != "ABC" |
+| =~ | Equals | No | "abc" =~ "ABC" |
+| contains | Right-hand-side (RHS) occurs as a subsequence of left-hand-side (LHS) | No | "FabriKam" contains "BRik" |
+| has | RHS is a whole term in LHS | No | "North America" has "america" |
+| has_all | Same as has but works on all of the elements | No | "North and South America" has_all("south", "north") |
+| has_any | Same as has but works on any of the elements | No | "North America" has_any("south", "north") |
+| in | Equals to any of the elements | Yes | "abc" in ("123", "345", "abc") |
+
 
 While performing their day-to-day tasks, {{COMPANY_NAME}} employees send and receive emails. A record of each of these emails is stored in the **Email** table.
 
-<hr>
-
-🎯**Key Point – User Privacy and Metadata**: As you can imagine, some emails are highly sensitive. Instead of storing the entire contents of every email sent and received within the company in a database that can be easily accessed by security analysts, we only capture email metadata. 
+> 🎯**Key Point – User Privacy and Metadata**: As you can imagine, some emails are highly sensitive. Instead of storing the entire contents of every email sent and received within the company in a database that can be easily accessed by security analysts, we only capture email metadata. 
 
 Email metadata includes information like: the time the email was sent, the sender, the recipient, the subject line, and any links the email may contain. Storing only email metadata, rather than entire contents, helps protect the privacy of our employees, while also ensuring that our security analysts can keep us safe. Sometimes even metadata can reveal sensitive information, so it’s important that you don’t talk about log data with other employees outside the SOC.
 
-<hr>
 
 We can find information about the emails sent or received by a user by looking for their email address in the sender and recipient fields of the **Email** table. For example, we can use the following query to see all the emails sent by “{{COMPANY_USER_1_NAME}}”:
 
-```kusto
+```sql
 
 Email
 | where sender == "{{COMPANY_USER_1_EMAIL}}"
 
 ```
 
-4.  🤔How many emails did {{COMPANY_USER_2_NAME}} receive?
+> 4. 🤔How many emails did {{COMPANY_USER_2_NAME}} receive?
 
 **Easy as 1, 2, 3… Compound Queries and the distinct Operator**
 
 We can use the **distinct** operator to find unique values in a particular column. We can use the following query to determine how many of the organization’s users sent emails.
 
-```kusto
-
+```sql
 Email
 | where sender has "{{COMPANY_DOMAIN}}"
 | distinct sender
 | count
-
 ```
 
 This is our first time using a multi-line query with multiple operators, so let’s break it down:
@@ -258,34 +255,26 @@ When employees at {{COMPANY_NAME}} browse to a website from within the corporate
 
 If we want to figure out what websites {{COMPANY_USER_3_NAME}} visited, we can find their IP address from the Employees table.
 
-```kusto
-
+```sql
 Employees
 | where name == "{{COMPANY_USER_3_NAME}}"
-
 ```
 
 The query above tells us their IP address is “{{COMPANY_USER_3_IP}}”. We can take their IP address and look in the **OutboundNetworkEvents** table to determine what websites they visited.
 
-```kusto
-
+```sql
 OutboundNetworkEvents
 | where src_ip == "{{COMPANY_USER_3_IP}}"
-
 ```
 
-6.  🤔How many unique websites did “{{COMPANY_USER_4_NAME}}” visit?
+> 6.  🤔How many unique websites did “{{COMPANY_USER_4_NAME}}” visit?
 
 
 **What’s in a Name? All about Passive DNS Data**
 
 Although domain names like “google.com” are easy for humans to remember, computers don’t know how to handle them. So, they convert them to machine readable IP addresses. Just like your home address tells your friends how to find your house or apartment, an IP address tells your computer where to find a page or service hosted on the internet.
 
-<hr> 
-
-🎯**Key Point – Practice Good OPSEC**: If we want to find out which IP address a particular domain resolves to, we could just browse to it. But, if the domain is a malicious one, you could download malicious files to your corporate analysis system or tip off the attackers that you know about their infrastructure. As cybersecurity analysts, we must follow procedures and safeguards that protect our ability to track threats. These practices are generally called operational security, or OPSEC.
-
-<hr>
+> 🎯**Key Point – Practice Good OPSEC**: If we want to find out which IP address a particular domain resolves to, we could just browse to it. But, if the domain is a malicious one, you could download malicious files to your corporate analysis system or tip off the attackers that you know about their infrastructure. As cybersecurity analysts, we must follow procedures and safeguards that protect our ability to track threats. These practices are generally called operational security, or OPSEC.
 
 To eliminate the need to actively resolve (that is- directly browse to or interact with a domain to find it’s related IP address) every domain we’re interested in, we can rely on passive DNS data. Passive DNS data allows us to safely explore domain-to-IP relationships, so we can answer questions like:
 
@@ -295,8 +284,8 @@ To eliminate the need to actively resolve (that is- directly browse to or intera
 
 These domain-to-IP relationships are stored in our **PassiveDns** table.
 
-7.  🤔 How many domains in the PassiveDns records contain the word “{{COMPANY_ACTOR_KEYWORD_1}}”? (hint: use the contains operator instead of has. If you get stuck, do a take 10 on the table to see what fields are available.)
-8. 🤔 What IPs did the domain “{{COMPANY_ACTOR_KEYWORD_1_DOMAIN}}” resolve to (enter any one of them)?
+> 7.  🤔 How many domains in the PassiveDns records contain the word “{{COMPANY_ACTOR_KEYWORD_1}}”? (hint: use the contains operator instead of has. If you get stuck, do a take 10 on the table to see what fields are available.)
+> 8. 🤔 What IPs did the domain “{{COMPANY_ACTOR_KEYWORD_1_DOMAIN}}” resolve to (enter any one of them)?
 
 **🤯Let statements – making your life a bit easier:**
 
@@ -307,44 +296,78 @@ For example, what if we want to look at all the web browsing activity from emplo
 First, you would need to go into the **Employees** table and find the IP addresses used by these employees.
 
 
-```kusto
-
+```sql
 Employees
 | where name has "James"
-
 ```
 
 ![](https://lh5.googleusercontent.com/Ul2NZuxCWG8Wg3zIGBjTSrUQHeNJ7b_cPKWSqvqGrkptYJ8F0Y4-qtoTcR8OtjJGzQaCqdyDe9_fJDSXOm58hWdgvNYqvteckmtEvq51WIjYrxXIIi-rdGUSIZ0eSYon7mOoL2jFrmu-)
 
 Then, you could manually copy and paste these IPs into a query against the **OutboundNetworkEvents** table. Note that we can use the in operator to choose all rows that have a value matching any value from a list of possible values. In other words, the == (comparison) operator looks for an exact match, while the in operator checks for any values from the list
 
-![](https://lh4.googleusercontent.com/Xspi_YkuRc3zdUFqV1dUzemK26GW1lz_HXxQuLvUrroVXi_13ApQZdBCC3btxtt5KdviSzXxPkcs4COuSa3SiLoF4mdjBeKUTW1XH7f9osUDKQsc-i6ns7ddpJgAO8-W8jmfcgBmDORF)
+```sql 
+OutboundNetworkEvents
+| where src-ip in ("192.168.1.132",
+	"192.168.3.128",
+	"192.168.1.70",
+	"192.168.1.92",
+	"192.168.0.147",
+	"192.168.1.50",
+	"192.168.0.163",
+	"192.168.2.200")
+```
 
 Although this is a valid way to get the information you need, it may not be as elegant (or timely) if you had 100 or even 1000 employees named “James.”
 
 We can accomplish this in a more elegant way by using a [let statement,](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/letstatement) which allows us to assign a name to an expression or a function. We can use a let statement here to save and give a name to the results of the first query so that the values can be re-used later. That means we don’t have to manually type or copy and paste the results repeatedly.
 
+```sql 
+let james_ips = 
+Employees
+| where name has "James"
+| distinct ip_addr;
+OutboundNetworkEvents
+| where src_ip in (james_ips)
+```
+
 On the left of the let statement is the variable name (“james_ips” in this case). The variable name can be whatever we want, but it is helpful to make it something meaningful that can help us remember what values it is storing.
 
-![](https://lh5.googleusercontent.com/SCa6UXHgsSofDB79cR-rYD4BXg8hwfzDo3CShJxrZV9CMC86r5Dr5PHMoCjsBp4JallyZP8T6D9M-1LEziD1Gnd5IGRyyA_9V7nJsSK_QiKud1FVn7ia4K7rX0vnm8PgwRkqHw0RQYtE)
-
+```sql  hl_lines="1"
+let james_ips = 
+Employees
+| where name has "James"
+| distinct ip_addr;
+OutboundNetworkEvents
+| where src_ip in (james_ips)
+```
 On the right side of the let statement in the expression you are storing. In this case, we use the **distinct** operator to select values from only one column – so they are stored in an array – or list of values.
 
-![](https://lh4.googleusercontent.com/RCHXZ0ozYj4oQ30riol-NWPCgR6cpchd_yjcup9MRrO3bauRe6KXAS4r-xTGCS6xNdzH3koKeJzOHQwPeIxpD9b6hfKyf4gV9QPDyoTf6P2O289lc45bfMDpLbCEX_9f52EBRM2O4fhS)
+```sql  hl_lines="2 3 4"
+let james_ips = 
+Employees
+| where name has "James"
+| distinct ip_addr;
+OutboundNetworkEvents
+| where src_ip in (james_ips)
+```
 
 The **let** statement is concluded by a semi-colon.
 
-![](https://lh5.googleusercontent.com/vIB4pquwMqHwVmH07Txi9MttZ0ELMDdh9HcdDx5QnEqAGhYgf2PRVF78aeWRweoyC_MnSnT5GDqlxlVIxm4gW3MjdHdWH2jsdLzZCW-STgMB_3mIOKJHD17dS8ToG3xJBgfPcBbZKwQ3)
+```sql  hl_lines="4"
+let james_ips = 
+Employees
+| where name has "James"
+| distinct ip_addr;
+OutboundNetworkEvents
+| where src_ip in (james_ips)
+```
 
 After we store the value of a query into a variable using the **let** statement, we can refer to it as many times as we like in the rest of the query. The stored query does not show any output. Remember, however, that your KQL query must have a tabular statement – which means that you must have another query following your **let** statement.
 
-9.  🤔 How many unique URLs were browsed by employees named “Karen”?
+> 9.  🤔 How many unique URLs were browsed by employees named “Karen”?
 
-<hr>
+> 🎯**Key Point – Pivoting:** Part of being a great cyber analyst is learning how to use multiple data sources to tell a more complete story of what an attacker has done. We call this “pivoting.” We pivot by taking one known piece of data in one dataset and looking in a different dataset to learn something we didn’t already know. You practiced this here when we started in one dataset – the Employees table – and used knowledge from there to find related data in another source – OutboundNetworkEvents.
 
-🎯**Key Point – Pivoting:** Part of being a great cyber analyst is learning how to use multiple data sources to tell a more complete story of what an attacker has done. We call this “pivoting.” We pivot by taking one known piece of data in one dataset and looking in a different dataset to learn something we didn’t already know. You practiced this here when we started in one dataset – the Employees table – and used knowledge from there to find related data in another source – OutboundNetworkEvents.
-
-<hr> 
 
 ## Section 2: Start Hunting! 
 
