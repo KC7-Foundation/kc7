@@ -4,22 +4,23 @@
 
 🥳 Today is your first day as a Junior Security Operations Center (SOC) Analyst with our company. Your primary job responsibility is to defend {{COMPANY_NAME}} and our employees from malicious cyber actors.
 
-{{IMAGE_LOGO}}
 
-{{COMPANY_DESCRIPTION}}
 
-{{COMPANY_NAME}} has a series of key partners who contribute to the success of our business:
+The Krusty Krab is a mid-size fast food chain serving the greater Bikini Bottom metropolitan area. The Krusty Krab is best known for its delectable Krabby PattiesTM, kelp shakes, and sea dogs. Because of its wild success, some of the Krusty Krab’s competitors would benefit from stealing its secret formula and reproducing it themselves. Of note, the Chum bucket - a minor competitor - has been less than ethical in its attempts to infiltrate the Bikini Bottom patty market.
+Your job is to defend the Krusty Krab and its employees from malicious cyber actors looking to steal the secret formula.
+
+Krusty Krab has a series of key partners who contribute to the success of our business:
 
 | Partner Name | Relationship |
 | ----------- | ----------- |
-| {{PARTNER_DOMAIN_1}} | {{PARTNER_DOMAIN_1_DESCRIPTION}}|
-| {{PARTNER_DOMAIN_2}} | {{PARTNER_DOMAIN_2_DESCRIPTION}}|
-| {{PARTNER_DOMAIN_3}} | {{PARTNER_DOMAIN_3_DESCRIPTION}}|
-| {{PARTNER_DOMAIN_4}} | {{PARTNER_DOMAIN_4_DESCRIPTION}}|
+| Bikini Bottom Fish (bikini-bottom-fish.com) | Bikini Bottom Fish is a company that specializes in providing fish and seafood products to our company and has been a trusted partner for many years. |
+| Salty Sea Shell LLC (saltyseashell.com) | Salty Sea Shell LLC  is a fashion apparel and accessories company that has been a loyal partner of our company, providing us with high-quality products for our customers.|
+| KelpShakez (kelpshake.com) | KelpShakez is a beverage company that has been our partner in providing unique and healthy drink options for our customers, made from kelp and other natural ingredients. 
+| The Chum Bucket | The Chum Bucket is a fast-food restaurant and a key competitor of our business. However, we have worked with them in the past for certain collaborations and events, and they have proven to be a reliable partner on those occasions. |
 
-{{COMPANY_NAME}} has been laser-focused on broadening our customer base. Recently, though, we have been getting a lot of attention. All this extra attention has brought along some unwelcome visitors- cyber attackers! That’s why we’ve hired you! To help keep us safe!
+Krusty Krab has been laser-focused on broadening our customer base. Recently, though, we have been getting a lot of attention. All this extra attention has brought along some unwelcome visitors- cyber attackers! That’s why we’ve hired you! To help keep us safe!
 
-Like all good companies, {{COMPANY_NAME}} collects log data about the activity our employees perform on the corporate network. These security audit logs are stored in Azure Data Explorer (ADX) - a data storage service in Azure (Microsoft’s cloud). You will use the Kusto Query Language (KQL) to parse through various types of security logs. By analysing these logs, you can help us determine whether we’re being targeted by malicious actors.
+Like all good companies, Krusty Krab collects log data about the activity our employees perform on the corporate network. These security audit logs are stored in Azure Data Explorer (ADX) - a data storage service in Azure (Microsoft’s cloud). You will use the Kusto Query Language (KQL) to parse through various types of security logs. By analysing these logs, you can help us determine whether we’re being targeted by malicious actors.
 
 You can find full documentation on ADX here: [https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/tutorial?pivots=azuredataexplorer](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/tutorial?pivots=azuredataexplorer)
 
@@ -28,9 +29,9 @@ You can find full documentation on ADX here: [https://docs.microsoft.com/en-us/a
 🧠 By the end of your first day on the job, you should be able to:
 
 -   Use the Azure Data Explorer
--   Use multiple data sets to answer targeted questions 
--   Investigate cyber activity in logs including: email, web traffic, and server logs 
--   Use multiple techniques to track the activity of APTs (Advanced Persistent Threats) 
+-   Use multiple data sets to answer targeted questions 
+-   Investigate cyber activity in logs including: email, web traffic, and server logs 
+-   Use multiple techniques to track the activity of APTs (Advanced Persistent Threats) 
 -   Use third party data sets to discover things about your attackers
 -   Make recommendations on what actions a company can take to protect themselves
 
@@ -40,6 +41,7 @@ You can find full documentation on ADX here: [https://docs.microsoft.com/en-us/a
 
 You can find all the links you need here: [kc7cyber.com/{{COMPANY_NAME}}](http://kc7cyber.com/{{COMPANY_NAME}})
 
+
 ### Legend
 
 > 🎯Key Point – Occasionally, you will see a dart emoji with a “key point.” These signal explanations of certain concepts that may enhance your understanding of key cybersecurity ideas that are demonstrated in the game. 
@@ -48,17 +50,16 @@ You can find all the links you need here: [kc7cyber.com/{{COMPANY_NAME}}](http:/
 
 > 🤫 Hint – “Whisper” emojis represent in-game hints. These hints will guide you in the right direction in answering some of the questions.
 
+<div style="page-break-after: always"></div>
 ## Section 1: The Walkthrough 
 
 #### Getting Set Up in Azure Data Explorer (ADX)
 
-ADX is the primary tool used in the {{COMPANY_NAME}} SOC for data exploration and analysis. The great thing about ADX is that it is used by cyber analysts at many of the smallest and largest organizations in the world. 
+ADX is the primary tool used in the Krusty Krab SOC for data exploration and analysis. The great thing about ADX is that it is used by cyber analysts at many of the smallest and largest organizations in the world. 
 
 Let’s get you logged in and started with ADX:
 
-1. Go to the {{COMPANY_NAME}} training module at [kc7cyber.com/{{COMPANY_NAME}}
-
-](http://kc7cyber.com/{{COMPANY_NAME}})
+1\. Go to the Krusty Krab training module at [kc7cyber.com/Krusty Krab](http://kc7cyber.com/KrustyKrab)
 
 On the training module page, you’ll see a button that says **Get the Data**. Click this and it will redirect you to ADX! (Note: You’ll probably be asked to login with a Microsoft account. You can use an existing personal or organization-issued Microsoft account, or create a new one for free.)
 
@@ -66,35 +67,34 @@ On the training module page, you’ll see a button that says **Get the Data**. C
 
 Once you login, you should see a cluster called  _“kc7cyber.eastus2”_   has already been added to your account.
 
-![Graphical user interface, application, Word
-Description automatically generated](https://lh4.googleusercontent.com/THqnfpbFTsMkuF2woUrDUaeUPmwqbwtCzG5oKCHAt9BnmHZdvl2B50-2OPZlAvMFp_x7fGx1WOi-uHmIkU5V1149qvu3RkJqzEw7YAtvq3a9JeI8iF7hj-UxPbg3Q-NNDheMZDDmUfv8)
+<img width="320" alt="image" src="https://user-images.githubusercontent.com/5226058/231639309-775a4eaa-2af9-4c6c-8eda-16951c555aa2.png">
 
 Data in ADX is organized in a hierarchical structure which consists of **clusters**, **databases**, and **tables**.
 
-![Graphical user interface, application
-Description automatically generated](https://lh6.googleusercontent.com/KrJStzi_B5G_gWnd3h3nHzs-h_KSXG2JQaW67ihaTUAHN_4gFe-zlFyzLBtKSswEUlGgngNzoXZSj6G_Q9f1bwGKiaZADEyTB4-awd9XdRUGrOot7GZiH8pqNitQmpeJNXt9P2HV2AMV)
+<img width="366" alt="image" src="https://user-images.githubusercontent.com/5226058/231639863-ace6a095-5dab-4304-a757-42fb0cee0f4a.png">
 
-All of {{COMPANY_NAME}}’s security logs are stored in a single database – the {{COMPANY_NAME}} database. 
+All of Krusty Krab’s security logs are stored in a single database – the Krusty Krab database. 
 
-  2. Select your database.  
-	- Expand the dropdown arrow next to the {{COMPANY_NAME}} database.
-	- Click on the **{{COMPANY_NAME}}** database. Once you’ve done this, you should see the database highlighted- this means you’ve selected the database and are ready to query the tables inside.
 
-Note: It’s very important that you use the {{COMPANY_NAME}} database for all questions while you’re investigating activity at {{COMPANY_NAME}}! If you choose the wrong database, you won’t be able to answer questions correctly.
+2\. Select your database.  
+    - Expand the dropdown arrow next to the Krusty Krab database.
+    - Click on the **Krusty Krab** database. Once you’ve done this, you should see the database highlighted- this means you’ve selected the database and are ready to query the tables inside.
+
+Note: It’s very important that you use the Krusty Krab database for all questions while you’re investigating activity at Krusty Krab! If you choose the wrong database, you won’t be able to answer questions correctly.
 
 The big space to the right of your cluster list is the _query workspace_. That’s where you’ll actually write the queries used to interact with our log data.
 
-![](https://lh3.googleusercontent.com/y6-5lCCuvV0uIDsvDn8cdKCmkUd2netEtaSgaWhvWXAfB5-XL8AEO5DYc3X2bC2DFSBVSzYGgGKkJz9TsE5bQYT43ZkqTsfhxLll1Co9__NSSxA7vqdFFxnfRErHqnWSF-pMGOaKDcTW)
+<img width="1313" alt="image" src="https://user-images.githubusercontent.com/5226058/231641358-3ab6ab68-8154-43f6-a4e0-d667fdf8ac83.png">
 
-Currently, you’ll see there’s a message there welcoming you to {{COMPANY_NAME}}! Click the blue Run button above the query workspace to run your first query! Once you’ve done that, you can erase the welcome message by highlighting it and pressing backspace or delete on your keyboard.
+Currently, you’ll see there’s a message there welcoming you to Krusty Krab! Click the blue Run button above the query workspace to run your first query! Once you’ve done that, you can erase the welcome message by highlighting it and pressing backspace or delete on your keyboard.
 
 Okay, enough introductions… let’s get your hands on the data.
 
 #### First Look at the data... 
 
-The **{{COMPANY_NAME}}** database contains nine tables. Tables contain many rows of similar data. For security logs, a single row typically represents a single thing done by an employee or a device on the network at a particular time.
+The **Krusty Krab** database contains nine tables. Tables contain many rows of similar data. For security logs, a single row typically represents a single thing done by an employee or a device on the network at a particular time.
 
-We currently have nine types of log data. As you’ll see in ADX, each log type corresponds to a table that exists in the **{{COMPANY_NAME}}** database:
+We currently have nine types of log data. As you’ll see in ADX, each log type corresponds to a table that exists in the **Krusty Krab** database:
 
 | **Table Name** | **Description** | 
 | ----------- | ----------- |
@@ -107,6 +107,7 @@ We currently have nine types of log data. As you’ll see in ADX, each log type 
 | ProcessEvents | Records processes created on employee’s devices |
 | PassiveDns (External) | Records IP-domain resolutions |
 | SecurityAlerts | Records security alerts from an employee’s device or the company’s email security system |
+
 
 > 🎯**Key Point – Over the Horizon (OTH) data**: One of the tables listed above is not like the others – **PassiveDns**. Rather than being an internal security log, PassiveDns is a data source that we’ve purchased from a 3rd party vendor. Not all malicious cyber activity happens within our company network, so sometimes we depend on data from other sources to complete our investigations.
 
@@ -135,12 +136,14 @@ Description automatically generated with low confidence](https://lh4.googleuserc
 
 The **take** operator is a powerful tool you can use to explore rows in a table, and therefore better understand what kinds of data are stored there.
 
+
 > 🎯**Key Point – What to do when you don’t know what to do**: Whenever you are faced with an unfamiliar database table, the first thing you should do is sample its rows using the **take** operator. That way, you know what fields are available for you to query and you can guess what type of information you might extract from the data source.
 
 
-The Employees table contains information about all the employees in our organization. In this case, we can see that the organization is named “{{COMPANY_NAME}}” and the domain is “{{COMPANY_DOMAIN}}”.
+The Employees table contains information about all the employees in our organization. In this case, we can see that the organization is named “Krusty Krab” and the domain is “krustykrab.com”.
 
 >1. 🤔 Try it for yourself! Do a **take** 10 on all the other tables to see what kind of data they contain.
+
 
 Make sure you record your answer to all the questions from KQL 101 in the scoreboard at kc7cyber.com/scoreboard
 
@@ -168,13 +171,13 @@ Employees
 | count
 ```
 
-2.  🤔How many employees are in the company?
+> 2\.  🤔How many employees are in the company?
 
 **Filtering Data With the _where_ Operator**
 
 So far, we’ve run queries that look at the entire contents of the table. Often in cybersecurity analysis, we only want to look at data that meets a set of conditions or criteria. To accomplish this, we apply filters to specific columns.
   
-We can use the **where** operator in KQL to apply filters to a particular field. For example, we can find all the employees with the name “{{COMPANY_USER_1_FNAME}}” by filtering on the name column in the Employees table.
+We can use the **where** operator in KQL to apply filters to a particular field. For example, we can find all the employees with the name “Candace” by filtering on the name column in the Employees table.
 
 **where** statements are written using a particular structure. Use this helpful chart below to understand how to structure a **where** statement.
 
@@ -219,11 +222,10 @@ Email metadata includes information like: the time the email was sent, the sende
 
 We can find information about the emails sent or received by a user by looking for their email address in the sender and recipient fields of the **Email** table. For example, we can use the following query to see all the emails sent by “{{COMPANY_USER_1_NAME}}”:
 
+
 ```sql
-
 Email
-| where sender == "{{COMPANY_USER_1_EMAIL}}"
-
+| where sender == "candace_ligget@krustykrab.com"
 ```
 
 > 4. 🤔How many emails did {{COMPANY_USER_2_NAME}} receive?
@@ -234,24 +236,24 @@ We can use the **distinct** operator to find unique values in a particular colum
 
 ```sql
 Email
-| where sender has "{{COMPANY_DOMAIN}}"
+| where sender has "krustykrab.com"
 | distinct sender
 | count
 ```
 
 This is our first time using a multi-line query with multiple operators, so let’s break it down:
 
-In line 2, we take the Email table and filter the data down to find only those rows with “{{COMPANY_DOMAIN}}” in the sender column.
+In line 2, we take the Email table and filter the data down to find only those rows with “krustykrab.com” in the sender column.
 
-In line 3, we add another pipe character ( | ) and use the distinct operator to find all the unique senders. Here, we aren’t finding the unique senders for all of the email senders, but only the unique senders that are left after we apply the filter looking for rows with “{{COMPANY_DOMAIN}}” in the sender column.
+In line 3, we add another pipe character ( | ) and use the distinct operator to find all the unique senders. Here, we aren’t finding the unique senders for all of the email senders, but only the unique senders that are left after we apply the filter looking for rows with “krustykrab.com” in the sender column.
 
 Finally, in line 4, we add another pipe character ( | ) and then use the count operator to count the results of lines 1-3 of the query.
 
-5.  🤔How many distinct senders were seen in the email logs from {{PARTNER_DOMAIN_1}}?
+> 5\.  🤔How many distinct senders were seen in the email logs from bikini-bottom-fish.com?
 
 **Tracking Down a Click: OutboundNetworkEvents Data**
 
-When employees at {{COMPANY_NAME}} browse to a website from within the corporate network, that browsing activity is logged. This is stored in the **OutboundNetworkEvents** table, which contains records of the websites browsed by each user in the company. Whenever someone visits a website, a record of it is stored in the table. However, the user’s name is not stored in the table, only their IP address is recorded. There is a 1:1 relationship between users and their assigned IP addresses, so we can reference the **Employees** table to figure out who browsed a particular website. When a user visits a site, sometimes data from a lot of other sources are loaded as well. For example, images, assets, and other content may be hosted on content delivery network (CDN), which is used to deliver and load content quickly on a website. Sometimes, advertisements will also load from a particular website as well.
+When employees at Krusty Krab browse to a website from within the corporate network, that browsing activity is logged. This is stored in the **OutboundNetworkEvents** table, which contains records of the websites browsed by each user in the company. Whenever someone visits a website, a record of it is stored in the table. However, the user’s name is not stored in the table, only their IP address is recorded. There is a 1:1 relationship between users and their assigned IP addresses, so we can reference the **Employees** table to figure out who browsed a particular website. When a user visits a site, sometimes data from a lot of other sources are loaded as well. For example, images, assets, and other content may be hosted on content delivery network (CDN), which is used to deliver and load content quickly on a website. Sometimes, advertisements will also load from a particular website as well.
 
 If we want to figure out what websites {{COMPANY_USER_3_NAME}} visited, we can find their IP address from the Employees table.
 
@@ -289,7 +291,7 @@ These domain-to-IP relationships are stored in our **PassiveDns** table.
 
 **🤯Let statements – making your life a bit easier:**
 
-Sometimes we need to use the output of one query as the input for a second query.  The first way we can do this is by manually typing the results into the next query.
+Sometimes we need to use the output of one query as the input for a second query.  The first way we can do this is by manually typing the results into the next query.
 
 For example, what if we want to look at all the web browsing activity from employees named “James”?
 
@@ -369,18 +371,20 @@ After we store the value of a query into a variable using the **let** statement,
 > 🎯**Key Point – Pivoting:** Part of being a great cyber analyst is learning how to use multiple data sources to tell a more complete story of what an attacker has done. We call this “pivoting.” We pivot by taking one known piece of data in one dataset and looking in a different dataset to learn something we didn’t already know. You practiced this here when we started in one dataset – the Employees table – and used knowledge from there to find related data in another source – OutboundNetworkEvents.
 
 
+<div style="page-break-after: always"></div>
 ## Section 2: Start Hunting! 
 
-You’ve finished your training and you’re ready to get to work protecting {{COMPANY_NAME}}. 
+You’ve finished your training and you’re ready to get to work protecting Krusty Krab. 
 
 Work with your team to complete as many challenge questions from the remaining sections in the scoreboard as possible! The goal is to score as many points as you can. There are a lot of questions (the attackers have been busy), so you probably won’t be able to answer them all. Just do as many as you can!
 
-As you answer the questions, we will take you on a journey exploring the data and discovering what actions the adversaries have taken. However, you should remember that this is only one of many paths you can take through the data.  As you go, don’t forget to pay attention to the details along the way. What patterns do the attackers exhibit that could help you track them better? Do they like to use certain words, themes? Or do they make mistakes? Keeping track of these patterns will help you build the full picture of what happened. 
+As you answer the questions, we will take you on a journey exploring the data and discovering what actions the adversaries have taken. However, you should remember that this is only one of many paths you can take through the data.  As you go, don’t forget to pay attention to the details along the way. What patterns do the attackers exhibit that could help you track them better? Do they like to use certain words, themes? Or do they make mistakes? Keeping track of these patterns will help you build the full picture of what happened. 
 
-Use the provided [Actor Preview](https://docs.google.com/document/d/1rZR4eVG886oPziG-5nGeQ5kN_q5Bpq0m/edit?usp=sharing&ouid=105873493764084037775&rtpof=true&sd=true) document to keep track of what you know about the attacker. Building a good profile, timelining the attacker’s activity, and forming a list of indicators of compromise (IOCs) will help you keep track of the attacker. KC7 models some of the techniques used by these attackers from real world threat actors, so it may be a helpful resource for you in the future when you are investigating a real security incident. 
+Use the provided [Actor Preview](https://docs.google.com/document/d/1rZR4eVG886oPziG-5nGeQ5kN_q5Bpq0m/edit?usp=sharing&ouid=105873493764084037775&rtpof=true&sd=true) document to keep track of what you know about the attacker. Building a good profile, timelining the attacker’s activity, and forming a list of indicators of compromise (IOCs) will help you keep track of the attacker. KC7 models some of the techniques used by these attackers from real world threat actors, so it may be a helpful resource for you in the future when you are investigating a real security incident. 
 
 Now, get out there and keep us safe! The whole company is counting on you. No pressure😊.
 
+<div style="page-break-after: always"></div>
 ## Glossary
 
 **Watering hole:** A type of attack where a hacker compromises a website that is frequently visited by a specific group of users, such as employees of a certain organization, and then infects their devices with malware when they visit the site.
@@ -403,6 +407,7 @@ Now, get out there and keep us safe! The whole company is counting on you. No pr
 
 **Top level domain:** The highest level of domain names in the Internet’s domain name system. Top level domains are the last part of a domain name after the dot, such as .com, .org, .edu, etc. Top level domains can indicate the type or purpose of a website or its geographic location.
 
+<div style="page-break-after: always"></div>
 ## Resources
 
 Understanding KQL operators: [https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/datatypes-string-operators](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/datatypes-string-operators)
