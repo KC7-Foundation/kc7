@@ -1,9 +1,9 @@
 
-# Welcome to the Krusty Krab
 
-Welcome to Krusty Krab! 🥳 Today is your first day as a Junior Security Operations Center (SOC) Analyst with our company. Your primary job responsibility is to defend Krusty Krab and our employees from malicious cyber actors.
+# Welcome to {{COMPANY_NAME}}
 
-![](https://upload.wikimedia.org/wikipedia/en/3/33/Krusty_Krab_230b.png)
+🥳 Today is your first day as a Junior Security Operations Center (SOC) Analyst with our company. Your primary job responsibility is to defend {{COMPANY_NAME}} and our employees from malicious cyber actors.
+
 
 
 The Krusty Krab is a mid-size fast food chain serving the greater Bikini Bottom metropolitan area. The Krusty Krab is best known for its delectable Krabby PattiesTM, kelp shakes, and sea dogs. Because of its wild success, some of the Krusty Krab’s competitors would benefit from stealing its secret formula and reproducing it themselves. Of note, the Chum bucket - a minor competitor - has been less than ethical in its attempts to infiltrate the Bikini Bottom patty market.
@@ -35,11 +35,12 @@ You can find full documentation on ADX here: [https://docs.microsoft.com/en-us/a
 -   Use third party data sets to discover things about your attackers
 -   Make recommendations on what actions a company can take to protect themselves
 
-** The attackers have gotten a head start, so let's not waste any more time... let's get to work! 
 
-Some important links: 
+**The attackers have gotten a head start, so let's not waste any more time... let's get to work!**
 
-The training module: [kc7cyber.com/Krusty Krab](http://kc7cyber.com/Krusty Krab)
+
+You can find all the links you need here: [kc7cyber.com/{{COMPANY_NAME}}](http://kc7cyber.com/{{COMPANY_NAME}})
+
 
 ### Legend
 
@@ -141,7 +142,8 @@ The **take** operator is a powerful tool you can use to explore rows in a table,
 
 The Employees table contains information about all the employees in our organization. In this case, we can see that the organization is named “Krusty Krab” and the domain is “krustykrab.com”.
 
-> 1\. 🤔 Try it for yourself! Do a **take** 10 on all the other tables to see what kind of data they contain.
+>1. 🤔 Try it for yourself! Do a **take** 10 on all the other tables to see what kind of data they contain.
+
 
 Make sure you record your answer to all the questions from KQL 101 in the scoreboard at kc7cyber.com/scoreboard
 
@@ -181,38 +183,52 @@ We can use the **where** operator in KQL to apply filters to a particular field.
 
 | **where** | **field** | **operator** | **"value"** |
 | ----------- | ----------- | ----------- | ----------- |
-| where | name | has | "Candace" |
+| where | name | has | "{{COMPANY_USER_1_FNAME}}" |
 
 ```sql
 Employees
-| where name has "Candace"
+| where name has "{{COMPANY_USER_1_FNAME}}"
 ```
 
 The **has** operator is useful here because we’re looking for only a partial match. If we wanted to look for an employee with a specific first and last name (an exact match), we’d use the == operator:
 
 ```sql
 Employees
-| where name == "Candace Ligget"
+| where name == "{{COMPANY_USER_1_NAME}}"
 ```
 
-3\. 🤔Each employee at Krusty Krab is assigned an IP address. Which employee has the IP address: “192.168.2.191”?
+>3. 🤔Each employee at {{COMPANY_NAME}} is assigned an IP address. Which employee has the IP address: “192.168.2.191”?
 
-While performing their day-to-day tasks, Krusty Krab employees send and receive emails. A record of each of these emails is stored in the **Email** table.
+Here are some additional operators we like to use:
+
+| Operator | Description | Case-Sensitive | Example (yields true) |
+|---|---|---|---|
+| == | Equals | Yes | "aBc" == "aBc" |
+| != | Not equals | Yes | "abc" != "ABC" |
+| =~ | Equals | No | "abc" =~ "ABC" |
+| contains | Right-hand-side (RHS) occurs as a subsequence of left-hand-side (LHS) | No | "FabriKam" contains "BRik" |
+| has | RHS is a whole term in LHS | No | "North America" has "america" |
+| has_all | Same as has but works on all of the elements | No | "North and South America" has_all("south", "north") |
+| has_any | Same as has but works on any of the elements | No | "North America" has_any("south", "north") |
+| in | Equals to any of the elements | Yes | "abc" in ("123", "345", "abc") |
 
 
-> 🎯**Key Point – User Privacy and Metadata**: As you can imagine, some emails are highly sensitive. Instead of storing the entire contents of every email sent and received within the company in a database that can be easily accessed by security analysts, we only capture email metadata. 
+While performing their day-to-day tasks, {{COMPANY_NAME}} employees send and receive emails. A record of each of these emails is stored in the **Email** table.
+
+> 🎯**Key Point – User Privacy and Metadata**: As you can imagine, some emails are highly sensitive. Instead of storing the entire contents of every email sent and received within the company in a database that can be easily accessed by security analysts, we only capture email metadata. 
 
 Email metadata includes information like: the time the email was sent, the sender, the recipient, the subject line, and any links the email may contain. Storing only email metadata, rather than entire contents, helps protect the privacy of our employees, while also ensuring that our security analysts can keep us safe. Sometimes even metadata can reveal sensitive information, so it’s important that you don’t talk about log data with other employees outside the SOC.
 
 
-We can find information about the emails sent or received by a user by looking for their email address in the sender and recipient fields of the **Email** table. For example, we can use the following query to see all the emails sent by “Candace Ligget”:
+We can find information about the emails sent or received by a user by looking for their email address in the sender and recipient fields of the **Email** table. For example, we can use the following query to see all the emails sent by “{{COMPANY_USER_1_NAME}}”:
+
 
 ```sql
 Email
 | where sender == "candace_ligget@krustykrab.com"
 ```
 
-4\. 🤔How many emails did Hector Duncan receive?
+> 4. 🤔How many emails did {{COMPANY_USER_2_NAME}} receive?
 
 **Easy as 1, 2, 3… Compound Queries and the distinct Operator**
 
@@ -239,30 +255,28 @@ Finally, in line 4, we add another pipe character ( | ) and then use the count o
 
 When employees at Krusty Krab browse to a website from within the corporate network, that browsing activity is logged. This is stored in the **OutboundNetworkEvents** table, which contains records of the websites browsed by each user in the company. Whenever someone visits a website, a record of it is stored in the table. However, the user’s name is not stored in the table, only their IP address is recorded. There is a 1:1 relationship between users and their assigned IP addresses, so we can reference the **Employees** table to figure out who browsed a particular website. When a user visits a site, sometimes data from a lot of other sources are loaded as well. For example, images, assets, and other content may be hosted on content delivery network (CDN), which is used to deliver and load content quickly on a website. Sometimes, advertisements will also load from a particular website as well.
 
-If we want to figure out what websites Kory Burton visited, we can find their IP address from the Employees table.
+If we want to figure out what websites {{COMPANY_USER_3_NAME}} visited, we can find their IP address from the Employees table.
 
-```sql  
+```sql
 Employees
-| where name == "Kory Burton"
+| where name == "{{COMPANY_USER_3_NAME}}"
 ```
 
-The query above tells us their IP address is “192.168.2.57”. We can take their IP address and look in the **OutboundNetworkEvents** table to determine what websites they visited.
+The query above tells us their IP address is “{{COMPANY_USER_3_IP}}”. We can take their IP address and look in the **OutboundNetworkEvents** table to determine what websites they visited.
 
 ```sql
 OutboundNetworkEvents
-| where src_ip == "192.168.2.57"
+| where src_ip == "{{COMPANY_USER_3_IP}}"
 ```
 
-> 6\.  🤔How many unique websites did “Christopher Lynch” visit?
+> 6.  🤔How many unique websites did “{{COMPANY_USER_4_NAME}}” visit?
 
 
 **What’s in a Name? All about Passive DNS Data**
 
 Although domain names like “google.com” are easy for humans to remember, computers don’t know how to handle them. So, they convert them to machine readable IP addresses. Just like your home address tells your friends how to find your house or apartment, an IP address tells your computer where to find a page or service hosted on the internet.
 
-
 > 🎯**Key Point – Practice Good OPSEC**: If we want to find out which IP address a particular domain resolves to, we could just browse to it. But, if the domain is a malicious one, you could download malicious files to your corporate analysis system or tip off the attackers that you know about their infrastructure. As cybersecurity analysts, we must follow procedures and safeguards that protect our ability to track threats. These practices are generally called operational security, or OPSEC.
-
 
 To eliminate the need to actively resolve (that is- directly browse to or interact with a domain to find it’s related IP address) every domain we’re interested in, we can rely on passive DNS data. Passive DNS data allows us to safely explore domain-to-IP relationships, so we can answer questions like:
 
@@ -272,9 +286,8 @@ To eliminate the need to actively resolve (that is- directly browse to or intera
 
 These domain-to-IP relationships are stored in our **PassiveDns** table.
 
-> 7\.  🤔 How many domains in the PassiveDns records contain the word “{{COMPANY_ACTOR_KEYWORD_1}}”? (hint: use the contains operator instead of has. If you get stuck, do a take 10 on the table to see what fields are available.)
-
-> 8\. 🤔 What IPs did the domain “{{COMPANY_ACTOR_KEYWORD_1_DOMAIN}}” resolve to (enter any one of them)?
+> 7.  🤔 How many domains in the PassiveDns records contain the word “{{COMPANY_ACTOR_KEYWORD_1}}”? (hint: use the contains operator instead of has. If you get stuck, do a take 10 on the table to see what fields are available.)
+> 8. 🤔 What IPs did the domain “{{COMPANY_ACTOR_KEYWORD_1_DOMAIN}}” resolve to (enter any one of them)?
 
 **🤯Let statements – making your life a bit easier:**
 
@@ -353,8 +366,7 @@ OutboundNetworkEvents
 
 After we store the value of a query into a variable using the **let** statement, we can refer to it as many times as we like in the rest of the query. The stored query does not show any output. Remember, however, that your KQL query must have a tabular statement – which means that you must have another query following your **let** statement.
 
-> 9\.  🤔 How many unique URLs were browsed by employees named “Karen”?
-
+> 9.  🤔 How many unique URLs were browsed by employees named “Karen”?
 
 > 🎯**Key Point – Pivoting:** Part of being a great cyber analyst is learning how to use multiple data sources to tell a more complete story of what an attacker has done. We call this “pivoting.” We pivot by taking one known piece of data in one dataset and looking in a different dataset to learn something we didn’t already know. You practiced this here when we started in one dataset – the Employees table – and used knowledge from there to find related data in another source – OutboundNetworkEvents.
 
