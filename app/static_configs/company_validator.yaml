@@ -1,0 +1,11 @@
+mandatory:
+  - partners
+  - activity_start_date
+  - activity_end_date
+  - activity_start_hour
+  - workday_length_hours
+  - working_days
+optional:
+  roles: title
+  roles: limit
+  roles: somethingelse
