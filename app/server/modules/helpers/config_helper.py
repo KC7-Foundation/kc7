@@ -18,59 +18,56 @@ def read_config_from_yaml(path, config_type=None) -> dict:
     Read config from file.
     Return a json representation of the yaml file 
     """
-    def validate_actor_yaml(config:dict):
-        name =  config["name"]
-        attacks = str(config["attacks"])
-        required_keys = [
-            "activity_start_date",
-            "activity_end_date",
-            "activity_start_hour",
-            "workday_length_hours",
-            "working_days"
-        ]
-        print(f"validating config for {config['name']}")
-        # Ensure that certain pairs of keys are used together
+    actor_requirements_file_path = "app/static_configs/actor_validator.yaml"
+    malware_requirements_file_path = "app/static_configs/malware_validator.yaml"
+    company_requirements_file_path = "app/static_configs/company_validator.yaml"
+
+    def validate_yaml(config, requirements_file_path):
+        # Load the config file
+
+        # Load the requirements file
+        with open(requirements_file_path, 'r') as f:
+            requirements = yaml.safe_load(f)
+        
+        # Check for mandatory keys
+        for key in requirements['mandatory']:
+            if key not in config:
+                raise ValueError(f"Missing mandatory key: {key}")
+        
+        # Check for optional keys
+        for key, required_key in requirements['optional'].items():
+            if required_key in config and key not in config:
+                raise ValueError(f"You must provide the key \"{key}\" if you are using the key \"{required_key}\"")
+        
+        # Check for keys required based on the value of other keys
+        for key, required_keys in requirements.get('conditional', {}).items():
+            if key not in config:
+                continue
+            value = config[key]
+            # If the value matches one of the required values, check for the required keys
+            if value in required_keys:
+                for required_key in required_keys[value]:
+                    if required_key not in config:
+                        raise ValueError(f"Missing key '{required_key}' required by '{key}'='{value}'")
 
 
-        results = [True if key in config else False for key in required_keys]
-        if not all(results):
-            raise ValueError(f"For {name}: You must provide all the required keys: {str(required_keys)} ")
-        if "malware" in attacks:
-            if "malware" not in config.keys():
-                raise ValueError(f"For {name}: You must provide a malware family is using a malware based attack")
-            if "post_exploit_commands" not in config:
-                print("We recommend providing post exploitation commands if you are using malware")
-            if "file_names" not in config:
-                raise ValueError(f"For {name}: You must provide file_names for email based attacks")
-        if "email" in attacks:
-            if  "sender_themes" not in config:
-                raise ValueError(f"For {name}: You must provide sender_themes if using email attacks")
-            if "subjects" not in config:
-                raise ValueError(f"For {name}: You must provide subjects if using email attacks")
-        if "recon" in attacks:
-            if "recon_search_terms" not in config:
-                raise ValueError(f"For {name}: You must provide recon_search_terms if you for actors that conduct recon")
-        if "email" in attacks or "malware" in attacks or "phishing" in attacks:
-            if "domain_themes" not in config:
-                raise ValueError(f"For {name}: You must provide domain_themes for the attacks you have specified")
-        if "domain_themes" in config:
-            for domain in config["domain_themes"]:
-                if " " in domain:
-                    raise ValueError(f"For {name}: Domain themes must be singular terms. You cannot uses spaces or invalid characters, for term \"{domain}\"")
-        if "watering_hole" in attacks:
-            if "watering_hole_domains" not in config:
-                raise ValueError(f"For {name}: You must provide watering_hole_domains to conduct a watering hole attack. This value should also be in your compnay config.")
-            if "watering_hole_target_roles" not in config:
-                print(f"For {name}: Consider adding watering_hole_target_roles to your actor config to refine your actor targeting")
-        if "post_exploit_commands" in config:
-            for command in config["post_exploit_commands"]:
-                if "name" not in command.keys() or "process" not in command.keys():
-                     raise ValueError(f"For {name}: Each post exploitation command must have both a name and process")
+        # # Check for keys with defined formats
+        # for key, format_str in requirements['format'].items():
+        #     if key in config:
+        #         value = config[key]
+        #         if not isinstance(value, str) or not format_str.format(value):
+        #             raise ValueError(f"Invalid value format for key '{key}': {value}")
+        
+
     with open(path, 'r', encoding="utf8") as stream:
         try:
             config = yaml.safe_load(stream)
             if config_type=="Actor":
-                validate_actor_yaml(config)
+                validate_yaml(config, requirements_file_path=actor_requirements_file_path)
+            elif config_type=="Malware":
+                validate_yaml(config, requirements_file_path=malware_requirements_file_path)
+            elif config_type=="Company":
+                validate_yaml(config, requirements_file_path=company_requirements_file_path)
             return config
 
         except yaml.YAMLError as exc:
@@ -85,7 +82,7 @@ def load_malware_obj_from_yaml(malware_name) -> Malware:
     """
     malware_config = glob.glob(f"app/game_configs/malware/{malware_name}.yaml")[0]
     # Read all malware configs from YAML config files
-    malware_config_as_json = read_config_from_yaml(malware_config)
+    malware_config_as_json = read_config_from_yaml(malware_config, config_type="Malware")
     if malware_config_as_json:
         return Malware(
                     **malware_config_as_json
@@ -100,7 +97,7 @@ def load_malware_obj_from_yaml_by_file(yaml_file) -> Malware:
     return the Malware object
     """
     # Read all malware configs from YAML config files
-    malware_config_as_json = read_config_from_yaml(yaml_file)
+    malware_config_as_json = read_config_from_yaml(yaml_file, config_type="Malware")
     if malware_config_as_json:
         return Malware(
                     **malware_config_as_json
