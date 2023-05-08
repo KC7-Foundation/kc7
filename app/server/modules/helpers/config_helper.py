@@ -13,69 +13,73 @@ def read_list_from_file(path) -> list:
     return [line.strip() for line in lines]
 
 
+def validate_yaml(config, config_type, show_errors=False):
+
+    actor_requirements_file_path = "app/static_configs/actor_validator.yaml"
+    malware_requirements_file_path = "app/static_configs/malware_validator.yaml"
+    company_requirements_file_path = "app/static_configs/company_validator.yaml"
+    
+    # Load the config file
+    if config_type=="Actor":
+        requirements_file_path=actor_requirements_file_path
+    elif config_type=="Malware":
+        requirements_file_path=malware_requirements_file_path
+    elif config_type=="Company":
+        requirements_file_path=company_requirements_file_path
+
+    # Load the requirements file
+    with open(requirements_file_path, 'r') as f:
+        requirements = yaml.safe_load(f)
+
+    errors = []
+    
+    # Check for mandatory keys
+    for key in requirements['mandatory']:
+        if key not in config:
+            errors.append(f"Missing mandatory key: {key}")
+    
+    # Check for optional keys
+    for key, required_key in requirements['optional'].items():
+        if required_key in config and key not in config:
+            errors.append(f"You must provide the key \"{key}\" if you are using the key \"{required_key}\"")
+    
+    # Check for keys required based on the value of other keys
+    for key, required_keys in requirements.get('conditional', {}).items():
+        if key not in config:
+            continue
+        value = config[key]
+        # If the value matches one of the required values, check for the required keys
+        if value in required_keys:
+            for required_key in required_keys[value]:
+                if required_key not in config:
+                    errors.append(f"Missing key '{required_key}' required by '{key}'='{value}'")
+
+    if errors:
+        error_message= f"Found the following config errors for config: \n" + "\n\t-> " + "\n\t-> ".join(errors)
+        if show_errors:
+            return error_message
+        else:
+            raise ValueError(error_message)
+    else:
+        return "No errors to report"
+
+    # # Check for keys with defined formats
+    # for key, format_str in requirements['format'].items():
+    #     if key in config:
+    #         value = config[key]
+    #         if not isinstance(value, str) or not format_str.format(value):
+    #             raise ValueError(f"Invalid value format for key '{key}': {value}")
+
 def read_config_from_yaml(path, config_type=None) -> dict:
     """
     Read config from file.
     Return a json representation of the yaml file 
     """
-    actor_requirements_file_path = "app/static_configs/actor_validator.yaml"
-    malware_requirements_file_path = "app/static_configs/malware_validator.yaml"
-    company_requirements_file_path = "app/static_configs/company_validator.yaml"
-
-    def validate_yaml(config, requirements_file_path):
-        # Load the config file
-
-        # Load the requirements file
-        with open(requirements_file_path, 'r') as f:
-            requirements = yaml.safe_load(f)
-
-        errors = []
-        
-        # Check for mandatory keys
-        for key in requirements['mandatory']:
-            if key not in config:
-                errors.append(f"Missing mandatory key: {key}")
-        
-        # Check for optional keys
-        for key, required_key in requirements['optional'].items():
-            if required_key in config and key not in config:
-                errors.append(f"You must provide the key \"{key}\" if you are using the key \"{required_key}\"")
-        
-        # Check for keys required based on the value of other keys
-        for key, required_keys in requirements.get('conditional', {}).items():
-            if key not in config:
-                continue
-            value = config[key]
-            # If the value matches one of the required values, check for the required keys
-            if value in required_keys:
-                for required_key in required_keys[value]:
-                    if required_key not in config:
-                        errors.append(f"Missing key '{required_key}' required by '{key}'='{value}'")
-
-        if errors:
-            error_message= "Found the following config errors: \n" + "\n\t-> " + "\n\t-> ".join(errors)
-            raise ValueError(error_message)
-
-
-        # # Check for keys with defined formats
-        # for key, format_str in requirements['format'].items():
-        #     if key in config:
-        #         value = config[key]
-        #         if not isinstance(value, str) or not format_str.format(value):
-        #             raise ValueError(f"Invalid value format for key '{key}': {value}")
-        
-
     with open(path, 'r', encoding="utf8") as stream:
         try:
             config = yaml.safe_load(stream)
-            if config_type=="Actor":
-                validate_yaml(config, requirements_file_path=actor_requirements_file_path)
-            elif config_type=="Malware":
-                validate_yaml(config, requirements_file_path=malware_requirements_file_path)
-            elif config_type=="Company":
-                validate_yaml(config, requirements_file_path=company_requirements_file_path)
+            validate_yaml(config, config_type=config_type)
             return config
-
         except yaml.YAMLError as exc:
             raise ValueError(f"Looks like you provided invalid yaml {exc}")
 

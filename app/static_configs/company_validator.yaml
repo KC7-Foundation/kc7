@@ -1,5 +1,8 @@
 mandatory:
+  - name
+  - domain
   - partners
+  - count_employees
   - activity_start_date
   - activity_end_date
   - activity_start_hour
@@ -8,4 +11,3 @@ mandatory:
 optional:
   roles: title
   roles: limit
-  roles: somethingelse
