@@ -218,41 +218,8 @@ def start_game() -> None:
             print("###############")
             print(list(set(actor.domains_list)))
             print(list(set(actor.ips_list)))
+            print(list(set(Actor.string_to_list(actor.sender_emails))))
 
-    # count_cycles = 10
-    # for i in range(count_cycles):
-    #     # generate the activity
-    #     print("##########################################")
-    #     print(f"## Running cycle {i+1} of the game...")
-    #     print("##########################################")
-    #     for actor in actors: 
-    #         if actor.name == "Default":
-    #             # Default actor is used to create noise
-    #             generate_activity(actor, employees) 
-    #         else:
-    #             # generate activity of actors defined in actor config
-    #             # num_email is actually number of emails waves sent
-    #             # waves contain multiple emails
-    #             # TODO: abstract this out to the actor / make this more elegant
-    #             generate_activity(actor, 
-    #                               employees, 
-    #                               num_passive_dns=random.randint(5, 10), 
-    #                               num_email=random.randint(0, 3), 
-    #                             ) 
-
-
-
-    # ##########################################
-    # # deg statements to help time tracking
-    # # on average, one cycle=one day in game
-    # game_start_time = get_time()
-    # game_end_time =  get_time()
-    # days_elapse_in_game = (game_end_time - game_start_time) /(60*60*24)
-    # print(f"Game started at {Clock.from_timestamp_to_string(game_start_time)}")
-    # print(f"Game ended at {Clock.from_timestamp_to_string(game_end_time)}")
-    # print(f"{days_elapse_in_game} days elapsed in the game")
-    # # print(f"Ran {count_cycles} cycles...")
-    # ##########################################
 
 
 def init_setup():
