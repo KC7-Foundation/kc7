@@ -257,42 +257,7 @@ class LogUploader():
             print(f"uploading data for type {table_name}")
             print(data_table_df.shape)
 
-            #If it's the Employee table, update the guide! 
-            if table_name == "Employees":
-                user1_int = random.randint(0,50)
-                user2_int = random.randint(51,75)
-                user3_int = random.randint(76,100)
-                user4_int = random.randint(101,150)
-                COMPANY_DOMAIN = data_table_df.iloc[user1_int].values[5]
-                COMPANY_USER_1_NAME = data_table_df.iloc[user1_int].values[1]
-                COMPANY_USER_1_FNAME = COMPANY_USER_1_NAME[:COMPANY_USER_1_NAME.find(' ')]
-                COMPANY_USER_1_EMAIL = data_table_df.iloc[user1_int].values[4]
-                COMPANY_USER_2_NAME = data_table_df.iloc[user2_int].values[1]
-                COMPANY_USER_2_EMAIL = data_table_df.iloc[user2_int].values[4]
-                COMPANY_USER_3_NAME = data_table_df.iloc[user3_int].values[1]
-                COMPANY_USER_3_IP = data_table_df.iloc[user3_int].values[3]
-                COMPANY_USER_4_NAME = data_table_df.iloc[user4_int].values[1]
-                COMPANY_USER_4_IP = data_table_df.iloc[user4_int].values[3]
-
-                #Create new guide
-                with open(COMPANY_DOMAIN+".md",'r') as f:
-                    data = f.read()
-                    data = data.replace('{{COMPANY_DOMAIN}}', COMPANY_DOMAIN)
-                    data = data.replace('{{COMPANY_USER_1_NAME}}', COMPANY_USER_1_NAME)
-                    data = data.replace('{{COMPANY_USER_1_FNAME}}', COMPANY_USER_1_FNAME)
-                    data = data.replace('{{COMPANY_USER_1_EMAIL}}', COMPANY_USER_1_EMAIL)
-                    data = data.replace('{{COMPANY_USER_2_NAME}}', COMPANY_USER_2_NAME)
-                    data = data.replace('{{COMPANY_USER_3_NAME}}', COMPANY_USER_3_NAME)
-                    data = data.replace('{{COMPANY_USER_3_IP}}', COMPANY_USER_3_IP)
-                    data = data.replace('{{COMPANY_USER_4_NAME}}',COMPANY_USER_4_NAME)
-                    with open (COMPANY_DOMAIN+".md", "w") as w: 
-                        w.write(data)
-                with open ("questions.txt","a") as file:
-                    #Q2
-                    file.write('Question 2 - Total Employees: ' + str(len(data_table_df.index)) + "\n")
-                    #Q3
-                    file.write('Question 3 - 192.168.2.191 IP: ' + str(data_table_df.loc[data_table_df['ip_addr'] == '192.168.2.191','name'].values[0])+ "\n")  
-
+           
             if current_app.config["ADX_DEBUG_MODE"]:
                 # If ADX_DEBUG_MODE is enabled, print JSON representation of data
                 # Then, return early to prevent queueing and uploading to ADX

@@ -82,25 +82,6 @@ def start_game() -> None:
     ALL_DOMAINS = LEGIT_DOMAINS + CONTENT_DOMAINS 
 
 
-    #Global Question Domains 
-    global COMPANY_NAME 
-    global COMPANY_DOMAIN
-    global PARTNER_DOMAIN_1
-    global PARTNER_DOMAIN_2
-    global PARTNER_DOMAIN_3
-    global PARTNER_DOMAIN_4
-    global RANDOM_ACTOR_DOMAIN
-    global RANDOM_ACTOR_KEYWORD
-    COMPANY_NAME = ""
-    COMPANY_DOMAIN = ""
-    PARTNER_DOMAIN_1 = ""
-    PARTNER_DOMAIN_2 = ""
-    PARTNER_DOMAIN_3 = ""
-    PARTNER_DOMAIN_4 = ""
-    RANDOM_ACTOR_DOMAIN = ""
-    RANDOM_ACTOR_KEYWORD = ""
-
-
     # The is current game session
     # This data object tracks whether or not the game is currently running
     # It allows us to start/stop/restart the game from the views
@@ -132,31 +113,6 @@ def start_game() -> None:
     PARTNER_DOMAINS = company.get_partners()
     ALL_DOMAINS =  ALL_DOMAINS + RANDOMIZED_DOMAINS + PARTNER_DOMAINS
 
-    #Append to guide
-    COMPANY_DOMAIN == company.domain
-    COMPANY_NAME == company.name
-    with open('app/server/modules/constants/template_guide.txt','r') as f:
-        data = f.read()
-        data = data.replace('{{COMPANY_NAME}}',company.name)
-        partner_int = 1
-        for partner in PARTNER_DOMAINS: 
-            temp_name = "PARTNER_DOMAIN_" + str(partner_int)
-            try: 
-                if partner_int == 1: 
-                    PARTNER_DOMAIN_1 = temp_name
-                elif partner_int == 2:
-                    PARTNER_DOMAIN_2 = temp_name
-                elif partner_int == 3:
-                    PARTNER_DOMAIN_3 = temp_name
-                elif partner_int == 4:
-                    PARTNER_DOMAIN_4 = temp_name
-            except:
-                print('Error adding PARTNER_DOMAIN variable')
-            data = data.replace('{{' + temp_name + '}}',partner)
-            partner_int = partner_int + 1
-        with open (company.domain+".md", "w") as w: 
-            w.write(data)
-
 
     current_date = date.fromisoformat(company.activity_start_date)
     while current_date <= date.fromisoformat(company.activity_end_date):
@@ -183,20 +139,7 @@ def start_game() -> None:
         current_date += timedelta(days=1)
     print("Done running!")
 
-    #ADD Keyword
-    for actor in actors:
-        if not actor.is_default_actor:
-            try:
-                RANDOM_ACTOR_KEYWORD = random.choice(actor.sender_themes)
-                RANDOM_ACTOR_DOMAIN = random.choice(actor.domains_list)
-                with open(COMPANY_DOMAIN+".md",'r') as f:
-                    data = f.read()
-                    data = data.replace('{{RANDOM_ACTOR_KEYWORD}}', RANDOM_ACTOR_KEYWORD)
-                    data = data.replace('{{RANDOM_ACTOR_DOMAIN}}', RANDOM_ACTOR_DOMAIN)
-                    with open (COMPANY_DOMAIN+".md",'r') as w:
-                        w.write(data)
-            except:
-                print('COULDNT ADD RANDOM KEYWORDS')
+
 
     #### Cleanup activities
     # clear the rest of queue
@@ -219,6 +162,9 @@ def start_game() -> None:
             print(list(set(actor.domains_list)))
             print(list(set(actor.ips_list)))
             print(list(set(Actor.string_to_list(actor.sender_emails))))
+
+    from app.server.modules.logging.populate_guide import populate_guide
+    populate_guide()
 
 
 
