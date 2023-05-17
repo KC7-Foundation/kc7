@@ -161,6 +161,7 @@ def start_game() -> None:
             print("###############")
             print(list(set(actor.domains_list)))
             print(list(set(actor.ips_list)))
+            print(list(set(Actor.string_to_list(actor.sender_emails))))
 
     from app.server.modules.logging.populate_guide import populate_guide
     populate_guide()
