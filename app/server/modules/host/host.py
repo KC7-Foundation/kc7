@@ -1,4 +1,5 @@
 from app import db
+from app.server.modules.organization.Company import Company
 
 class Host(db.Model):
     """
@@ -13,6 +14,9 @@ class Host(db.Model):
     def __init__(self, name: str, host_type: str) -> None:
         self.name = name
         self.host_type = host_type
+
+    def __repr__(self) -> str:
+        return '<Host %r>' % self.name
 
 
 class Endpoint(Host):
@@ -35,6 +39,8 @@ class Server(Host):
     Servers can be of multiple types including
     - Exchange, SSH, VPN, File, Web
     """
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
+    # company = db.relationship('Company', backref=db.backref('servers', lazy='dynamic'))
 
     def __init__(self, name: str, server_type: str) -> None:
         super().__init__(name, host_type="server")

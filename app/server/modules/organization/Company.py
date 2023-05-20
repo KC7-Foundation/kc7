@@ -13,7 +13,6 @@ from datetime import date, timedelta, datetime
 from app.server.models import Base
 from app.server.modules.clock.Clock import Clock
 from app.server.models import GameSession
-from app.server.modules.host.host import Endpoint
 
 from app import db
 
@@ -40,6 +39,8 @@ class Company(Base):
     workday_length_hours    = db.Column(db.Integer())
     count_employees         = db.Column(db.Integer())
     working_days            = db.Column(db.String(300))
+
+    servers                 = db.relationship('Server', backref='company')
 
     def __init__(self, name: str, domain: str, activity_start_date: str, activity_end_date: str, activity_start_hour: int, 
                  workday_length_hours: int, working_days: list=[], count_employees:int=100, roles:dict={}, partners:list=[]) -> None:
@@ -157,7 +158,7 @@ class Company(Base):
         Role Dict should look something like: 
           "roles": [
             {
-            "role": "Chief Executive Officer",
+            "role": "Chief Executive Officer",1
             "limit": 1
             },
             {
@@ -286,6 +287,8 @@ class Employee(Base):
 
         Example: X7O9-DESTOP
         """
+        from app.server.modules.host.host import Endpoint
+
         prefix = random.choices(string.ascii_letters + string.digits, k=4)
         prefix = str.upper("".join(prefix))
         postfix = random.choice(["DESKTOP", "LAPTOP", "MACHINE"])
@@ -303,6 +306,7 @@ class Employee(Base):
         A function to return the JSON representation of the employee object.
         Used for uploading data to ADX.
         """
+
         return {
             "timestamp": self.timestamp,
             "name": self.name,
