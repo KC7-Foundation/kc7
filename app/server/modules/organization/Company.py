@@ -13,6 +13,7 @@ from datetime import date, timedelta, datetime
 from app.server.models import Base
 from app.server.modules.clock.Clock import Clock
 from app.server.models import GameSession
+from app.server.modules.host.host import Endpoint
 
 from app import db
 
@@ -206,7 +207,7 @@ class Employee(Base):
     awareness           = db.Column(db.Integer)
     email_addr          = db.Column(db.String(50))
     username            = db.Column(db.String(50))
-    hostname            = db.Column(db.String(50))
+    # hostname            = db.Column(db.String(50))
     timestamp           = db.Column(db.String(50))
     role                = db.Column(db.String(50))
     
@@ -216,8 +217,10 @@ class Employee(Base):
     company = db.relationship(
         'Company', backref=db.backref('employees', lazy='dynamic'))
 
+    endpoint = db.relationship('Endpoint', backref='employee', uselist=False)
+
     def __init__(self, name: str, ip_addr: str, company: Company, 
-                timestamp:float, role:str="",  user_agent: str=None,) -> None:
+                timestamp:float, role:str="",  user_agent: str=None) -> None:
         self.name = name
         
         self.user_agent = generate_user_agent(os=('win'))
@@ -231,8 +234,7 @@ class Employee(Base):
         self.role = role
         self.set_email()
         self.set_username()
-        self.set_hostname()
-        
+        self.set_endpoint()
 
     def set_email(self) -> None:
         """
@@ -277,7 +279,7 @@ class Employee(Base):
         self.username = username
 
     
-    def set_hostname(self) -> None:
+    def set_endpoint(self) -> None:
         """
         Constructs a hostname for the employee's device.
         Randomly choose some letters and numbers, and appends a device identified
@@ -287,7 +289,13 @@ class Employee(Base):
         prefix = random.choices(string.ascii_letters + string.digits, k=4)
         prefix = str.upper("".join(prefix))
         postfix = random.choice(["DESKTOP", "LAPTOP", "MACHINE"])
-        self.hostname = f"{prefix}-{postfix}"
+        hostname = f"{prefix}-{postfix}"
+        
+        endpoint = Endpoint(name = hostname)
+        db.session.add(endpoint)
+        db.session.commit()
+
+        self.endpoint = endpoint
 
 
     def stringify(self) -> "dict[str,str]":
@@ -304,7 +312,7 @@ class Employee(Base):
             "company_domain": self.company.domain,
             "username": self.username,
             "role":self.role,
-            "hostname": self.hostname,
+            "hostname": self.endpoint.name,
         }
 
     @staticmethod
