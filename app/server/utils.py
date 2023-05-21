@@ -247,4 +247,4 @@ def metalog(time:int, actor:Actor, message:str):
 
     debug_message = f"{actor}\t{time}: {message}"
 
-    DEBUG_LOGGER.log_debug(message=debug_message)
+    DEBUG_LOGGER.log_debug(message=debug_message, log_file_path='activity_log.txt')

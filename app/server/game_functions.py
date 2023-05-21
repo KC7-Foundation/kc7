@@ -50,8 +50,10 @@ def start_game() -> None:
 
     # instantiate a logUploader. This allows us to locally log actor activity 
     global DEBUG_LOGGER
-    DEBUG_LOGGER = DebugLogger('actor_activity.log')
-    DEBUG_LOGGER.log_debug('This is a debug message.')
+    global DATA_LOGGER
+    DEBUG_LOGGER = DebugLogger()
+    DATA_LOGGER = DebugLogger()
+    # DEBUG_LOGGER.log_debug('This is a debug message.')
 
     global MALWARE_OBJECTS
     MALWARE_OBJECTS = create_malware()

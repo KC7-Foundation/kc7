@@ -73,7 +73,27 @@ class LogUploader():
         # this reflect the total sum of events that have been generated
         # similar to the queue but doesnt get reset
         self.tally = {}
+        # clear the test logs folder
+        self.clear_testlogs()
 
+
+    def clear_testlogs(self):
+        import os
+        folder_path = "testlogs"
+
+        if os.path.exists(folder_path):
+            # Remove existing folder and its contents
+            for root, dirs, files in os.walk(folder_path, topdown=False):
+                for name in files:
+                    file_path = os.path.join(root, name)
+                    os.remove(file_path)
+                for name in dirs:
+                    dir_path = os.path.join(root, name)
+                    os.rmdir(dir_path)
+            os.rmdir(folder_path)
+        # Create a new folder
+        os.mkdir(folder_path)
+ 
     def create_tables(self, reset: bool = False) -> None:
         """
         Create the tables that the logs will be uploaded to in Kusto
@@ -228,11 +248,7 @@ class LogUploader():
         """
         Submit everything in the qeue to ADX (or print in DEV)
         """
-        COMPANY_USER_1_NAME = ""
-        COMPANY_USER_1_FNAME = ""
-        COMPANY_USER_1_EMAIL = ""
-        COMPANY_USER_2_NAME = ""
-        COMPANY_USER_2_EMAIL = ""
+        from app.server.game_functions import DATA_LOGGER
 
         for table_name, data in self.queue.items():
             self.ingestion_props = IngestionProperties(
@@ -257,22 +273,19 @@ class LogUploader():
             print(f"uploading data for type {table_name}")
             print(data_table_df.shape)
 
-           
-            if current_app.config["ADX_DEBUG_MODE"]:
-                # If ADX_DEBUG_MODE is enabled, print JSON representation of data
-                # Then, return early to prevent queueing and uploading to ADX
-                print(f"Uploading to table {table_name}...")
-
-                # uncomment this to print data add data
-                # print(data_table_df.to_markdown())
-
-                # uncomment this to print data generated a event type
-                # if table_name == "Email":
-                    # print(data_table_df.to_markdown())
-
-            else:
+            if not current_app.config["ADX_DEBUG_MODE"]:
+                # If ADX_DEBUG_MODE is not enabled
                 # submit logs to Kusto
                 result =  self.ingest.ingest_from_dataframe(
                     data_table_df, ingestion_properties=self.ingestion_props)
                 print(result)
                 print(f"....adding {data_table_df.shape} to azure for {table_name} table")
+            
+            print(f"Uploading to table {table_name}...")
+            # Print data in the testlogs folder
+            DATA_LOGGER.log_debug(
+                message=data_table_df.to_markdown(index=False),
+                log_file_path=f"testlogs/{table_name}.txt"
+            )
+
+            
