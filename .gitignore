@@ -22,7 +22,7 @@ sdist/
 var/
 *.egg-info/
 .installed.cfg
-*.egg
+:*.egg
 .vs
 
 # PyInstaller
@@ -100,5 +100,7 @@ ENV/
 
 # cyber-challenger specific stuff
 config.py
+testlogs/
+*.md
 *.DS_Store
 /app/flaskr.db

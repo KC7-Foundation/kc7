@@ -340,6 +340,7 @@ def create_actors() -> None:
     actor_configs = glob.glob("app/game_configs/actors/*.yaml") 
     for file in actor_configs:
         actor_config = read_config_from_yaml(file, config_type="Actor")
+        print(actor_config)
         # use dictionary value to instantiate actor
         if actor_config:
             # print(f"adding actor: {actor_config}")

@@ -1,0 +1,76 @@
+metadata:
+  name: arsenalpt
+  effectiveness: 70
+  count_init_passive_dns: 4
+  max_wave_size: 3
+  activity_start_date: "2023-06-01"
+  activity_end_date: "2023-07-13"
+  activity_start_hour: 14
+  workday_length_hours: 10
+  working_days:
+    - Monday
+    - Tuesday
+    - Wednesday
+    - Thursday
+    - Friday
+reconnaissance:
+  recon_search_terms:
+    - "research facility"
+    - "researchers"
+    - "research managers"
+    - "radstone research"
+    - "government"
+    - "projects"
+resource_development:
+  domain_themes:
+    - research
+    - management
+    - equipment
+    - government
+    - funding
+  tlds:
+    - com
+  malware:
+    - aptrad
+initial_access:
+  attacks:
+    - recon:browsing
+    - identity:password_spray
+    - watering_hole:phishing
+    - watering_hole:malware_delivery
+  watering_hole_target_roles:
+    - Director of Research
+    - Research Scientist
+    - Research Assistant
+    - Research Coordinator
+    - Biostatistician
+    - Clinical Research Coordinator
+    - Data Manager
+    - Lab Technician
+    - Research Administrator
+    - Postdoctoral Fellow
+    - Grant Writer
+  watering_hole_domains:
+    - lifecarepharmaco.com
+  spoofs_email: True
+discovery:
+  commands:
+    - name: cmd.exe
+      process: net share
+    - name: cmd.exe
+      process: cmd.exe /C net group "Domain Admins" /domain
+    - name: netstat.exe
+      process: netstat -aon
+    - name: cmd.exe
+      process: cmd.exe /c ping %userdomain%
+lateral_movement:
+  technique: T1560
+exfiltration:
+  commands:
+    - name: cmd.exe
+      process: net share
+    - name: cmd.exe
+      process: cmd.exe /C net group "Domain Admins" /domain
+  technique: T1560
+  action: encrypt_file
+  action: drop_ransom_note
