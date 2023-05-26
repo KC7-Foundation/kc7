@@ -107,20 +107,23 @@ def abstract_outer_keys(data):
     return new_dictionary
 
 
-def read_config_from_yaml(path, config_type=None) -> dict:
+def read_config_from_yaml(path, config_type=None, load_actor_class=False) -> dict:
     """
     Read config from file.
     Return a json representation of the yaml file 
+
+    load_actor_class -> Removes the outtermost keys so we can use the config to loads a SQlAlchemy class
     """
     with open(path, 'r', encoding="utf8") as stream:
         try:
             config = yaml.safe_load(stream)
-            validate_yaml(config, config_type=config_type)
-            if "metadata" in config.keys():
+            if config_type:
+                validate_yaml(config, config_type=config_type)
+            if "metadata" in config.keys() and load_actor_class:
                 # remove the outer most keys
                 # these keys are just used to help orgnize the data
                 config = abstract_outer_keys(config)
-                print(config)
+                # print(config)
             return config
         except yaml.YAMLError as exc:
             raise ValueError(f"Looks like you provided invalid yaml {exc}")

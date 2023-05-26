@@ -1,5 +1,6 @@
 # Import external modules
 from asyncore import write
+import os
 from re import S
 from faker import Faker
 from faker.providers import user_agent
@@ -250,56 +251,35 @@ class Trigger:
                 )
 
         # wait a couple hours before running post exploitation commands
-        if actor.post_exploit_commands:
+        if actor.lateral_movement:
             post_exploit_time = Clock.delay_time_in_working_hours(start_time=time, factor="hours", workday_start_hour=actor.activity_start_hour,
                                                            workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
-            Trigger.actor_runs_post_exploitation_commands(recipient=recipient, time=post_exploit_time, actor=actor )
+            Trigger.actor_moves_laterally(recipient=recipient, time=post_exploit_time, actor=actor )
+
+
 
 
     @staticmethod
-    def actor_runs_post_exploitation_commands(recipient: Employee, time: float, actor: Actor) -> None:
+    def actor_moves_laterally(recipient: Employee, time: float, actor: Actor) -> None:
         """
         After the malware runs automated commands and establishes C2 channel,
         Run custom hands-on-keyboard commands defined on the actor
         """
-        # Get a C2 IP from the Actor's infrastructure
-        c2_ip = actor.get_ips(count_of_ips=1)[0]
-        c2_domain = actor.get_domain()
-        # Get random processes
-        processes = actor.get_exploit_processes()
+        # Run actions based on the key-value pair provided
+        from app.server.modules.triggers.Actions import Actions
 
-        # Upload the recon and C2 processes to Azure
-        for process in processes:
-            if random.random() < current_app.config['RATE_ACTOR_SKIPS_HANDS_ON_KEYBOARD']:
-                break
-            # now turn the command into necessry process object
-            # print("getting actor hands on keyboard")
-            # print(process)
+        for action in actor.lateral_movement:
+            for action_name, args in action.items():
+                # action_name is the name of the function to run
+                # args are the arguments defined in the yaml config. This can be a string, list, or dict
+                env_vars = {
+                    "user": recipient,
+                    "time": time,  #handle the delay nexts
+                    "actor": actor
+                }
+                Actions.execute_action(action_name, args, env_vars)
+                
 
-            # turn process from dict into object
-            process_obj = Malware.get_process_obj({
-                "name": process.get("name", None),
-                "process": process.get("process", None).replace("{ip_address}", c2_ip)
-                                                       .replace("{domain_name}", c2_domain)
-                                                       .replace("{username}", recipient.username)
-            })
-
-            time = Clock.delay_time_by(start_time=time, factor="seconds")
-            create_process_on_host(
-                hostname=recipient.hostname,
-                timestamp=time,
-                parent_process_name=process_obj.process_name,
-                parent_process_hash=process.get("hash", None) or "614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f",
-                process=process_obj,
-                username=recipient.username
-            )
-
-            if not actor.is_default_actor:
-                metalog(
-                    time=time, 
-                    actor=actor, 
-                    message=f'A suspicious process was created on {recipient.username}\'s machine: {process_obj.process_commandline}'
-                )
 
 
     @staticmethod

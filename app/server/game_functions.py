@@ -192,6 +192,11 @@ def init_setup():
         create_actors()
         actors = Actor.query.all()
 
+    for actor in actors:
+        if not actor.is_default_actor:
+            print(actor.lateral_movement)
+            print(actor.impact)
+
     return employees, actors
 
 
@@ -339,8 +344,7 @@ def create_actors() -> None:
     # read yaml file for each new actor, load json from yaml
     actor_configs = glob.glob("app/game_configs/actors/*.yaml") 
     for file in actor_configs:
-        actor_config = read_config_from_yaml(file, config_type="Actor")
-        print(actor_config)
+        actor_config = read_config_from_yaml(file, config_type="Actor", load_actor_class=True)
         # use dictionary value to instantiate actor
         if actor_config:
             # print(f"adding actor: {actor_config}")

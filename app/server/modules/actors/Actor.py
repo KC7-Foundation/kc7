@@ -316,6 +316,46 @@ class Actor(Base):
             self.post_exploit_commands.split("~")
         ]
     
+    ####################
+    # There are some actor properties we don't store in the database
+    # We can get them by loading straight from the yaml file
+    # We should probably do more of this
+    ####################
+    @property
+    def config(self):
+        """
+        Return dictionary containing actor config from yaml file
+        """
+        return read_config_from_yaml(f"app/game_configs/actors/{self.name}.yaml", config_type="Actor")
+
+    @property
+    def discovery(self):
+        try:
+            return self.config["discovery"]
+        except:
+            return []
+
+    @property
+    def lateral_movement(self):
+        try:
+            return self.config["lateral_movement"]
+        except Exception as e:
+            return []
+
+    @property
+    def exfiltration(self):
+        try:
+            return self.config["exfiltration"]
+        except:
+            return []
+
+    @property
+    def impact(self):
+        try:
+            return self.config["impact"]
+        except:
+            return []
+
 
     def __repr__(self):
         return '<Actor %r>' % self.name
