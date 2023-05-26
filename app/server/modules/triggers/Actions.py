@@ -91,7 +91,7 @@ class Actions:
 
         
         Yaml Schema:
-        
+
             process: required
             name: optional
             time_delay: optional -> defaults to minutes
@@ -100,13 +100,13 @@ class Actions:
 
             - run_process_commands:
                 - name: bitsadmin.exe
-                process: bitsadmin /transfer myDownloadJob /download /priority normal "https://download.winzip.com/gl/nkln/winzip24-home.exe"
-                time_delay; minutes
+                  process: bitsadmin /transfer myDownloadJob /download /priority normal "https://download.winzip.com/gl/nkln/winzip24-home.exe"
+                  time_delay; minutes
                 - name: winzip24-home.exe
-                process: winzip24-home.exe
-                time_delay: seconds
+                  process: winzip24-home.exe
+                  time_delay: seconds
                 - name: winzip.exe
-                process: winzip64.exe -min -a -s"hello" archive.zip *
+                  process: winzip64.exe -min -a -s"hello" archive.zip *
         """
         from app.server.modules.endpoints.processes import Process
         from app.server.modules.endpoints.endpoint_controller import create_process_on_host
