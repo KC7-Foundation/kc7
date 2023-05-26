@@ -92,9 +92,9 @@ class Actions:
         
         Yaml Schema:
 
-            process: required
-            name: optional
-            time_delay: optional -> defaults to minutes
+            process: required; this is the process commandline; 
+            name: optional; the is the processname
+            time_delay: optional; defaults to minutes
 
         Example: 
 
@@ -114,7 +114,7 @@ class Actions:
         original_time = env_vars["time"]
         user = env_vars["user"]
         actor = env_vars["actor"]
-        # TODO: Figure out how to handle time
+
         for process in processes:
             # create the process object 
             time_delay = process.get("time_delay", "minutes")
@@ -128,7 +128,7 @@ class Actions:
 
             # user process  obj to generate process log
             create_process_on_host(
-                hostname="SOMEHOSTNAME",  #figure out how to get this across
+                hostname=user.hostname,  #theorically we can inject here
                 timestamp=timestamp,
                 parent_process_name="cmd.exe",
                 parent_process_hash="614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f",
