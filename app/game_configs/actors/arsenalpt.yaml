@@ -73,6 +73,9 @@ lateral_movement:
       path: C:\\ProgramData\\BluePhoenix\\7z2002-x64.exe
       sha256: 614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f
       time_delay: seconds
+  - encrypt_files:
+    - ext: .crypt
+      count: 50
 exfiltration:
   - run_process_commands:
     - name: cmd.exe

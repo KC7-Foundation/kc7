@@ -1,6 +1,14 @@
 import os
 import random
+from faker import Faker
+from faker.providers import  file
+
 from app.server.modules.clock.Clock import Clock
+
+
+# instantiate faker
+fake = Faker()
+fake.add_provider(file)
 
 class Actions:
     """
@@ -259,12 +267,67 @@ class Actions:
                 method="GET"
             )
 
+
     @staticmethod
     def encrypt_files(args, env_vars):
-        print(f"Envript files {args}")
+        """
+        Given a file extension format
+        Create files on the victim host with the corresponding file extension
+
+
+        Yaml Schema:
+
+            ext:    required; this is the file entention for the encrypted files
+            count:  optional;  the number of encrpted files to create
+            time_delay: optional; defaults to minutes
+
+        Example: 
+
+            - encrypt_files:
+                - ext: .crypt
+                  count: 50
+        """
+        from app.server.modules.endpoints.file_creation_event import File
+        from app.server.modules.endpoints.endpoint_controller import write_file_to_host
+        from app.server.modules.constants.constants import COMMON_USER_FILE_LOCATIONS, FILE_CREATING_PROCESSES
+
+        original_time = env_vars["time"]
+        user = env_vars["user"]
+        actor = env_vars["actor"]
+        
+        for args in args:
+            count = args.get("count", 20)
+            ext = args.get("ext", ".encrypted")
+            time_delay = args.get("time_delay", "minutes")
+            timestamp = Clock.delay_time_in_working_hours(start_time=original_time, factor=time_delay, workday_start_hour=actor.activity_start_hour,
+                                                            workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
+            
+            for i in range(count):
+                path = random.choice(COMMON_USER_FILE_LOCATIONS).replace("{username}",user.username)
+                if "Pictures" in path:
+                    category='image'
+                elif "Videos" in path:
+                    category='video'
+                elif "Music" in path:
+                    category='audio'
+                else:
+                    category='office'
+                    
+                write_file_to_host(
+                    hostname=user.hostname,
+                    username=user.username,
+                    process_name=random.choice(FILE_CREATING_PROCESSES),
+                    timestamp=timestamp,
+                    file=File(
+                        filename=fake.file_name(category=category) + ext,
+                        path=path
+                    )
+                )
+                
+
 
     @staticmethod
     def create_users(args, env_vars):
-        print("Create users sh*t")
+        print("Create users and allat")
 
     
