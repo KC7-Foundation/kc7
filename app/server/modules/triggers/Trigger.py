@@ -242,13 +242,13 @@ class Trigger:
         if actor.lateral_movement:
             post_exploit_time = Clock.delay_time_in_working_hours(start_time=time, factor="hours", workday_start_hour=actor.activity_start_hour,
                                                            workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
-            Trigger.actor_moves_laterally(recipient=recipient, time=post_exploit_time, actor=actor )
+            Trigger.actor_controls_host(recipient=recipient, time=post_exploit_time, actor=actor )
 
 
 
 
     @staticmethod
-    def actor_moves_laterally(recipient: Employee, time: float, actor: Actor) -> None:
+    def actor_controls_host(recipient: Employee, time: float, actor: Actor) -> None:
         """
         After the malware runs automated commands and establishes C2 channel,
         Run custom hands-on-keyboard commands defined on the actor
@@ -256,16 +256,25 @@ class Trigger:
         # Run actions based on the key-value pair provided
         from app.server.modules.triggers.Actions import Actions
 
-        for action in actor.lateral_movement:
-            for action_name, args in action.items():
-                # action_name is the name of the function to run
-                # args are the arguments defined in the yaml config. This can be a string, list, or dict
-                env_vars = {
-                    "user": recipient,
-                    "time": time,  #handle the delay nexts
-                    "actor": actor
-                }
-                Actions.execute_action(action_name, args, env_vars)
+        ## MAJOR TODO: Figure our how to handle timing differences between actions that are run
+        ## Right now the clock just recents for every event and follows time-delays relative to when the function was invoked
+
+        # loop through all the phases and run the define action in those pahses
+        for phase in [actor.discovery, actor.lateral_movement, actor.exfiltration, actor.impact]:
+            if phase:
+                for action in phase:
+                    for action_name, args in action.items():
+                        # action_name is the name of the function to run
+                        # args are the arguments defined in the yaml config. This can be a string, list, or dict
+                        env_vars = {
+                            "user": recipient,
+                            "time": time,  #handle the delay better
+                            "actor": actor
+                        }
+                        Actions.execute_action(action_name, args, env_vars)
+
+
+    
                 
 
 

@@ -48,8 +48,12 @@ def create_company():
     # loads json file as diction
     company_config = read_config_from_yaml('app/game_configs/company.yaml', config_type="Company")
     # instantiate a company object using config info
-
-    servers = company_config.pop("servers")
+    try:
+        servers = company_config.pop("servers")
+    except:
+        print("There are no define servers")
+        servers = []
+        
     # print(company_config)
     company = Company(
             **company_config

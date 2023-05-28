@@ -82,7 +82,6 @@ class Actions:
             'create_users': Actions.create_users,
             'download_files': Actions.download_files
         }
-        print(f"Trying to run a fucntion called {action_name}")
         if action_name in functions:
             # all functions should accept env_vars
             # these are the gametime variables to be used. e.g. time, actor
@@ -139,7 +138,7 @@ class Actions:
 
             # user process  obj to generate process log
             create_process_on_host(
-                hostname=user.hostname,  #theorically we can inject here
+                hostname=user.endpoint.name,  #theorically we can inject here
                 timestamp=timestamp,
                 parent_process_name="cmd.exe",
                 parent_process_hash="614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f",
@@ -196,7 +195,7 @@ class Actions:
             )
             #use the file obj to make file creation obj
             write_file_to_host(
-                hostname=user.hostname,
+                hostname=user.endpoint.name,
                 username=user.username,
                 process_name=None,
                 timestamp=timestamp,
@@ -253,7 +252,7 @@ class Actions:
             #use the file obj to make file creation obj
             process_name = random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe']) 
             write_file_to_host(
-                hostname=user.hostname,
+                hostname=user.endpoint.name,
                 username=user.username,
                 process_name=process_name,
                 timestamp=timestamp,
@@ -314,7 +313,7 @@ class Actions:
                     category='office'
                     
                 write_file_to_host(
-                    hostname=user.hostname,
+                    hostname=user.endpoint.name,
                     username=user.username,
                     process_name=random.choice(FILE_CREATING_PROCESSES),
                     timestamp=timestamp,
