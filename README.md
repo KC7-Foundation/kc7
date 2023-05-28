@@ -1,4 +1,4 @@
-![Admin Central button](readme_assets/kc7.png)
+![Admin Central button]
 
 # KC7 - a cybersecurity game (kc7cyber.com)
 
