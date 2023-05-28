@@ -78,13 +78,6 @@ def actor_password_spray(actor: Actor, start_date: date, num_employees:int = 25,
 
     actor_ip = actor.get_ips(count_of_ips=1)[0]
 
-    metalog(
-            time=spray_time, 
-            actor=actor, 
-            message=f'The following accounts were targed in a password spray: {", ".join([e.username for e in targeted_employees])}'
-        )
-
-
     print(f"spraying {num_employees} using {num_passwords} passwords")
     for password in spray_passwords:
         for employee in targeted_employees:
@@ -105,7 +98,7 @@ def actor_password_spray(actor: Actor, start_date: date, num_employees:int = 25,
                                                                workday_start_hour=actor.activity_start_hour,
                                                                workday_length_hours=actor.workday_length_hours,
                                                                working_days_of_week=actor.working_days_list)
-                Trigger.actor_downloads_files_from_email(recipient=employee, src_ip=actor_ip, time=login_time, actor=actor)
+                Trigger.actor_downloads_files_from_email(recipient=employee.username, src_ip=actor_ip, time=login_time)
             
 
 # def auth_user_to_mail_server(user: Employee, num_auth_events:int) -> None:

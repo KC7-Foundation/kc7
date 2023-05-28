@@ -61,7 +61,7 @@ class Clock():
         params: timestamp - datetime as a timestamp (float)
         Return timestamp as string
         """
-        return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+        return str(datetime.fromtimestamp(timestamp))
 
     @staticmethod
     def increment_time(start_time: float, increment: int) -> float:
@@ -173,13 +173,13 @@ class Clock():
             days = randint(1, 31) * direction
         if factor == "days":
             days = randint(1, 7) * direction
-        if factor in ["months", "days", "hours"]:
+        elif factor == "hours":
             hours = randint(1,24) * direction
-        if factor in ["months", "days", "hours", "minutes"]:
+        elif factor == "minutes":
             minutes = randint(1, 60) * direction
-        if factor in ["months", "days", "hours", "minutes", "seconds"]:
+        elif factor == "seconds":
             seconds = randint(1, 60) * direction
 
         increment_value = (days * 86400) + (hours * 3600) + (minutes * 60) + seconds
 
-        return start_time + increment_value 
+        return start_time + increment_value

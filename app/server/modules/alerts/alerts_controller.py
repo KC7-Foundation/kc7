@@ -20,29 +20,7 @@ def generate_host_alert(time: float, hostname:str, filename:str, sha256:str, sev
         time=time,
         alert_type="HOST",
         severity=severity,
-        description=f"A suspicious file was detected on host {hostname}. Filename: {filename}. Sha256: {sha256}"
-    )
-
-    send_alert_to_azure(alert)
-
-
-def generate_host_quarantine_alert(time: float, hostname:str, filename:str, sha256:str, severity="high") -> None:
-    """
-    Generates a Security Alert for malicious files generated on a host
-    {
-        "timestamp": 2022-10-03 12:30:00
-        "alert_type": self.alert_type,
-        "severity": self.severity,
-        "description": "Your Antivirus quarantined a suspicious file on host  ",
-        "source": self.source
-    }
-    """
-
-    alert = SecurityAlert(
-        time=time,
-        alert_type="HOST",
-        severity=severity,
-        description=f"A suspicious file was quarantined on host {hostname}: {filename}"
+        description=f"Your antivirus system detected a suspicious file on host {hostname} with filename {filename}. Sha256: {sha256}"
     )
 
     send_alert_to_azure(alert)
@@ -55,7 +33,7 @@ def generate_email_alert(time: float, username:str, subject:str) -> None:
 
     alert = SecurityAlert(
         time=time,
-        alert_type="EMAIL",
+        alert_type="Email",
         severity="med",
         description=f"Employee {username} reported a suspicious email with the subject \"{subject}\""
     )

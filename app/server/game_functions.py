@@ -1,5 +1,4 @@
 import glob
-import pandas as pd
 from flask_security import roles_required
 
 from flask import Blueprint, request, render_template, \
@@ -7,7 +6,6 @@ from flask import Blueprint, request, render_template, \
 from sqlalchemy import asc
 from  sqlalchemy.sql.expression import func, select
 from datetime import datetime, date, time, timedelta
-import random
 
 # Import module models (i.e. Company, Employee, Actor, DNSRecord)
 from app.server.models import db, GameSession
@@ -25,8 +23,6 @@ from app.server.modules.helpers.config_helper import read_config_from_yaml
 from app.server.modules.endpoints.endpoint_controller import gen_system_files_on_host, gen_user_files_on_host, gen_system_processes_on_host
 from app.server.modules.file.malware import Malware
 from app.server.modules.helpers.config_helper import load_malware_obj_from_yaml_by_file, read_list_from_file
-from app.server.modules.helpers.browsing_helpers import *
-from app.server.modules.logging.meta import DebugLogger
 
 from app.server.utils import *
 from app.server.modules.file.vt_seed_files import FILES_MALICIOUS_VT_SEED_HASHES
@@ -41,48 +37,18 @@ def start_game() -> None:
     3. Run infinite loop to generate additional activity
     """
     print("Starting the game...")
-    
+
     # instantiate a logUploader. This instance is used by all other modules to send logs to azure
     # we use a singular instances in order to queue up muliple rows of logs and send them all at once
     global LOG_UPLOADER
-    LOG_UPLOADER = LogUploader(queue_limit=100000)
+    LOG_UPLOADER = LogUploader(queue_limit=10000)
     LOG_UPLOADER.create_tables(reset=True)
-
-    # instantiate a logUploader. This allows us to locally log actor activity 
-    global DEBUG_LOGGER
-    global DATA_LOGGER
-    DEBUG_LOGGER = DebugLogger()
-    DATA_LOGGER = DebugLogger()
-    # DEBUG_LOGGER.log_debug('This is a debug message.')
 
     global MALWARE_OBJECTS
     MALWARE_OBJECTS = create_malware()
 
-    global LEGIT_DOMAINS # Legit domains from legit.txt
-    global ALEXA_DOMAINS # Domains from Alexa top 100k
-
-    ALEXA_DOMAINS = read_list_from_file('app/server/modules/helpers/alexa_top100k.txt')
-
-    legit = read_list_from_file('app/server/modules/helpers/legit.txt')
-    wiki_domains = wiki_get_random_articles()
-    reddit_worldnews = reddit_get_subreddit("worldnews")
-    LEGIT_DOMAINS = legit + wiki_domains + reddit_worldnews 
-    if current_app.config['API_NEWSAPI'] != "":
-        news_domains = news_get_top_headlines(current_app.config['API_NEWSAPI'])
-        LEGIT_DOMAINS = LEGIT_DOMAINS + news_domains
-    if current_app.config['API_YOUTUBEAPI'] != "":
-        youtube_domains = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
-        youtube_domains2 = youtube_get_random_videos(current_app.config['API_YOUTUBEAPI'])
-        LEGIT_DOMAINS = LEGIT_DOMAINS + youtube_domains + youtube_domains2
-
-   
-    global CONTENT_DOMAINS
-    CONTENT_DOMAINS = read_list_from_file('app/server/modules/helpers/content-domains.txt')
-    global RANDOMIZED_DOMAINS
-    global PARTNER_DOMAINS
-    global ALL_DOMAINS
-    ALL_DOMAINS = LEGIT_DOMAINS + CONTENT_DOMAINS 
-
+    global LEGIT_DOMAINS # Legit omains from Alex top 1M
+    LEGIT_DOMAINS = read_list_from_file('app/server/modules/helpers/alexa_top100k.txt')
 
     # The is current game session
     # This data object tracks whether or not the game is currently running
@@ -104,18 +70,6 @@ def start_game() -> None:
     # Iterate through each day in the loop
     # You can customize the length of the game in the company.yaml config file
     company = Company.query.get(1)
-
-    #Generate Domains
-    LEGIT_DOMAINS.append(company.domain)
-    company_data = generate_company_domains(company.domain)
-    partner_data = generate_partner_domains(company.get_partners())
-    LEGIT_DOMAINS = LEGIT_DOMAINS + company_data + partner_data
-    randomized_company_domains = generate_company_traffic(company.domain)
-    RANDOMIZED_DOMAINS = randomized_company_domains
-    PARTNER_DOMAINS = company.get_partners()
-    ALL_DOMAINS =  ALL_DOMAINS + RANDOMIZED_DOMAINS + PARTNER_DOMAINS
-
-
     current_date = date.fromisoformat(company.activity_start_date)
     while current_date <= date.fromisoformat(company.activity_end_date):
         print("##########################################")
@@ -141,33 +95,40 @@ def start_game() -> None:
         current_date += timedelta(days=1)
     print("Done running!")
 
+    # count_cycles = 10
+    # for i in range(count_cycles):
+    #     # generate the activity
+    #     print("##########################################")
+    #     print(f"## Running cycle {i+1} of the game...")
+    #     print("##########################################")
+    #     for actor in actors: 
+    #         if actor.name == "Default":
+    #             # Default actor is used to create noise
+    #             generate_activity(actor, employees) 
+    #         else:
+    #             # generate activity of actors defined in actor config
+    #             # num_email is actually number of emails waves sent
+    #             # waves contain multiple emails
+    #             # TODO: abstract this out to the actor / make this more elegant
+    #             generate_activity(actor, 
+    #                               employees, 
+    #                               num_passive_dns=random.randint(5, 10), 
+    #                               num_email=random.randint(0, 3), 
+    #                             ) 
 
 
-    #### Cleanup activities
-    # clear the rest of queue
-    LOG_UPLOADER.submit_queue()
 
-    print("#########################")
-    print("Summary of activities")
-    print("########################")
-    # print the tally
-    print(
-        json.dumps(
-            LOG_UPLOADER.tally, indent=4
-        )
-    )
-    for actor in actors:
-        if not actor.is_default_actor:
-            print("###############")
-            print(actor.name)
-            print("###############")
-            print(list(set(actor.domains_list)))
-            print(list(set(actor.ips_list)))
-            print(list(set(Actor.string_to_list(actor.sender_emails))))
-
-    from app.server.modules.logging.populate_guide import populate_guide
-    populate_guide()
-
+    # ##########################################
+    # # deg statements to help time tracking
+    # # on average, one cycle=one day in game
+    # game_start_time = get_time()
+    # game_end_time =  get_time()
+    # days_elapse_in_game = (game_end_time - game_start_time) /(60*60*24)
+    # print(f"Game started at {Clock.from_timestamp_to_string(game_start_time)}")
+    # print(f"Game ended at {Clock.from_timestamp_to_string(game_end_time)}")
+    # print(f"{days_elapse_in_game} days elapsed in the game")
+    # # print(f"Ran {count_cycles} cycles...")
+    # ##########################################
 
 
 def init_setup():
@@ -194,11 +155,6 @@ def init_setup():
         create_actors()
         actors = Actor.query.all()
 
-    for actor in actors:
-        if not actor.is_default_actor:
-            print(actor.lateral_movement)
-            print(actor.impact)
-
     return employees, actors
 
 
@@ -211,7 +167,7 @@ def generate_activity_new(actor: Actor,
                         num_auth_events_per_employee:int=10,
                         num_random_inbound_browsing:int=100,
                         count_of_user_endpoint_events=5,
-                        count_of_system_endpoint_events=5) -> None:
+                        count_of_system_endpoint_events=10) -> None:
     """
     Given an actor, generates one cycle of activity for users in the orgs 
     based on the attack types that they have defined
@@ -346,7 +302,7 @@ def create_actors() -> None:
     # read yaml file for each new actor, load json from yaml
     actor_configs = glob.glob("app/game_configs/actors/*.yaml") 
     for file in actor_configs:
-        actor_config = read_config_from_yaml(file, config_type="Actor", load_actor_class=True)
+        actor_config = read_config_from_yaml(file)
         # use dictionary value to instantiate actor
         if actor_config:
             # print(f"adding actor: {actor_config}")
@@ -374,5 +330,22 @@ def create_malware() -> "list[Malware]":
     for path in malware_configs:
         malware_objects.append(load_malware_obj_from_yaml_by_file(path))
     
+    malware_objects = assign_hash_to_malware(malware_objects)
+    return malware_objects
+
+def assign_hash_to_malware(malware_objects: "list[Malware]") -> "list[Malware]":
+    """
+    Take all available VT hashes and assign them to malware families 
+    there should be a 1-1 mapping of hash to malware family
+    """
+    # Look through available hashes and assign them to malware families via a round robin
+    while FILES_MALICIOUS_VT_SEED_HASHES:
+        for malware_object in malware_objects:
+            if not FILES_MALICIOUS_VT_SEED_HASHES:
+                break
+            # take a hash and remove it from our list of hashes
+            hash = FILES_MALICIOUS_VT_SEED_HASHES.pop()
+            malware_object.hashes.append(hash) # TODO: This might not work!!
+   
     return malware_objects
 

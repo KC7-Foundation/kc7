@@ -12,21 +12,80 @@
     <!-- Divider -->
     <hr class="sidebar-divider my-0">
 
-    <!-- Nav Item - Tables -->
+    <!-- Nav Item - Dashboard -->
     <li class="nav-item active">
       <a class="nav-link" href="/">
-        <i class="fas fa-fw fa-user"></i>
-        <span>Manage The Game</span></a>
+        <i class="fas fa-fw fa-tachometer-alt"></i>
+        <span>Dashboard</span></a>
     </li>
+
+    <!-- Divider -->
+    <hr class="sidebar-divider">
+
+    {% if not g.user.is_authenticated %}
+    <!-- Heading -->
+    <div class="sidebar-heading">
+      Panel 
+    </div>
     <!-- Nav Item - Tables -->
     <li class="nav-item">
-      <a class="nav-link" href="/config" target="_blank">
-        <i class="fas fa-fw fa-tachometer-alt"></i>
-        <span>Config Validator</span></a>
+      <a class="nav-link" href="/login">
+        <i class="fas fa-fw fa-user"></i>
+        <span>Login</span></a>
+    </li>
+    {% endif %}
+
+    {% if current_user.has_role('Admin') %}
+
+     <!-- Nav Item - Pages Collapse Menu -->
+     <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseAdmin" aria-expanded="true" aria-controls="collapseAdmin">
+        <i class="fas fa-fw fa-folder"></i>
+        <span>Admin Central</span>
+      </a>
+      <div id="collapseAdmin" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <a class="collapse-item" href="/admin/manage_game">Manage the Game</a>
+          <a class="collapse-item" href="/admin/teams">Manage Teams</a>
+          <a class="collapse-item" href="/admin/users">Manage Users</a>
+          <a class="collapse-item" href="/admin/manage_database">Manage ADX Perms</a>
+        </div>
+      </div>
+    </li>
+    {% endif %}
+
+    <!-- Nav Item - Pages Collapse Menu -->
+    <li class="nav-item">
+      <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseCentral" aria-expanded="true" aria-controls="collapseCentral">
+        <i class="fas fa-fw fa-folder"></i>
+        <span>Team Central</span>
+      </a>
+      <div id="collapseCentral" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+        <div class="bg-white py-2 collapse-inner rounded">
+          <a class="collapse-item" href="/mitigations">Mitigations</a>
+          <!-- <a class="collapse-item" href="/reports">User Reports</a> -->
+          <!-- <a class="collapse-item" href="/upgrades">Upgrades</a> -->
+        </div>
+      </div>
     </li>
 
+    <!-- Nav Item - Charts -->
+    <!-- <li class="nav-item">
+      <a class="nav-link" href="/scoreboard">
+        <i class="fas fa-fw fa-chart-area"></i>
+        <span>Score Board</span></a>
+    </li> -->
 
-  
+
+    <!-- Nav Item - Tables -->
+    <li class="nav-item">
+      <a class="nav-link" href="/teams">
+        <i class="fas fa-fw fa-table"></i>
+        <span>Teams</span></a>
+    </li>
+
+    
+
     <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
 

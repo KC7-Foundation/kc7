@@ -41,7 +41,7 @@ class Actor(Base):
     tlds                        = db.Column(db.String(300))
     malware                     = db.Column(db.String(300))
     recon_search_terms          = db.Column(db.String(300))
-    post_exploit_commands       = db.Column(db.String(1000))   #TODO: Remove this. No reason why this should be in the DB
+    post_exploit_commands       = db.Column(db.String(1000))
     sender_emails               = db.Column(db.String(300))
     watering_hole_domains       = db.Column(db.String(300))
     watering_hole_target_roles  = db.Column(db.String(300))
@@ -72,8 +72,7 @@ class Actor(Base):
                 count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
                 file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[],
                 post_exploit_commands:list=[], difficulty="HARD", watering_hole_domains:list=[], watering_hole_target_roles:list=[],
-                sender_domains:list=[],domain_depth=None, **kwargs):
-        # note we don't actually use KWargs, this is simply in place so we can pass in unused kv pairs during initialization
+                sender_domains:list=[],domain_depth=None):
 
         print(f"Instantiating actor {name}....")
         self.name = name
@@ -127,7 +126,7 @@ class Actor(Base):
 
     @property
     def domain_theme_values(self):
-        return list(set(Actor.string_to_list(self.domain_themes)))
+        return Actor.string_to_list(self.domain_themes)
 
     @property
     def domains_list(self):
@@ -227,12 +226,10 @@ class Actor(Base):
         Assemble a subject line using list of theme words from the Actor object
         """
         subjects = Actor.string_to_list(self.subjects) 
-        # give it some prefixes for variety
-        prefix  = random.choices(["", "RE: ", "FW: ", "RE:RE: "], weights=(60, 20, 15, 5), k=1)[0]
         if subjects:
-            return prefix + random.choice(subjects) 
+            return random.choice(subjects)
         else:
-            return prefix + sentenceGenerator.genSentence() 
+            return sentenceGenerator.genSentence()
 
 
     def get_sender_address(self) -> str:
@@ -242,8 +239,9 @@ class Actor(Base):
         """
         if self.is_default_actor:
             return self.gen_sender_address()
+        else:
             # print(Actor.string_to_list(self.sender_emails))
-        return random.choice(Actor.string_to_list(self.sender_emails))
+            return random.choice(Actor.string_to_list(self.sender_emails))
 
 
     def gen_partner_address(self) -> str:
@@ -259,31 +257,21 @@ class Actor(Base):
 
     def gen_sender_address(self) -> str:
         """Make a list of fake sender addresses"""
-        import names
-
         sender_themes = Actor.string_to_list(self.sender_themes)
 
-        ### user provided themes, use these to build the sender addresses 
-        splitter = random.choice(["", "_", "."])
         # Read actor domains from config
         # If nothing available in the config, choose a freemail provider
+        
         if self.sender_domains_list:
             email_domain = random.choice(self.sender_domains_list)
         else:
             email_domain = random.choice(['yahoo.com', 'gmail.com', 'aol.com', 'verizon.com', 'yandex.com','hotmail.com','protonmail.com','qq.com'])
 
-        if (self.is_default_actor and random.random() < .5)\
-            or (not self.is_default_actor):
-            # use words for the send prefic
-            # all the time for non-default actors
-            # half the time for default actor
-            # get one or two words from our sender themes
-            prefix_parts = random.choices(sender_themes, k=random.randint(1,2))
-        else:
-            prefix_parts = names.get_full_name().lower().split(" ")
+        # get one or two words from our sender themes
+        words = random.choices(sender_themes, k=random.randint(1,2))
         
-        email_prefix = splitter.join(prefix_parts)
-        sender_addr = email_prefix + "@" + email_domain
+        splitter = random.choice(["", "_", "."])
+        sender_addr = splitter.join(words) + "@" + email_domain
         
         return sender_addr
 
@@ -294,14 +282,7 @@ class Actor(Base):
         """
         from app.server.utils import AttackTypes
 
-        if self.sender_themes:
-            #if config contains full email addresses, just use those
-            if  ("@" in self.sender_themes):
-                return Actor.string_to_list(self.sender_themes)
-
-            emails = [self.gen_sender_address() for _ in range(num_emails)]
-        else:
-            emails = []
+        emails = [self.gen_sender_address() for _ in range(num_emails)]
         if AttackTypes.SUPPLY_CHAIN_VIA_EMAIL.value in self.get_attacks():
             emails += [self.gen_partner_address() for _ in range(num_compromised_partner_emails)]
         return emails        
@@ -316,46 +297,6 @@ class Actor(Base):
             self.post_exploit_commands.split("~")
         ]
     
-    ####################
-    # There are some actor properties we don't store in the database
-    # We can get them by loading straight from the yaml file
-    # We should probably do more of this
-    ####################
-    @property
-    def config(self):
-        """
-        Return dictionary containing actor config from yaml file
-        """
-        return read_config_from_yaml(f"app/game_configs/actors/{self.name}.yaml", config_type="Actor")
-
-    @property
-    def discovery(self):
-        try:
-            return self.config["discovery"]
-        except:
-            return []
-
-    @property
-    def lateral_movement(self):
-        try:
-            return self.config["lateral_movement"]
-        except Exception as e:
-            return []
-
-    @property
-    def exfiltration(self):
-        try:
-            return self.config["exfiltration"]
-        except:
-            return []
-
-    @property
-    def impact(self):
-        try:
-            return self.config["impact"]
-        except:
-            return []
-
 
     def __repr__(self):
         return '<Actor %r>' % self.name

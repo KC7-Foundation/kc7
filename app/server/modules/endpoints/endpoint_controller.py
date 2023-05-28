@@ -52,7 +52,7 @@ def gen_system_files_on_host(start_date: date, start_hour: int, workday_length_h
             time = Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp()
             
             file_creation_event = FileCreationEvent(
-                hostname=employee.endpoint.name, #Pick a random employee to generate system files
+                hostname=employee.hostname, #Pick a random employee to generate system files
                 username=employee.username, # Get this from the random employee
                 timestamp=time,
                 filename=filename, # Get the filename from the path 
@@ -64,7 +64,7 @@ def gen_system_files_on_host(start_date: date, start_hour: int, workday_length_h
             if random.random() < current_app.config['FP_RATE_HOST_ALERTS'] and ".exe" in filename: #FP: Use reports legit system file
                 generate_host_alert(
                     time=Clock.delay_time_by(time, factor="minutes"),
-                    hostname=employee.endpoint.name,
+                    hostname=employee.hostname,
                     filename=filename,
                     sha256=hash
                 )
@@ -73,7 +73,7 @@ def gen_system_files_on_host(start_date: date, start_hour: int, workday_length_h
 
 
 @timing
-def gen_system_processes_on_host(start_date: date, start_hour: int, workday_length_hours: int, percent_employees_to_generate: float, count_of_events_per_user:int=1) -> None:
+def gen_system_processes_on_host(start_date: date, start_hour: int, workday_length_hours: int, percent_employees_to_generate: float, count_of_events_per_user:int=2) -> None:
     """
     Generates ProcessEvents for users
     """
@@ -97,7 +97,7 @@ def gen_system_processes_on_host(start_date: date, start_hour: int, workday_leng
                     parent_process_hash=parent_hash,
                     process_commandline=process.process_commandline,
                     process_name=process.process_name,
-                    hostname=employee.endpoint.name,
+                    hostname=employee.hostname,
                     username=employee.username,
                 )
                 upload_endpoint_event_to_azure(process_event, table_name="ProcessEvents")
@@ -117,7 +117,7 @@ def gen_system_processes_on_host(start_date: date, start_hour: int, workday_leng
                     parent_process_hash=parent_hash,
                     process_commandline=process.process_commandline,
                     process_name=process.process_name,
-                    hostname=employee.endpoint.name,
+                    hostname=employee.hostname,
                     username="System"
                 )
                 upload_endpoint_event_to_azure(process_event, table_name="ProcessEvents")
@@ -190,7 +190,7 @@ def gen_user_files_on_host(start_date: date, start_hour: int, workday_length_hou
                 category='office'
                 
             write_file_to_host(
-                hostname=employee.endpoint.name,
+                hostname=employee.hostname,
                 username=employee.username,
                 process_name=random.choice(FILE_CREATING_PROCESSES),
                 timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),
@@ -202,7 +202,7 @@ def gen_user_files_on_host(start_date: date, start_hour: int, workday_length_hou
     # This will create legit executables/applications
     for employee in random.choices(employees, k=10): #FIX THIS LATER
         write_file_to_host(
-            hostname=employee.endpoint.name,
+            hostname=employee.hostname,
             username=employee.username,
             process_name=random.choice(FILE_CREATING_PROCESSES),
             timestamp=Clock.generate_bimodal_timestamp(start_date, start_hour, workday_length_hours).timestamp(),

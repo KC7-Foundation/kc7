@@ -40,8 +40,6 @@ class Company(Base):
     count_employees         = db.Column(db.Integer())
     working_days            = db.Column(db.String(300))
 
-    servers                 = db.relationship('Server', backref='company')
-
     def __init__(self, name: str, domain: str, activity_start_date: str, activity_end_date: str, activity_start_hour: int, 
                  workday_length_hours: int, working_days: list=[], count_employees:int=100, roles:dict={}, partners:list=[]) -> None:
         self.name = name
@@ -158,7 +156,7 @@ class Company(Base):
         Role Dict should look something like: 
           "roles": [
             {
-            "role": "Chief Executive Officer",1
+            "role": "Chief Executive Officer",
             "limit": 1
             },
             {
@@ -208,7 +206,7 @@ class Employee(Base):
     awareness           = db.Column(db.Integer)
     email_addr          = db.Column(db.String(50))
     username            = db.Column(db.String(50))
-    # hostname            = db.Column(db.String(50))
+    hostname            = db.Column(db.String(50))
     timestamp           = db.Column(db.String(50))
     role                = db.Column(db.String(50))
     
@@ -218,10 +216,8 @@ class Employee(Base):
     company = db.relationship(
         'Company', backref=db.backref('employees', lazy='dynamic'))
 
-    endpoint = db.relationship('Endpoint', backref='employee', uselist=False)
-
     def __init__(self, name: str, ip_addr: str, company: Company, 
-                timestamp:float, role:str="",  user_agent: str=None) -> None:
+                timestamp:float, role:str="",  user_agent: str=None,) -> None:
         self.name = name
         
         self.user_agent = generate_user_agent(os=('win'))
@@ -235,7 +231,8 @@ class Employee(Base):
         self.role = role
         self.set_email()
         self.set_username()
-        self.set_endpoint()
+        self.set_hostname()
+        
 
     def set_email(self) -> None:
         """
@@ -280,25 +277,17 @@ class Employee(Base):
         self.username = username
 
     
-    def set_endpoint(self) -> None:
+    def set_hostname(self) -> None:
         """
         Constructs a hostname for the employee's device.
         Randomly choose some letters and numbers, and appends a device identified
 
         Example: X7O9-DESTOP
         """
-        from app.server.modules.host.host import Endpoint
-
         prefix = random.choices(string.ascii_letters + string.digits, k=4)
         prefix = str.upper("".join(prefix))
         postfix = random.choice(["DESKTOP", "LAPTOP", "MACHINE"])
-        hostname = f"{prefix}-{postfix}"
-        
-        endpoint = Endpoint(name = hostname)
-        db.session.add(endpoint)
-        db.session.commit()
-
-        self.endpoint = endpoint
+        self.hostname = f"{prefix}-{postfix}"
 
 
     def stringify(self) -> "dict[str,str]":
@@ -306,7 +295,6 @@ class Employee(Base):
         A function to return the JSON representation of the employee object.
         Used for uploading data to ADX.
         """
-
         return {
             "timestamp": self.timestamp,
             "name": self.name,
@@ -316,7 +304,7 @@ class Employee(Base):
             "company_domain": self.company.domain,
             "username": self.username,
             "role":self.role,
-            "hostname": self.endpoint.name,
+            "hostname": self.hostname,
         }
 
     @staticmethod

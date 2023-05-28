@@ -42,7 +42,7 @@ class OutboundEvent:
     @staticmethod
     def get_kql_repr():
         return (
-            "OutboundNetworkEvents",         # table name
+            "OutboundBrowsing",         # table name
             {                           # type dict
                   "timestamp": "datetime",
                   "method": "string",

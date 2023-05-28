@@ -3,7 +3,6 @@ from inspect import istraceback
 from multiprocessing.dummy import Process
 import pandas as pd
 import json
-import random
 from azure.kusto.data import KustoClient, KustoConnectionStringBuilder
 from azure.kusto.data.exceptions import KustoServiceError
 from azure.kusto.data.helpers import dataframe_from_result_table
@@ -33,7 +32,7 @@ class LogUploader():
     see: https://github.com/Azure/azure-kusto-python/blob/master/azure-kusto-ingest/tests/sample.py
     """
 
-    def __init__(self, queue_limit=10000):
+    def __init__(self, queue_limit=1000):
         # set Azure tenant config variables
         self.AAD_TENANT_ID = current_app.config["AAD_TENANT_ID"]
         self.KUSTO_URI = current_app.config["KUSTO_URI"]
@@ -70,30 +69,7 @@ class LogUploader():
         self.queue = {}
         # how many records do we hold until submitting everything to kusto
         self.queue_limit = queue_limit
-        # this reflect the total sum of events that have been generated
-        # similar to the queue but doesnt get reset
-        self.tally = {}
-        # clear the test logs folder
-        self.clear_testlogs()
 
-
-    def clear_testlogs(self):
-        import os
-        folder_path = "testlogs"
-
-        if os.path.exists(folder_path):
-            # Remove existing folder and its contents
-            for root, dirs, files in os.walk(folder_path, topdown=False):
-                for name in files:
-                    file_path = os.path.join(root, name)
-                    os.remove(file_path)
-                for name in dirs:
-                    dir_path = os.path.join(root, name)
-                    os.rmdir(dir_path)
-            os.rmdir(folder_path)
-        # Create a new folder
-        os.mkdir(folder_path)
- 
     def create_tables(self, reset: bool = False) -> None:
         """
         Create the tables that the logs will be uploaded to in Kusto
@@ -192,25 +168,6 @@ class LogUploader():
         """
         return sum([len(val) for key, val in self.queue.items()])
 
-    def update_tally(self):
-        """
-        Adds all the values in dict1 to the values in dict2 with the corresponding keynames.
-
-        Args:
-            dict1 (dict): The first dictionary.
-            dict2 (dict): The second dictionary.
-
-        Returns:
-            dict: A dictionary with the same keys as dict2 and the values equal to the sum of the corresponding values in dict1 and dict2.
-        """
-        for key, value in self.queue.items():
-            if key in self.tally.keys():
-                self.tally[key] = len(value) + self.tally[key]
-            else:
-                self.tally[key] = len(value)
-        
-
-
     def send_request(self, data: dict, table_name: str) -> None:
         """
         Data is ingested as JSON
@@ -234,58 +191,45 @@ class LogUploader():
         # reached the queue limit
         # submit all existing records and clear the queue
         if self.get_queue_length() > self.queue_limit:
-            self.submit_queue()
-            # add queue to tally
-            self.update_tally()
+            for table_name, data in self.queue.items():
+                self.ingestion_props = IngestionProperties(
+                    database=self.DATABASE,
+                    table=table_name,
+                    data_format=DataFormat.CSV,
+                    report_level=ReportLevel.FailuresAndSuccesses
+                )
+
+                # turn list of rows in a dataframe
+                # TODO: sort by time before uploading -
+                #   need to first standardize time columns accross tables
+                data_table_df = pd.DataFrame(self.queue[table_name])
+                
+                try:
+                    # if possible sort value using the "timestamp" column
+                    data_table_df = data_table_df.sort_values("timestamp", ascending=True)
+                except Exception as e:
+                    print(f"failed to sort rows: {e}")
+
+
+                print(f"uploading data for type {table_name}")
+                print(data_table_df.shape)
+
+                if current_app.config["ADX_DEBUG_MODE"]:
+                    # If ADX_DEBUG_MODE is enabled, print JSON representation of data
+                    # Then, return early to prevent queueing and uploading to ADX
+                    print(f"Uploading to table {table_name}...")
+
+                    # if table_name == "SecurityAlert":
+                    #     print(data_table_df.to_markdown())
+                else:
+                    # submit logs to Kusto
+                    result =  self.ingest.ingest_from_dataframe(
+                        data_table_df, ingestion_properties=self.ingestion_props)
+                    print(result)
+                    print(f"....adding {data_table_df.shape} to azure for {table_name} table")
+
             # reset the quee
             self.queue = {}
         else:
             pass
             # print(f"======> Submission queue @ {self.get_queue_length()}")
-
-
-    def submit_queue(self):
-        """
-        Submit everything in the qeue to ADX (or print in DEV)
-        """
-        from app.server.game_functions import DATA_LOGGER
-
-        for table_name, data in self.queue.items():
-            self.ingestion_props = IngestionProperties(
-                database=self.DATABASE,
-                table=table_name,
-                data_format=DataFormat.CSV,
-                report_level=ReportLevel.FailuresAndSuccesses
-            )
-
-            # turn list of rows in a dataframe
-            # TODO: sort by time before uploading -
-            #   need to first standardize time columns accross tables
-            data_table_df = pd.DataFrame(self.queue[table_name])
-            
-            try:
-                # if possible sort value using the "timestamp" column
-                data_table_df = data_table_df.sort_values("timestamp", ascending=True)
-            except Exception as e:
-                print(f"failed to sort rows: {e}")
-
-
-            print(f"uploading data for type {table_name}")
-            print(data_table_df.shape)
-
-            if not current_app.config["ADX_DEBUG_MODE"]:
-                # If ADX_DEBUG_MODE is not enabled
-                # submit logs to Kusto
-                result =  self.ingest.ingest_from_dataframe(
-                    data_table_df, ingestion_properties=self.ingestion_props)
-                print(result)
-                print(f"....adding {data_table_df.shape} to azure for {table_name} table")
-            
-            print(f"Uploading to table {table_name}...")
-            # Print data in the testlogs folder
-            DATA_LOGGER.log_debug(
-                message=data_table_df.to_markdown(index=False),
-                log_file_path=f"testlogs/{table_name}.txt"
-            )
-
-            

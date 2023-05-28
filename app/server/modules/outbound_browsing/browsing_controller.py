@@ -14,8 +14,6 @@ from app.server.modules.outbound_browsing.outboundEvent import OutboundEvent
 from app.server.modules.clock.Clock import Clock 
 from app.server.models import GameSession
 from app.server.utils import *
-from app.server.modules.helpers.browsing_helpers import *
-from app.server.modules.helpers.config_helper import read_list_from_file
 
 # instantiate faker
 fake = Faker()
@@ -28,9 +26,15 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     Generate n web requests to random websites on the internet  
     # this should typically be for the default actor  
     """
-    from app.server.game_functions import LEGIT_DOMAINS, CONTENT_DOMAINS, RANDOMIZED_DOMAINS, PARTNER_DOMAINS
-    company = get_company()   
-        
+    company = get_company()
+
+    # for default actor, browse partner domains 5% of the time
+    if actor.is_default_actor:
+        if random.random() < current_app.config['RATE_USER_BROWSE_TO_PARTNER_DOMAIN_RANDOM']:
+            domains_to_browse = company.get_partners()
+        else:
+            domains_to_browse=actor.domains_list
+
     # Get the number of employees to generate
     total_num_employees = company.count_employees
     employees_for_activity_generation = int(total_num_employees*percent_employees_to_generate)
@@ -40,7 +44,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
     # TODO: Can this be made more efficient?
     for employee in employees_to_generate:
         for _ in range(count_browsing):
-            link = get_link()
+            link = get_link(actor=actor, actor_domains=domains_to_browse)
             employee = random.choice(employees)
             time = Clock.generate_bimodal_timestamp(start_date, actor.activity_start_hour, actor.workday_length_hours).timestamp()
             outbound_event = OutboundEvent(
@@ -49,7 +53,7 @@ def browse_random_website(employees:"list[Employee]", actor:Actor, count_browsin
                 user_agent=employee.user_agent,
                 url=link,
             )
-            upload_event_to_azure(outbound_event, "OutboundNetworkEvents")    
+            upload_event_to_azure(outbound_event, "OutboundBrowsing")    
 
 
 def browse_website(employee:Employee, link:str, time:float, method: str = None):
@@ -62,7 +66,7 @@ def browse_website(employee:Employee, link:str, time:float, method: str = None):
         method = method
     )
     
-    upload_event_to_azure(event, "OutboundNetworkEvents")
+    upload_event_to_azure(event, "OutboundBrowsing")
 
 
 def upload_event_to_azure(events, table_name:str):
