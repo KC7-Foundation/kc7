@@ -132,7 +132,7 @@ class Trigger:
         path = f"C:\\Users\\{recipient.username}\\Downloads\\{filename}"
         process_name = random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe']) 
         file_creation_event = FileCreationEvent(
-            hostname=recipient.hostname,
+            hostname=recipient.endpoint.name,
             username=recipient.username,
             timestamp=time,
             filename=filename,
@@ -161,7 +161,7 @@ class Trigger:
                     Trigger.email_attachment_drops_payload(filename, recipient, payload_time, actor)
                 else:
                     # Qurantine the file and send an alert
-                    generate_host_quarantine_alert(time=payload_time, hostname=recipient.hostname, filename=filename, sha256="-")
+                    generate_host_quarantine_alert(time=payload_time, hostname=recipient.endpoint.name, filename=filename, sha256="-")
 
     @staticmethod
     def email_attachment_drops_payload(attachment_name:str, recipient: Employee, time: float, actor: Actor) -> None:
@@ -177,7 +177,7 @@ class Trigger:
         implant = malware.get_implant()
 
         write_file_to_host(
-            hostname=recipient.hostname,
+            hostname=recipient.endpoint.name,
             username=recipient.username,
             timestamp=time,
             file=implant,
@@ -187,7 +187,7 @@ class Trigger:
         if random.random() < current_app.config['TP_RATE_HOST_ALERTS']:
             generate_host_alert(
                 time=Clock.delay_time_by(start_time=time, factor="minutes"),
-                hostname=recipient.hostname,
+                hostname=recipient.endpoint.name,
                 filename=implant.filename,
                 sha256=implant.sha256
             )
@@ -222,7 +222,7 @@ class Trigger:
         for process in [recon_process, c2_process]:
             time = Clock.delay_time_by(start_time=time, factor="minutes")
             create_process_on_host(
-                hostname=recipient.hostname,
+                hostname=recipient.endpoint.name,
                 timestamp=time,
                 parent_process_name=payload.filename,
                 parent_process_hash=payload.sha256,

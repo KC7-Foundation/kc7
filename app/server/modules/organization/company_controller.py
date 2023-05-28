@@ -10,6 +10,7 @@ from app.server.models import db
 from app.server.modules.organization.Company import Company, Employee
 from app.server.modules.logging.uploadLogs import LogUploader
 from app.server.modules.clock.Clock import Clock
+from app.server.modules.host.host import Server
 from app.server.modules.helpers.config_helper import read_config_from_yaml
 
 # instantiate faker
@@ -47,14 +48,23 @@ def create_company():
     # loads json file as diction
     company_config = read_config_from_yaml('app/game_configs/company.yaml', config_type="Company")
     # instantiate a company object using config info
+
+    servers = company_config.pop("servers")
     # print(company_config)
     company = Company(
             **company_config
     )
-     # add the company to the database
-    
 
-    # Create 100 employees that work for the company
+    for server in servers:
+        new_server = Server(
+            name=server["name"], 
+            server_type=server["type"]
+        )
+        company.servers.append(new_server)
+        db.session.add(new_server)
+
+    print(company.servers)
+    # Create N employees that work for the company
     # Specify how long they have been working at the company
     employees = []
     for _ in range(company.count_employees):
