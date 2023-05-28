@@ -86,7 +86,6 @@ class Trigger:
                     )
                 
 
-
     @staticmethod
     def user_clicks_link(recipient:Employee, link:str, actor:Actor, time:float):
         """
@@ -131,7 +130,7 @@ class Trigger:
         filename = link.split(
             "/")[-1]  # in the future, this should be parsed from the link
         path = f"C:\\Users\\{recipient.username}\\Downloads\\{filename}"
-        process = random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe']) 
+        process_name = random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe']) 
         file_creation_event = FileCreationEvent(
             hostname=recipient.hostname,
             username=recipient.username,
@@ -139,7 +138,7 @@ class Trigger:
             filename=filename,
             # TODO: generate in filesystem instead
             path=path,
-            process_name=process#TODO: Make this correlate to employee UA
+            process_name=process_name#TODO: Make this correlate to employee UA
         )
 
         # This will come from the filesystem controller
@@ -150,7 +149,7 @@ class Trigger:
             metalog(
                 time=time, 
                 actor=actor, 
-                message=f'{recipient.name} ({recipient.username}) downloaded file with path {path} via {process}'
+                message=f'{recipient.name} ({recipient.username}) downloaded file with path {path} via {process_name}'
             )
 
         # if user runs the file then beacon from user machine
@@ -172,28 +171,17 @@ class Trigger:
         """
         from app.server.modules.alerts.alerts_controller import generate_host_alert
 
-        if ".doc" in attachment_name:
-            process_name = "winword.exe"
-        elif ".ppt" in attachment_name:
-            process_name = "ppt.exe"
-        elif ".xls" in attachment_name:
-            process_name = "excel.exe"
-        elif ".zip" in attachment_name:
-            process_name = "7zip.exe"
-        elif ".rar" in attachment_name:
-            process_name = "winrar.exe"
-        else:
-            process_name = "explorer.exe"
 
         malware_family_to_drop = actor.get_random_malware_name()
         malware = get_malware_by_name(malware_family_to_drop)
         implant = malware.get_implant()
+
         write_file_to_host(
             hostname=recipient.hostname,
             username=recipient.username,
             timestamp=time,
             file=implant,
-            process_name=process_name
+            process_name=None
         )
         
         if random.random() < current_app.config['TP_RATE_HOST_ALERTS']:

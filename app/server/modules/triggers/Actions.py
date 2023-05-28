@@ -68,7 +68,7 @@ class Actions:
         functions = {
             'load_mitre_technique': Actions.load_mitre_technique,
             'run_process_commands': Actions.run_process_commands,
-            'write_files': Actions.write_files,
+            'create_files': Actions.create_files,
             'encrypt_files': Actions.encrypt_files,
             'create_users': Actions.create_users
         }
@@ -89,11 +89,12 @@ class Actions:
         Create process event for every event
         Results are written to ProcessEvent logs
 
-        
+        TODO: Add ability to inject actor ip or domain
+
         Yaml Schema:
 
-            process: required; this is the process commandline; 
-            name: optional; the is the processname
+            process:    required; this is the process commandline; 
+            name:       optional; the is the name of the process
             time_delay: optional; defaults to minutes
 
         Example: 
@@ -138,8 +139,63 @@ class Actions:
         
 
     @staticmethod
-    def write_files(args, env_vars):
-        print(f"Write files {args}")
+    def create_files(files, env_vars):
+        """
+        Given a list of file  arguments
+        Create the corresponding files in logs
+        Results are written to FileCreationEvent logs
+
+        Yaml Schema:
+
+            path:    required; this is the process commandline; 
+            sha256:  optional;  but highly recommended. defaults default to a random hash
+            size: optional
+            time_delay: optional; defaults to minutes
+
+        Example: 
+
+            - create_files:
+                - path:  C:\\ProgramData\\BluePhoenix\\mimikatz.exe
+                  sha256: 614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f
+                  size: 9999
+                  time_delay; minutes
+                - path: C:\\Users\Admin\\modifiedplink.exe
+                  sha256: d2626aab4a95836b17c9abae2e7fdca20f052fcc0e599a8ad16ea6deabcc0b22
+                - path: E:\\Exfil\\qdata.zip
+        """
+        from app.server.modules.endpoints.file_creation_event import File
+        from app.server.modules.endpoints.endpoint_controller import write_file_to_host
+
+        original_time = env_vars["time"]
+        user = env_vars["user"]
+        actor = env_vars["actor"]
+
+        for file in files:
+            time_delay = file.get("time_delay", "minutes")
+            timestamp = Clock.delay_time_in_working_hours(start_time=original_time, factor=time_delay, workday_start_hour=actor.activity_start_hour,
+                                                           workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
+
+            filename = file.get("path", "").split("\\")[-1]     
+            path = file.get("path", "")                                
+            #create the file object
+            file_obj = File(
+                filename=filename,
+                path=path,
+                sha256=file.get("sha256", None),
+                size=file.get("size", None)
+            )
+            #use the file obj to make file creation obj
+            write_file_to_host(
+                hostname=user.hostname,
+                username=user.username,
+                process_name=None,
+                timestamp=timestamp,
+                file=file_obj
+            )
+
+            print(f"=============> Creating a file..... {file_obj.path}{file_obj.filename}")
+
+
 
 
     @staticmethod

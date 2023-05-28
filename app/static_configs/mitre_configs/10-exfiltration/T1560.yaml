@@ -6,7 +6,9 @@ Subtechniques:
       - Name: 7zip archive
         Actions:
           - download_from_url: https://www.7-zip.org/a/7z2002-x64.exe
-          - write_files: 7z2002-x64.exe
+          - create_files: 
+            - path: 7z2002-x64.exe
+              sha256: 7c451a0d88f1ec1174d35925eb18ebd2970a0198294ee6246252003115b2f25c
           - install_application: 7z2002-x64.exe /S
           - create_users: 
             - username: itadmin
