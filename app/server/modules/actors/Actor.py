@@ -41,7 +41,7 @@ class Actor(Base):
     tlds                        = db.Column(db.String(300))
     malware                     = db.Column(db.String(300))
     recon_search_terms          = db.Column(db.String(300))
-    post_exploit_commands       = db.Column(db.String(1000))
+    post_exploit_commands       = db.Column(db.String(1000))   #TODO: Remove this. No reason why this should be in the DB
     sender_emails               = db.Column(db.String(300))
     watering_hole_domains       = db.Column(db.String(300))
     watering_hole_target_roles  = db.Column(db.String(300))
@@ -72,7 +72,8 @@ class Actor(Base):
                 count_init_passive_dns:int=100, count_init_email:int=1, count_init_browsing:int=2, max_wave_size:int=2,
                 file_names:list=[], file_extensions:list=[], attacks:list=[], malware:list=[], recon_search_terms:list=[],
                 post_exploit_commands:list=[], difficulty="HARD", watering_hole_domains:list=[], watering_hole_target_roles:list=[],
-                sender_domains:list=[],domain_depth=None):
+                sender_domains:list=[],domain_depth=None, **kwargs):
+        # note we don't actually use KWargs, this is simply in place so we can pass in unused kv pairs during initialization
 
         print(f"Instantiating actor {name}....")
         self.name = name
@@ -315,6 +316,46 @@ class Actor(Base):
             self.post_exploit_commands.split("~")
         ]
     
+    ####################
+    # There are some actor properties we don't store in the database
+    # We can get them by loading straight from the yaml file
+    # We should probably do more of this
+    ####################
+    @property
+    def config(self):
+        """
+        Return dictionary containing actor config from yaml file
+        """
+        return read_config_from_yaml(f"app/game_configs/actors/{self.name}.yaml", config_type="Actor")
+
+    @property
+    def discovery(self):
+        try:
+            return self.config["discovery"]
+        except:
+            return []
+
+    @property
+    def lateral_movement(self):
+        try:
+            return self.config["lateral_movement"]
+        except Exception as e:
+            return []
+
+    @property
+    def exfiltration(self):
+        try:
+            return self.config["exfiltration"]
+        except:
+            return []
+
+    @property
+    def impact(self):
+        try:
+            return self.config["impact"]
+        except:
+            return []
+
 
     def __repr__(self):
         return '<Actor %r>' % self.name

@@ -1,9 +1,12 @@
 import random
+import os
 from app.server.modules.clock.Clock import Clock
 
 class File:
     def __init__(self, filename:str, path:str, sha256:str=None, size:int=None):
+        #TODO: autoparse the filename from the path
         self.filename = filename
+        # path does not include filname
         self.path = path
         self.sha256 = sha256 or File.get_random_sha256()
         self.size = size or File.get_random_filesize()
@@ -29,20 +32,37 @@ class File:
     def set_filepath(self) -> None:
         if "." in self.path.split("\\")[-1]:
             return
-        elif self.path[-1] == "\\":
+        elif self.path and self.path[-1] == "\\":
             self.path = self.path+self.filename
             
 
 
 class FileCreationEvent(File):
 
-    def __init__(self, hostname: str, timestamp: float, filename: str, path: str, process_name: str, username: str, sha256: str=None, size:int=None):
-
+    def __init__(self, hostname: str, timestamp: float, filename:str, path: str, username: str, sha256: str=None, process_name: str=None, size:int=None):
+        super().__init__(filename, path, sha256, size)
         self.hostname = hostname
         self.timestamp = timestamp
-        self.process_name = process_name
+        self.process_name = process_name or self.get_process_name()
         self.username = username
-        super().__init__(filename, path, sha256, size)
+        
+
+    def get_process_name(self) -> None:
+        if ".doc" in self.path:
+            process_name = "winword.exe"
+        elif ".ppt" in self.path:
+            process_name = "ppt.exe"
+        elif ".xls" in self.path:
+            process_name = "excel.exe"
+        elif ".zip" in self.path:
+           process_name = "7zip.exe"
+        elif ".rar" in self.path:
+            process_name = "winrar.exe"
+        else:
+            process_name = "explorer.exe"
+
+        return process_name
+
 
     def stringify(self) -> dict:
         return {

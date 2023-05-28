@@ -1,3 +1,4 @@
+import re
 from app.server.modules.clock.Clock import Clock
 from app.server.modules.endpoints.file_creation_event import File
 
@@ -8,10 +9,34 @@ class Process:
     This class is time and host agnostic
     """
 
-    def __init__(self, process_name: str, process_commandline: str, process_hash: str = None):
-        self.process_name = process_name
+    def __init__(self, process_commandline: str, process_name: str=None, process_hash: str = None):
         self.process_commandline = process_commandline
+        self.process_name = process_name or self.parse_process_name()   #parse out the process name if not given
         self.process_hash = process_hash or File.get_random_sha256()
+
+    def parse_process_name(self):
+        """Parse out the processname from the command"""
+        # Split the command line into individual arguments
+        args = self.process_commandline.split()
+
+        # Check if the command line starts with a process name
+        if len(args) > 0:
+            process_name = args[0]
+
+            # Remove any path and extract the process name
+            process_name = process_name.split("/")[-1]
+            process_name = process_name.split("\\")[-1]
+
+            # Remove any quotes around the process name
+            process_name = re.sub(r'^"|"$', '', process_name)
+
+            # Check if the process name ends with '.exe' and add it if not
+            if not process_name.endswith('.exe'):
+                process_name += '.exe'
+
+            return process_name
+
+        return ""
 
 class ProcessEvent(Process):
     """
@@ -40,8 +65,8 @@ class ProcessEvent(Process):
                 process_hash: str = None):
 
         self.timestamp = timestamp
-        self.parent_process_name = parent_process_name
-        self.parent_process_hash = parent_process_hash
+        self.parent_process_name = parent_process_name 
+        self.parent_process_hash = parent_process_hash 
         self.hostname = hostname
         self.username = username
         super().__init__(process_name, process_commandline, process_hash)
