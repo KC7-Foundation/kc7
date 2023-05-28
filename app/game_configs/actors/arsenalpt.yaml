@@ -1,0 +1,82 @@
+metadata:
+  name: arsenalpt
+  effectiveness: 70
+  count_init_passive_dns: 4
+  max_wave_size: 3
+  activity_start_date: "2023-06-01"
+  activity_end_date: "2023-07-13"
+  activity_start_hour: 14
+  workday_length_hours: 10
+  working_days:
+    - Monday
+    - Tuesday
+    - Wednesday
+    - Thursday
+    - Friday
+reconnaissance:
+  recon_search_terms:
+    - "research facility"
+    - "researchers"
+    - "research managers"
+    - "radstone research"
+    - "government"
+    - "projects"
+resource_development:
+  domain_themes:
+    - research
+    - management
+    - equipment
+    - government
+    - funding
+  tlds:
+    - com
+  malware:
+    - aptrad
+initial_access:
+  attacks:
+    - recon:browsing
+    - identity:password_spray
+    - watering_hole:phishing
+    - watering_hole:malware_delivery
+  watering_hole_target_roles:
+    - Director of Research
+    - Research Scientist
+    - Research Assistant
+    - Research Coordinator
+    - Biostatistician
+    - Clinical Research Coordinator
+    - Data Manager
+    - Lab Technician
+    - Research Administrator
+    - Postdoctoral Fellow
+    - Grant Writer
+  watering_hole_domains:
+    - lifecarepharmaco.com
+  spoofs_email: True
+discovery:
+  - run_process_commands:
+    - name: cmd.exe
+      process: net share
+    - name: cmd.exe
+      process: cmd.exe /C net group "Domain Admins" /domain
+    - name: netstat.exe
+      process: netstat -aon
+    - name: cmd.exe
+      process: cmd.exe /c ping %userdomain%
+lateral_movement:
+  - load_mitre_technique: T1560
+  - create_files:
+    - path: C:\Users\Admin\modifiedplink.exe
+      sha256: d2626aab4a95836b17c9abae2e7fdca20f052fcc0e599a8ad16ea6deabcc0b22
+  - download_files:
+    - url: https://www.7-zip.org/a/7z2002-x64.exe
+      path: C:\\ProgramData\\BluePhoenix\\7z2002-x64.exe
+      sha256: 614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f
+      time_delay: seconds
+exfiltration:
+  - run_process_commands:
+    - name: cmd.exe
+      process: net share
+    - name: cmd.exe
+      process: cmd.exe /C net group "Domain Admins" /domain
+  - load_mitre_technique: T1560

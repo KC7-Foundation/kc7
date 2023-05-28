@@ -1,4 +1,5 @@
 import os
+import random
 from app.server.modules.clock.Clock import Clock
 
 class Actions:
@@ -70,7 +71,8 @@ class Actions:
             'run_process_commands': Actions.run_process_commands,
             'create_files': Actions.create_files,
             'encrypt_files': Actions.encrypt_files,
-            'create_users': Actions.create_users
+            'create_users': Actions.create_users,
+            'download_files': Actions.download_files
         }
         print(f"Trying to run a fucntion called {action_name}")
         if action_name in functions:
@@ -193,10 +195,69 @@ class Actions:
                 file=file_obj
             )
 
-            print(f"=============> Creating a file..... {file_obj.path}{file_obj.filename}")
+    @staticmethod
+    def download_files(downloads, env_vars):
+        """
+        Given a list urls and files
+        Create the corresponding files in logs
+        Create Corresponding web browsing event to demonstrate file download
+        Results are written to FileCreationEvent logs and NetworkEvents
 
+        Yaml Schema:
 
+            path:    required; this is the process commandline; 
+            sha256:  required;  but highly recommended. defaults default to a random hash
+            url:     required; url from which the file is downloaded
+            size: optional; defaults to random size
+            time_delay: optional; defaults to minutes
 
+        Example: 
+
+            - download_files:
+                - url: https://www.7-zip.org/a/7z2002-x64.exe
+                  path: C:\\ProgramData\\BluePhoenix\\7z2002-x64.exe
+                  sha256: 614ca7b627533e22aa3e5c3594605dc6fe6f000b0cc2b845ece47ca60673ec7f
+                  size: 9999
+                  time_delay; seconds
+        """
+        from app.server.modules.endpoints.file_creation_event import File
+        from app.server.modules.outbound_browsing.browsing_controller import browse_website
+        from app.server.modules.endpoints.endpoint_controller import write_file_to_host
+
+        original_time = env_vars["time"]
+        user = env_vars["user"]
+        actor = env_vars["actor"]
+
+        for download in downloads:
+            time_delay = download.get("time_delay", "minutes")
+            timestamp = Clock.delay_time_in_working_hours(start_time=original_time, factor=time_delay, workday_start_hour=actor.activity_start_hour,
+                                                           workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
+
+            filename = download.get("path", "").split("\\")[-1]     
+            path = download.get("path", "")                                
+            #create the file object
+            file_obj = File(
+                filename=filename,
+                path=path,
+                sha256=download.get("sha256", None),
+                size=download.get("size", None)
+            )
+            #use the file obj to make file creation obj
+            process_name = random.choice(['Edge.exe','chrome.exe','edge.exe','firefox.exe']) 
+            write_file_to_host(
+                hostname=user.hostname,
+                username=user.username,
+                process_name=process_name,
+                timestamp=timestamp,
+                file=file_obj
+            )
+            #browse to the website
+            browse_website(
+                employee=user,
+                link=download.get("url", None),
+                time=timestamp,
+                method="GET"
+            )
 
     @staticmethod
     def encrypt_files(args, env_vars):
@@ -206,6 +267,4 @@ class Actions:
     def create_users(args, env_vars):
         print("Create users sh*t")
 
-    @staticmethod
-    def download_from_url(args, env_vars):
-        print(f"downloading from user {args}")
+    
