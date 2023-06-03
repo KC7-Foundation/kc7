@@ -28,7 +28,7 @@ from app.server.modules.inbound_browsing.inbound_browsing_controller import gen_
 from app.server.modules.file.malware import Malware
 from app.server.modules.constants.constants import FILE_CREATING_PROCESSES
 from app.server.utils import metalog
-
+from app.server.modules.triggers.Actions import Actions
 from app.server.utils import *
 
 # instantiate faker
@@ -205,44 +205,76 @@ class Trigger:
 
 
         
-
     @staticmethod
     def payload_creates_processes(recipient: Employee, time: float, actor: Actor, malware: Malware, payload: File) -> None:
-        """
-        When a payload is dropped to a user's system, it should also spawn processes.
-        The processes that are spawned are defined in the malware config
-        """
-        # Get a C2 IP from the Actor's infrastructure
-        c2_ip = actor.get_ips(count_of_ips=1)[0]
-        # Get random processes
-        recon_process = malware.get_recon_process()
-        c2_process = malware.get_c2_process(c2_ip)
-
-        # Upload the recon and C2 processes to Azure
-        for process in [recon_process, c2_process]:
-            time = Clock.delay_time_by(start_time=time, factor="minutes")
-            create_process_on_host(
-                hostname=recipient.endpoint.name,
-                timestamp=time,
-                parent_process_name=payload.filename,
-                parent_process_hash=payload.sha256,
-                process=process,
-                username=recipient.username
+        # Log metadata for question generation
+        if not actor.is_default_actor:
+            metalog(
+                time=time,
+                actor=actor,
+                message=f'A suspicious was created on {recipient.username}\'s machine by {payload.filename}: {process.process_commandline}'
             )
 
-            ## log metadata for question generation
-            if not actor.is_default_actor:
-                metalog(
-                    time=time, 
-                    actor=actor, 
-                    message=f'A suspicious was created on {recipient.username}\'s machine by {payload.filename}: {process.process_commandline}'
-                )
+        # Execute all actions defined in the malware config
+        actions = malware.actions
+        env_vars = {
+            "time": time,
+            "actor": actor,
+            "user": recipient
+        }
 
-        # wait a couple hours before running post exploitation commands
+        for action in actions:
+            action_name, args = next(iter(action.items()))
+            Actions.execute_action(action_name, args, env_vars)
+
+        # Wait a couple of hours before running post-exploitation commands
         if actor.lateral_movement:
-            post_exploit_time = Clock.delay_time_in_working_hours(start_time=time, factor="hours", workday_start_hour=actor.activity_start_hour,
-                                                           workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
-            Trigger.actor_controls_host(recipient=recipient, time=post_exploit_time, actor=actor )
+            post_exploit_time = Clock.delay_time_in_working_hours(
+                start_time=time,
+                factor="hours",
+                workday_start_hour=actor.activity_start_hour,
+                workday_length_hours=actor.workday_length_hours,
+                working_days_of_week=actor.working_days_list
+            )
+            Trigger.actor_controls_host(recipient=recipient, time=post_exploit_time, actor=actor)
+
+    # @staticmethod
+    # def payload_creates_processes(recipient: Employee, time: float, actor: Actor, malware: Malware, payload: File) -> None:
+    #     """
+    #     When a payload is dropped to a user's system, it should also spawn processes.
+    #     The processes that are spawned are defined in the malware config
+    #     """
+    #     # Get a C2 IP from the Actor's infrastructure
+    #     c2_ip = actor.get_ips(count_of_ips=1)[0]
+    #     # Get random processes
+    #     recon_process = malware.get_recon_process()
+    #     c2_process = malware.get_c2_process(c2_ip)
+
+    #     # Upload the recon and C2 processes to Azure
+    #     for process in [recon_process, c2_process]:
+    #         time = Clock.delay_time_by(start_time=time, factor="minutes")
+    #         create_process_on_host(
+    #             hostname=recipient.endpoint.name,
+    #             timestamp=time,
+    #             parent_process_name=payload.filename,
+    #             parent_process_hash=payload.sha256,
+    #             process=process,
+    #             username=recipient.username
+    #         )
+
+    #         ## log metadata for question generation
+    #         if not actor.is_default_actor:
+    #             metalog(
+    #                 time=time, 
+    #                 actor=actor, 
+    #                 message=f'A suspicious was created on {recipient.username}\'s machine by {payload.filename}: {process.process_commandline}'
+    #             )
+
+    #     # wait a couple hours before running post exploitation commands
+    #     if actor.lateral_movement:
+    #         post_exploit_time = Clock.delay_time_in_working_hours(start_time=time, factor="hours", workday_start_hour=actor.activity_start_hour,
+    #                                                        workday_length_hours=actor.workday_length_hours, working_days_of_week=actor.working_days_list)
+    #         Trigger.actor_controls_host(recipient=recipient, time=post_exploit_time, actor=actor )
 
 
 
