@@ -207,15 +207,8 @@ class Trigger:
         
     @staticmethod
     def payload_creates_processes(recipient: Employee, time: float, actor: Actor, malware: Malware, payload: File) -> None:
-        # Log metadata for question generation
-        if not actor.is_default_actor:
-            metalog(
-                time=time,
-                actor=actor,
-                message=f'A suspicious was created on {recipient.username}\'s machine by {payload.filename}: {process.process_commandline}'
-            )
 
-        # Execute all actions defined in the malware config
+        #Execute all actions defined in the malware config
         actions = malware.actions
         env_vars = {
             "time": time,
@@ -227,16 +220,14 @@ class Trigger:
             action_name, args = next(iter(action.items()))
             Actions.execute_action(action_name, args, env_vars)
 
-        # Wait a couple of hours before running post-exploitation commands
-        if actor.lateral_movement:
-            post_exploit_time = Clock.delay_time_in_working_hours(
-                start_time=time,
-                factor="hours",
-                workday_start_hour=actor.activity_start_hour,
-                workday_length_hours=actor.workday_length_hours,
-                working_days_of_week=actor.working_days_list
-            )
-            Trigger.actor_controls_host(recipient=recipient, time=post_exploit_time, actor=actor)
+            #Log metadata for question generation
+            if not actor.is_default_actor:
+                metalog(
+                    time=time,
+                    actor=actor,
+                    message = f"A suspicious was created on {recipient.username}'s machine by {payload.filename}: {action.get('process_commandline', 'N/A')}"
+                )
+
 
     # @staticmethod
     # def payload_creates_processes(recipient: Employee, time: float, actor: Actor, malware: Malware, payload: File) -> None:
