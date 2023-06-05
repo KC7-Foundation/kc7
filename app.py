@@ -22,5 +22,5 @@ If you care about the data but not the code:
     print("""
 To get started go to http://127.0.0.1:8889/
     """)
-    application.run(debug=True, port="8889")
+    application.run(debug=True, port="8080")
 
