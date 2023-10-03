@@ -4,6 +4,11 @@
 
 KC7 allows you to learn the big picture of cybersecurity analysis and threat intelligence using realistic data. The game simulates an intrusion by multiple cyber threat actors against a fictitious company that spans the entire `Cyber Kill Chain`.
 
+Get Started at scoreboard.kc7cyber.com/modules
+
+[<img width="1378" alt="image" src="https://github.com/KC7-Foundation/kc7/assets/9474932/e913abab-373f-45d0-9485-8005fde3c73e">](scoreboard.kc7cyber.com/modules)
+
+
 Players use `Kust Query Langague (KQL)` queries to triage logs in `Azure Data Explorer` to:
 * Investigate suspicious activity in the company's environment
 * Pivot on known actor indicators to uncover additional selectors and find more intrusion activity
