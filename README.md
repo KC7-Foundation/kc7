@@ -4,7 +4,7 @@
 
 KC7 allows you to learn the big picture of cybersecurity analysis and threat intelligence using realistic data. The game simulates an intrusion by multiple cyber threat actors against a fictitious company that spans the entire `Cyber Kill Chain`.
 
-Get Started at http://scoreboard.kc7cyber.com/modules
+Get Started at http://kc7cyber.com/modules
 
 <img width="1378" alt="image" src="https://github.com/KC7-Foundation/kc7/assets/9474932/e913abab-373f-45d0-9485-8005fde3c73e">
 
